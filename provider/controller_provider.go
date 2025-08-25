@@ -3,22 +3,22 @@ package provider
 import "abdanhafidz.com/go-boilerplate/controller"
 
 type ControllerProvider interface {
-	ProvideAuthenticationController() controller.AuthenticationController
+	ProvideAccountController() controller.AccountController
 }
 
 type controllerProvider struct {
-	authenticationController controller.AuthenticationController
+	accountController controller.AccountController
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
 
-	authenticationController := controller.NewAuthenticationController(servicesProvider.ProvideAuthenticationService())
+	accountController := controller.NewAccountController(servicesProvider.ProvideAccountService())
 
 	return &controllerProvider{
-		authenticationController: authenticationController,
+		accountController: accountController,
 	}
 }
 
-func (c *controllerProvider) ProvideAuthenticationController() controller.AuthenticationController {
-	return c.authenticationController
+func (c *controllerProvider) ProvideAccountController() controller.AccountController {
+	return c.accountController
 }

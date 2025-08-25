@@ -5,30 +5,20 @@ import (
 )
 
 type ServicesProvider interface {
-	ProvideAuthenticationService() services.AuthenticationService
-	ProvideJWTService() services.JWTService
+	ProvideAccountService() services.AccountService
 }
 type servicesProvider struct {
-	authenticationService services.AuthenticationService
-	jwtService            services.JWTService
+	accountService services.AccountService
 }
 
 func NewServicesProvider(repoProvider RepositoriesProvider, configProvider ConfigProvider) ServicesProvider {
-
-	env := configProvider.ProvideEnvConfig()
-	jwtService := services.NewJWTService(env.GetSalt())
-	authenticationService := services.NewAuthenticationService(repoProvider.ProvideAccountRepository(), jwtService)
+	accountService := services.NewAccountService(repoProvider.ProvideAccountRepository())
 
 	return &servicesProvider{
-		authenticationService: authenticationService,
-		jwtService:            jwtService,
+		accountService: accountService,
 	}
 }
 
-func (s *servicesProvider) ProvideAuthenticationService() services.AuthenticationService {
-	return s.authenticationService
-}
-
-func (s *servicesProvider) ProvideJWTService() services.JWTService {
-	return s.jwtService
+func (s *servicesProvider) ProvideAccountService() services.AccountService {
+	return s.accountService
 }

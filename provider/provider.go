@@ -1,6 +1,9 @@
 package provider
 
-import "github.com/gin-gonic/gin"
+import (
+	"abdanhafidz.com/go-boilerplate/models/entity"
+	"github.com/gin-gonic/gin"
+)
 
 type AppProvider interface {
 	ProvideRouter() *gin.Engine
@@ -23,6 +26,10 @@ func NewAppProvider() AppProvider {
 	repositoriesProvider := NewRepositoriesProvider(configProvider)
 	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider)
 	controllerProvider := NewControllerProvider(servicesProvider)
+
+	configProvider.ProvideDatabaseConfig().AutoMigrateAll(
+		&entity.Account{},
+	)
 
 	return &appProvider{
 		ginRouter:            ginRouter,

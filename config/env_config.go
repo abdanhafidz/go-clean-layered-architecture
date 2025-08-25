@@ -34,7 +34,7 @@ func NewEnvConfig(timezone string) EnvConfig {
 }
 
 func (e *envConfig) GetTCPAddress() string {
-	return os.Getenv("TCP_ADDRESS")
+	return os.Getenv("HOST_ADDRESS") + ":" + os.Getenv("HOST_PORT")
 }
 
 func (e *envConfig) GetLogPath() string {

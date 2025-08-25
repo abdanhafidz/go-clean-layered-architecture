@@ -17,10 +17,10 @@ func NewConfigProvider() ConfigProvider {
 	return &configProvider{
 		envConfig: envConfig,
 		databaseConfig: config.NewDatabaseConfig(
-			envConfig.GetTCPAddress(),
-			envConfig.GetDatabaseName(),
+			envConfig.GetDatabaseHost(),
 			envConfig.GetDatabaseUser(),
 			envConfig.GetDatabasePassword(),
+			envConfig.GetDatabaseName(),
 			envConfig.GetDatabasePort(),
 		),
 	}

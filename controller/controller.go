@@ -7,12 +7,13 @@ import (
 )
 
 func RequestJSON[TRequest any](ctx *gin.Context) TRequest {
-	request := new(TRequest)
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
+	var request TRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
 		utils.ResponseFAILED(ctx, request, http_error.BAD_REQUEST_ERROR)
-		return *request
+		ctx.Abort()
+		return request
 	} else {
-		return *request
+		return request
 	}
 }
 
