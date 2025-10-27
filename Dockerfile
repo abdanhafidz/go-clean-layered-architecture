@@ -1,5 +1,5 @@
 # Gunakan image dasar Golang versi 1.24.1
-FROM golang:1.24.1
+FROM golang:1.24.5
 
 # Tambahkan user non-root untuk keamanan (optional tapi best practice)
 RUN useradd -m -u 1001 appuser
@@ -24,7 +24,7 @@ RUN --mount=type=secret,id=DB_PASSWORD,mode=0444,required=false \
     echo "DB_PORT=6543" >> .env && \
     echo "DB_NAME=postgres" >> .env && \
     echo "SALT=NZNZtY7dNPz8l0dWINJZLKafWaJrql1s" >> .env && \
-     echo "JWT_SECRET_KEY=NZNZtY7dNPz8l0dWINJZLKafWaJrql1s" >> .env && \
+    echo "JWT_SECRET_KEY=NZNZtY7dNPz8l0dWINJZLKafWaJrql1s" >> .env && \
     echo "HOST_ADDRESS=0.0.0.0" >> .env && \
     echo "HOST_PORT=7860" >> .env && \
     echo "LOG_PATH=logs" >> .env && \
