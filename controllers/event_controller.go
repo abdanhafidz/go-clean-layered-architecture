@@ -14,6 +14,7 @@ type EventController interface {
 	List(ctx *gin.Context)
 	DetailBySlug(ctx *gin.Context)
 	Join(ctx *gin.Context)
+	QuizListByEvent(ctx *gin.Context)
 }
 
 type eventController struct {
@@ -51,4 +52,10 @@ func (c *eventController) Join(ctx *gin.Context) {
 	accountId, _ := uuid.Parse(accStr)
 	res, err := c.eventService.JoinByCode(ctx.Request.Context(), accountId, req.EventCode)
 	ResponseJSON(ctx, req, res, err)
+}
+
+func (c *eventController) QuizListByEvent(ctx *gin.Context) {
+	slug := ctx.Param("slug")
+	res, err := c.eventService.QuizListByEvent(ctx.Request.Context(), slug)
+	ResponseJSON(ctx, gin.H{"slug": slug}, res, err)
 }

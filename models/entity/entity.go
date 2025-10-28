@@ -183,8 +183,9 @@ type AcademyContent struct {
 	Title             string    `json:"title"`
 	Order             uint      `json:"order"`
 	AcademyMaterialId uint      `json:"academy_material_id"`
-	Description       string    `json:"description"`
+	Contents          string    `json:"contents"`
 }
+
 type OptionCategory struct {
 	Id         uint   `gorm:"primaryKey" json:"id"`
 	OptionName string `json:"option_name"`

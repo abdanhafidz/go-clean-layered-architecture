@@ -12,20 +12,45 @@ import (
 )
 
 type EventService interface {
+	AuthorizeUserToEvent(ctx context.Context, slug string, accountId uuid.UUID) error
 	List(ctx context.Context, p repositories.Pagination) ([]entity.Events, int64, error)
 	DetailBySlug(ctx context.Context, slug string, accountId uuid.UUID) (dto.EventDetailResponse, error)
 	JoinByCode(ctx context.Context, accountID uuid.UUID, code string) (dto.EventDetailResponse, error)
+	QuizListByEvent(ctx context.Context, slug string) ([]entity.ProblemSet, error)
 }
 
 type eventService struct {
-	eventsRepo      repositories.EventsRepository
-	eventAssignRepo repositories.EventAssignRepository
+	problemSetService ProblemSetService
+	eventsRepo        repositories.EventsRepository
+	eventAssignRepo   repositories.EventAssignRepository
 }
 
 func NewEventService(eventsRepo repositories.EventsRepository, eventAssignRepo repositories.EventAssignRepository) EventService {
 	return &eventService{eventsRepo: eventsRepo, eventAssignRepo: eventAssignRepo}
 }
 
+func (s *eventService) AuthorizeUserToEvent(ctx context.Context, slug string, accountId uuid.UUID) error {
+	ev, err := s.eventsRepo.GetBySlug(ctx, slug)
+
+	if err != nil {
+		return err
+	}
+
+	evAssign, err := s.eventAssignRepo.GetByEventAndAccount(ctx, ev.Id, accountId)
+	if err == nil && evAssign.Id != uuid.Nil {
+		return nil
+	}
+
+	event, err := s.eventsRepo.GetByID(ctx, evAssign.EventId)
+
+	if event.IsPublic {
+		return http_error.NOT_REGISTERED_TO_EVENT
+	} else if !event.IsPublic {
+		return http_error.UNAUTHORIZED
+	}
+
+	return err
+}
 func (s *eventService) List(ctx context.Context, pagination repositories.Pagination) ([]entity.Events, int64, error) {
 	list, total, err := s.eventsRepo.GetAllPaginate(ctx, pagination)
 	return list, total, err
@@ -68,4 +93,10 @@ func (s *eventService) JoinByCode(ctx context.Context, accountID uuid.UUID, code
 	}
 
 	return dto.EventDetailResponse{Data: &ev, RegisterStatus: 1}, nil
+}
+
+func (s *eventService) QuizListByEvent(ctx context.Context, slug string) ([]entity.ProblemSet, error) {
+	ev, err := s.eventsRepo.GetBySlug(ctx, slug)
+	psList, err := s.problemSetService.GetProblemSetListByEventId(ctx, ev.Id)
+	return psList, err
 }
