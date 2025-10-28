@@ -12,6 +12,7 @@ type ControllerProvider interface {
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
 	ProvideRegionController() controllers.RegionController
+	ProvideAcademyController() controllers.AcademyController
 }
 
 type controllerProvider struct {
@@ -22,6 +23,7 @@ type controllerProvider struct {
 	forgotPasswordController    controllers.ForgotPasswordController
 	optionController            controllers.OptionController
 	regionController            controllers.RegionController
+	academyController           controllers.AcademyController
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
@@ -33,7 +35,7 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
 	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
 	regionController := controllers.NewRegionController(servicesProvider.ProvideRegionService())
-
+	academyController := controllers.NewAcademyController(servicesProvider.ProvideAcademyService())
 	return &controllerProvider{
 		accountDetailController:     accountDetailController,
 		authenticationController:    authenticationController,
@@ -42,6 +44,7 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 		forgotPasswordController:    forgotPasswordController,
 		optionController:            optionController,
 		regionController:            regionController,
+		academyController:           academyController,
 	}
 }
 
@@ -73,4 +76,8 @@ func (c *controllerProvider) ProvideOptionController() controllers.OptionControl
 
 func (c *controllerProvider) ProvideRegionController() controllers.RegionController {
 	return c.regionController
+}
+
+func (c *controllerProvider) ProvideAcademyController() controllers.AcademyController {
+	return c.academyController
 }

@@ -15,6 +15,7 @@ type RepositoriesProvider interface {
 	ProvideForgotPasswordRepository() repositories.ForgotPasswordRepository
 	ProvideOptionRepository() repositories.OptionRepository
 	ProvideRegionRepository() repositories.RegionRepository
+	ProvideAcademyRepository() repositories.AcademyRepository
 }
 
 type repositoriesProvider struct {
@@ -28,6 +29,7 @@ type repositoriesProvider struct {
 	forgotPasswordRepository    repositories.ForgotPasswordRepository
 	optionRepository            repositories.OptionRepository
 	regionRepository            repositories.RegionRepository
+	academyRepository           repositories.AcademyRepository
 }
 
 // NewRepositoriesProvider akan membuat semua repository dan inject konfigurasi database-nya.
@@ -45,8 +47,8 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	forgotPasswordRepo := repositories.NewForgotPasswordRepository(db)
 	optionRepo := repositories.NewOptionRepository(db)
 	regionRepo := repositories.NewRegionRepository(db)
+	academyRepo := repositories.NewAcademyRepository(db)
 
-	
 	return &repositoriesProvider{
 		accountRepository:           accountRepo,
 		accountDetailRepository:     accountDetailRepo,
@@ -58,6 +60,7 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 		forgotPasswordRepository:    forgotPasswordRepo,
 		optionRepository:            optionRepo,
 		regionRepository:            regionRepo,
+		academyRepository:           academyRepo,
 	}
 }
 
@@ -101,4 +104,8 @@ func (r *repositoriesProvider) ProvideOptionRepository() repositories.OptionRepo
 
 func (r *repositoriesProvider) ProvideRegionRepository() repositories.RegionRepository {
 	return r.regionRepository
+}
+
+func (r *repositoriesProvider) ProvideAcademyRepository() repositories.AcademyRepository {
+	return r.academyRepository
 }

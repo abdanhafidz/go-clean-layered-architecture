@@ -8,8 +8,9 @@ func RunRouter(appProvider provider.AppProvider) {
 	router, controller, config, middleware := appProvider.ProvideRouter(), appProvider.ProvideControllers(), appProvider.ProvideConfig(), appProvider.ProvideMiddlewares()
 	AuthenticationRouter(router, middleware, controller)
 	AccountDetailRouter(router, middleware, controller)
-	EmailVerificationRoute(router, controller)
+	EmailVerificationRouter(router, controller)
 	EventRouter(router, middleware, controller)
 	OptionsRouter(router, controller)
+	AcademyRouter(router, middleware, controller)
 	router.Run(config.ProvideEnvConfig().GetTCPAddress())
 }

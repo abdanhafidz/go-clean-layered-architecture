@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func EmailVerificationRoute(router *gin.Engine, controller provider.ControllerProvider) {
+func EmailVerificationRouter(router *gin.Engine, controller provider.ControllerProvider) {
 	emailVerificationController := controller.ProvideEmailVerificationController()
 	routerGroup := router.Group("/api/v1/email")
 	{

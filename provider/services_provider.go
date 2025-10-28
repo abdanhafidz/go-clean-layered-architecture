@@ -12,6 +12,7 @@ type ServicesProvider interface {
 	ProvideJWTService() services.JWTService
 	ProvideOptionService() services.OptionService
 	ProvideRegionService() services.RegionService
+	ProvideAcademyService() services.AcademyService
 }
 
 type servicesProvider struct {
@@ -22,6 +23,7 @@ type servicesProvider struct {
 	jwtService               services.JWTService
 	optionService            services.OptionService
 	regionService            services.RegionService
+	academyService           services.AcademyService
 }
 
 // Konstruktor utama yang menginisialisasi semua service
@@ -33,6 +35,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 	forgotPasswordService := services.NewForgotPasswordService(jwtService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
 	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
 	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
+	academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
 	return &servicesProvider{
 		accountService:           accountService,
 		emailVerificationService: emailVerificationService,
@@ -41,6 +44,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 		jwtService:               jwtService,
 		optionService:            optionService,
 		regionService:            regionService,
+		academyService:           academyService,
 	}
 }
 
@@ -71,4 +75,8 @@ func (s *servicesProvider) ProvideOptionService() services.OptionService {
 
 func (s *servicesProvider) ProvideRegionService() services.RegionService {
 	return s.regionService
+}
+
+func (s *servicesProvider) ProvideAcademyService() services.AcademyService {
+	return s.academyService
 }

@@ -171,8 +171,8 @@ type Academy struct {
 }
 
 type AcademyMaterial struct {
-	ID          uuid.UUID `gorm:"primaryKey" json:"id"`
-	AcademyId   uint      `json:"academy_id"`
+	Id          uuid.UUID `gorm:"primaryKey" json:"id"`
+	AcademyId   uuid.UUID `json:"academy_id"`
 	Title       string    `json:"title"`
 	Slug        string    `json:"slug"`
 	Description string    `json:"description"`
@@ -182,8 +182,21 @@ type AcademyContent struct {
 	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
 	Title             string    `json:"title"`
 	Order             uint      `json:"order"`
-	AcademyMaterialId uint      `json:"academy_material_id"`
+	AcademyMaterialId uuid.UUID `json:"academy_material_id"`
 	Contents          string    `json:"contents"`
+}
+
+type AcademyMaterialProgress struct {
+	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
+	AccountId         uint      `json:"account_id"`
+	AcademyMaterialId uuid.UUID `json:"academy_material_id"`
+	Progress          uint      `json:"progress"`
+}
+
+type AcademyContentProgress struct {
+	Id        uuid.UUID `gorm:"primaryKey" json:"id"`
+	AccountId uuid.UUID `json:"account_id"`
+	AcademyId uuid.UUID `json:"academy_id"`
 }
 
 type OptionCategory struct {
@@ -196,18 +209,6 @@ type OptionValues struct {
 	Id               uint   `gorm:"primaryKey" json:"id"`
 	OptionCategoryId uint   `json:"option_category_id"`
 	OptionValue      string `json:"option_value"`
-}
-type AcademyMaterialProgress struct {
-	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
-	AccountId         uint      `json:"account_id"`
-	AcademyMaterialId uint      `json:"academy_material_id"`
-	Progress          uint      `json:"progress"`
-}
-
-type AcademyContentProgress struct {
-	Id        uuid.UUID `gorm:"primaryKey" json:"id"`
-	AccountId uuid.UUID `json:"account_id"`
-	AcademyId uuid.UUID `json:"academy_id"`
 }
 
 type RegionProvince struct {
