@@ -32,8 +32,9 @@ func NewExternalAuthService(jwtService JWTService, accountService AccountService
 func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (dto.AuthenticatedUser, error) {
 
 	var (
-		acc    entity.Account
-		errAcc error
+		acc        entity.Account
+		errAcc     error
+		errExtAuth error
 	)
 	_, err := s.externalAuthRepo.GetByOauthId(ctx, idToken)
 	payload, _ := idtoken.Validate(context.Background(), idToken, "")
@@ -44,24 +45,26 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		acc, errAcc = s.accountService.Create(ctx, name, email, name, password)
-		_, errExtAuth := s.externalAuthRepo.Create(ctx, entity.ExternalAuth{
+		_, errExtAuth = s.externalAuthRepo.Create(ctx, entity.ExternalAuth{
 			OauthID:       idToken,
 			OauthProvider: "google",
 			AccountId:     acc.Id,
 		})
-		if errExtAuth != nil {
-			return dto.AuthenticatedUser{}, errExtAuth
-		}
+
 	}
 
 	if errAcc != nil {
-		return dto.AuthenticatedUser{}, err
+		return dto.AuthenticatedUser{}, errAcc
 	}
 
+	if errExtAuth != nil {
+		return dto.AuthenticatedUser{}, errExtAuth
+	}
 	token, _ := s.jwtService.GenerateToken(ctx, dto.JWTCustomClaims{
 		AccountId: acc.Id,
 	})
 
+	err = errors.Join(errAcc, errExtAuth)
 	return dto.AuthenticatedUser{Account: acc, Token: token}, err
 
 }
