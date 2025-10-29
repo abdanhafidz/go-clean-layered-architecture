@@ -35,18 +35,19 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 		acc        entity.Account
 		errAcc     error
 		errExtAuth error
-		name string
-		email string
-		password string
+		name       string
+		email      string
+		password   string
 	)
 	_, err := s.externalAuthRepo.GetByOauthId(ctx, idToken)
 	payload, _ := idtoken.Validate(context.Background(), idToken, "")
-
+	claims := payload.Claims
 	if v, ok := claims["name"].(string); ok {
 		name = v
-	}else{
+	} else {
 		if v, ok := claims["given_name"].(string); ok {
-		name = v
+			name = v
+		}
 	}
 
 	if v, ok := claims["email"].(string); ok {
