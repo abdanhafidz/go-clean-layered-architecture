@@ -13,6 +13,7 @@ type ServicesProvider interface {
 	ProvideOptionService() services.OptionService
 	ProvideRegionService() services.RegionService
 	ProvideAcademyService() services.AcademyService
+	ProvideExternalAuthService() services.ExternalAuthService
 }
 
 type servicesProvider struct {
@@ -24,6 +25,7 @@ type servicesProvider struct {
 	optionService            services.OptionService
 	regionService            services.RegionService
 	academyService           services.AcademyService
+	externalAuthService      services.ExternalAuthService
 }
 
 // Konstruktor utama yang menginisialisasi semua service
@@ -36,6 +38,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
 	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
 	academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
+	externalAuthService := services.NewExternalAuthService(jwtService, accountService, repoProvider.ProvideExternalAuthRepository())
 	return &servicesProvider{
 		accountService:           accountService,
 		emailVerificationService: emailVerificationService,
@@ -45,6 +48,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 		optionService:            optionService,
 		regionService:            regionService,
 		academyService:           academyService,
+		externalAuthService:      externalAuthService,
 	}
 }
 
@@ -79,4 +83,8 @@ func (s *servicesProvider) ProvideRegionService() services.RegionService {
 
 func (s *servicesProvider) ProvideAcademyService() services.AcademyService {
 	return s.academyService
+}
+
+func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthService {
+	return s.externalAuthService
 }

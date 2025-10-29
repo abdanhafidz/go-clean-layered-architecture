@@ -29,7 +29,7 @@ type controllerProvider struct {
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
 
 	accountDetailController := controllers.NewAccountDetailController(servicesProvider.ProvideAccountService())
-	authenticationController := controllers.NewAuthenticationController(servicesProvider.ProvideAccountService())
+	authenticationController := controllers.NewAuthenticationController(servicesProvider.ProvideAccountService(), servicesProvider.ProvideExternalAuthService())
 	emailVerificationController := controllers.NewEmailVerificationController(servicesProvider.ProvideEmailVerificationService())
 	eventController := controllers.NewEventController(servicesProvider.ProvideEventService())
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())

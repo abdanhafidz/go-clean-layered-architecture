@@ -19,9 +19,10 @@ type authenticationController struct {
 	externalAuthService services.ExternalAuthService
 }
 
-func NewAuthenticationController(accountService services.AccountService) AuthenticationController {
+func NewAuthenticationController(accountService services.AccountService, externalAuthService services.ExternalAuthService) AuthenticationController {
 	return &authenticationController{
-		accountService: accountService,
+		accountService:      accountService,
+		externalAuthService: externalAuthService,
 	}
 }
 func (c *authenticationController) SignUp(ctx *gin.Context) {
@@ -58,6 +59,6 @@ func (c *authenticationController) ExternalAuth(ctx *gin.Context) {
 		ResponseJSON(ctx, req, dto.AuthenticatedUser{}, nil)
 		return
 	}
-	
+
 	ResponseJSON(ctx, req, res, err)
 }
