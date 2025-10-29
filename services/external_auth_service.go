@@ -39,9 +39,18 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 		email      string
 		password   string
 	)
-	_, err := s.externalAuthRepo.GetByOauthId(ctx, idToken)
-	payload, _ := idtoken.Validate(context.Background(), idToken, "")
+
+	payload, errTok := idtoken.Validate(context.Background(), idToken, "")
+
+	if errTok != nil {
+		return dto.AuthenticatedUser{}, errTok
+	}
 	claims := payload.Claims
+
+	if v, ok := claims["email"].(string); ok {
+		email = v
+	}
+
 	if v, ok := claims["name"].(string); ok {
 		name = v
 	} else {
@@ -50,12 +59,11 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 		}
 	}
 
-	if v, ok := claims["email"].(string); ok {
-		email = v
-	}
 	if v, ok := claims["sub"].(string); ok {
 		password = v
 	}
+
+	acc, err := s.accountService.GetByEmail(ctx, email)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		acc, errAcc = s.accountService.Create(ctx, name, email, name, password)
@@ -64,7 +72,6 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 			OauthProvider: "google",
 			AccountId:     acc.Id,
 		})
-
 	}
 
 	if errAcc != nil {
@@ -74,6 +81,7 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 	if errExtAuth != nil {
 		return dto.AuthenticatedUser{}, errExtAuth
 	}
+
 	token, _ := s.jwtService.GenerateToken(ctx, dto.JWTCustomClaims{
 		AccountId: acc.Id,
 	})

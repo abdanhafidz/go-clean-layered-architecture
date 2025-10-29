@@ -16,6 +16,7 @@ import (
 )
 
 type AccountService interface {
+	GetByEmail(ctx context.Context, email string) (entity.Account, error)
 	Create(ctx context.Context, name string, email string, username string, password string) (entity.Account, error)
 	Validate(ctx context.Context, emailorusername string, password string) (dto.AuthenticatedUser, error)
 	ChangePassword(ctx context.Context, accountId uuid.UUID, oldPassword string, newPassword string) (dto.AuthenticatedUser, error)
@@ -38,6 +39,9 @@ func NewAccountService(jwtService JWTService, accountRepo repositories.AccountRe
 	}
 }
 
+func (s *accountService) GetByEmail(ctx context.Context, email string) (entity.Account, error) {
+	return s.accountRepo.GetAccountByEmail(ctx, email)
+}
 func (s *accountService) Create(ctx context.Context, name string, email string, username string, password string) (entity.Account, error) {
 	if email == "" || username == "" || password == "" {
 		return entity.Account{}, http_error.BAD_REQUEST_ERROR
