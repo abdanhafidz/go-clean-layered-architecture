@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type DatabaseConfig interface {
@@ -28,6 +27,10 @@ func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) D
 		TranslateError: true,
 	})
 
+	db = db.Session(&gorm.Session{
+		PrepareStmt: false,
+	})
+
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
@@ -37,13 +40,7 @@ func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) D
 
 func (cfg *databaseConfig) AutoMigrateAll(entities ...interface{}) error {
 
-	db := cfg.db.Session(&gorm.Session{
-		PrepareStmt: false,
-	})
-
-	db.Logger.LogMode(logger.Warn)
-	session := cfg.db.Session((&gorm.Session{PrepareStmt: false}))
-	err := session.AutoMigrate(
+	err := cfg.db.AutoMigrate(
 		entities...,
 	)
 
