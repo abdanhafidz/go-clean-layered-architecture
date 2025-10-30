@@ -37,7 +37,11 @@ func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) D
 
 func (cfg *databaseConfig) AutoMigrateAll(entities ...interface{}) error {
 
-	cfg.db.Logger.LogMode(logger.Info)
+	db := cfg.db.Session(&gorm.Session{
+		PrepareStmt: false,
+	})
+
+	db.Logger.LogMode(logger.Warn)
 
 	err := cfg.db.AutoMigrate(
 		entities...,
