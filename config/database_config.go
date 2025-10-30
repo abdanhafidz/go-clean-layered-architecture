@@ -42,8 +42,8 @@ func (cfg *databaseConfig) AutoMigrateAll(entities ...interface{}) error {
 	})
 
 	db.Logger.LogMode(logger.Warn)
-
-	err := cfg.db.AutoMigrate(
+	session := cfg.db.Session((&gorm.Session{PrepareStmt: false}))
+	err := session.AutoMigrate(
 		entities...,
 	)
 
