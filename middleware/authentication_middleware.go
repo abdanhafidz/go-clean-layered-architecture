@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
@@ -26,7 +28,7 @@ func (m *authenticationMiddleware) VerifyAccount(c *gin.Context) {
 	authorizationBearer := c.Request.Header["Authorization"]
 
 	if authorizationBearer != nil {
-		token := authorizationBearer[0]
+		token := strings.Split(authorizationBearer[0], " ")[1]
 		claim, err := m.jwtService.ValidateToken(c.Request.Context(), token)
 
 		if err != nil && errors.Is(err, http_error.INVALID_TOKEN) {
@@ -34,7 +36,7 @@ func (m *authenticationMiddleware) VerifyAccount(c *gin.Context) {
 			c.Abort()
 			return
 		}
-
+		fmt.Println("Claims:", claim)
 		c.Set("account_id", claim.AccountId)
 		c.Next()
 

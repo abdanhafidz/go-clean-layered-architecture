@@ -6,7 +6,7 @@ import (
 )
 
 type JWTCustomClaims struct {
-	AccountId uuid.UUID `json:"account_id" binding:"required"`
+	AccountId string `json:"account_id" binding:"required"`
 	jwt.RegisteredClaims
 }
 

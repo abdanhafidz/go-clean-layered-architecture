@@ -93,7 +93,7 @@ func (s *accountService) Validate(ctx context.Context, emailorusername string, p
 	}
 
 	token, err := s.jwtService.GenerateToken(ctx, dto.JWTCustomClaims{
-		AccountId: acc.Id,
+		AccountId: acc.Id.String(),
 	})
 
 	if err != nil {

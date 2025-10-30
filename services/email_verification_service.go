@@ -50,7 +50,7 @@ func (s *emailVerificationService) VerifyToken(ctx context.Context, email string
 
 	ev, err := s.emailVerificationRepo.GetByAccountAndToken(ctx, acc.Id, token)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return http_error.INVALID_TOKEN
+		return http_error.INVALID_OTP
 	}
 	if err != nil {
 		return err

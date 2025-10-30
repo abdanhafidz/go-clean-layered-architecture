@@ -50,7 +50,7 @@ func (s *forgotPasswordService) Reset(ctx context.Context, token uint, newPasswo
 
 	rec, err := s.forgotPasswordRepo.GetByToken(ctx, token)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return http_error.INVALID_TOKEN
+		return http_error.INVALID_OTP
 	}
 
 	if err != nil {
