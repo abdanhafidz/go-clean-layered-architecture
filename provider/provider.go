@@ -55,8 +55,6 @@ func NewAppProvider() AppProvider {
 
 		&entity.OptionCategory{},
 		&entity.OptionValues{},
-		&entity.Options{},
-
 		&entity.RegionProvince{},
 		&entity.RegionCity{},
 	)
