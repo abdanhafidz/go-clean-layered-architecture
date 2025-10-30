@@ -32,7 +32,7 @@ type servicesProvider struct {
 func NewServicesProvider(repoProvider RepositoriesProvider, configProvider ConfigProvider) ServicesProvider {
 	jwtService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
 	accountService := services.NewAccountService(jwtService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideAccountDetailRepository())
-	emailVerificationService := services.NewEmailVerificationService(repoProvider.ProvideAccountRepository(), repoProvider.ProvideEmailVerificationRepository())
+	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
 	eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
 	forgotPasswordService := services.NewForgotPasswordService(jwtService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
 	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())

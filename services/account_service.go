@@ -18,6 +18,7 @@ import (
 type AccountService interface {
 	GetByEmail(ctx context.Context, email string) (entity.Account, error)
 	Create(ctx context.Context, name string, email string, username string, password string) (entity.Account, error)
+	Update(ctx context.Context, account entity.Account) (entity.Account, error)
 	Validate(ctx context.Context, emailorusername string, password string) (dto.AuthenticatedUser, error)
 	ChangePassword(ctx context.Context, accountId uuid.UUID, oldPassword string, newPassword string) (dto.AuthenticatedUser, error)
 	GetDetail(ctx context.Context, accountId uuid.UUID) (dto.AccountDetailResponse, error)
@@ -72,6 +73,9 @@ func (s *accountService) Create(ctx context.Context, name string, email string, 
 
 }
 
+func (s *accountService) Update(ctx context.Context, account entity.Account) (entity.Account, error) {
+	return s.accountRepo.UpdateAccount(ctx, account)
+}
 func (s *accountService) Validate(ctx context.Context, emailorusername string, password string) (dto.AuthenticatedUser, error) {
 	acc, err := s.accountRepo.GetAccountByEmail(ctx, emailorusername)
 	if errors.Is(err, gorm.ErrRecordNotFound) {

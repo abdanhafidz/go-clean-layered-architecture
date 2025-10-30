@@ -67,6 +67,8 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		acc, errAcc = s.accountService.Create(ctx, name, email, name, password)
+		acc.IsEmailVerified = true
+		s.accountService.Update(ctx, acc)
 		_, errExtAuth = s.externalAuthRepo.Create(ctx, entity.ExternalAuth{
 			OauthID:       idToken,
 			OauthProvider: "google",

@@ -19,16 +19,16 @@ type EmailVerificationService interface {
 }
 
 type emailVerificationService struct {
-	accountRepo            repositories.AccountRepository
-	emailsVerificationRepo repositories.EmailVerificationRepository
+	accountService        AccountService
+	emailVerificationRepo repositories.EmailVerificationRepository
 }
 
-func NewEmailVerificationService(accountRepo repositories.AccountRepository, emailsVerificationRepo repositories.EmailVerificationRepository) EmailVerificationService {
-	return &emailVerificationService{accountRepo: accountRepo, emailsVerificationRepo: emailsVerificationRepo}
+func NewEmailVerificationService(accountService AccountService, emailVerificationRepo repositories.EmailVerificationRepository) EmailVerificationService {
+	return &emailVerificationService{accountService: accountService, emailVerificationRepo: emailVerificationRepo}
 }
 
 func (s *emailVerificationService) CreateToken(ctx context.Context, email string, token uint, due time.Time) (entity.EmailVerification, error) {
-	acc, err := s.accountRepo.GetAccountByEmail(ctx, email)
+	acc, err := s.accountService.GetByEmail(ctx, email)
 	if err != nil {
 		return entity.EmailVerification{}, err
 	}
@@ -36,11 +36,11 @@ func (s *emailVerificationService) CreateToken(ctx context.Context, email string
 		due = time.Now().Add(15 * time.Minute)
 	}
 	ev := entity.EmailVerification{AccountId: acc.Id, Token: token, IsExpired: false, CreatedAt: time.Now(), ExpiredAt: due}
-	return s.emailsVerificationRepo.Create(ctx, ev)
+	return s.emailVerificationRepo.Create(ctx, ev)
 }
 
 func (s *emailVerificationService) VerifyToken(ctx context.Context, email string, token uint) error {
-	acc, err := s.accountRepo.GetAccountByEmail(ctx, email)
+	acc, err := s.accountService.GetByEmail(ctx, email)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return errors.New("account not found")
 	}
@@ -48,7 +48,7 @@ func (s *emailVerificationService) VerifyToken(ctx context.Context, email string
 		return err
 	}
 
-	ev, err := s.emailsVerificationRepo.GetByAccountAndToken(ctx, acc.Id, token)
+	ev, err := s.emailVerificationRepo.GetByAccountAndToken(ctx, acc.Id, token)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return http_error.INVALID_TOKEN
 	}
@@ -57,18 +57,18 @@ func (s *emailVerificationService) VerifyToken(ctx context.Context, email string
 	}
 
 	if ev.ExpiredAt.Before(time.Now()) {
-		_ = s.emailsVerificationRepo.MarkExpired(ctx, ev.Id)
-		_ = s.emailsVerificationRepo.DeleteByToken(ctx, ev.Token)
+		_ = s.emailVerificationRepo.MarkExpired(ctx, ev.Id)
+		_ = s.emailVerificationRepo.DeleteByToken(ctx, ev.Token)
 		return http_error.EXPIRED_TOKEN
 	}
 
 	acc.IsEmailVerified = true
-	if _, err := s.accountRepo.UpdateAccount(ctx, acc); err != nil {
+	if _, err := s.accountService.Update(ctx, acc); err != nil {
 		return err
 	}
-	return s.emailsVerificationRepo.MarkExpired(ctx, ev.Id)
+	return s.emailVerificationRepo.MarkExpired(ctx, ev.Id)
 }
 
 func (s *emailVerificationService) DeleteByToken(ctx context.Context, token uint) error {
-	return s.emailsVerificationRepo.DeleteByToken(ctx, token)
+	return s.emailVerificationRepo.DeleteByToken(ctx, token)
 }
