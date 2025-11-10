@@ -27,9 +27,12 @@ func NewJWTService(secretKey string) JWTService {
 }
 
 func (s *jwtService) GenerateToken(ctx context.Context, payload dto.JWTCustomClaims) (token string, err error) {
+
 	claims := jwt.MapClaims{
 		"account_id": payload.AccountId,
 	}
+
+	fmt.Println(s.secretKey)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err_convertion := jwtToken.SignedString([]byte(s.secretKey))

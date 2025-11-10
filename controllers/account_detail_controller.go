@@ -4,7 +4,6 @@ import (
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	"abdanhafidz.com/go-boilerplate/services"
-	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,8 +23,7 @@ func NewAccountDetailController(accountService services.AccountService) AccountD
 }
 
 func (c *accountDetailController) GetDetail(ctx *gin.Context) {
-	gaccountId, _ := ctx.Get("account_id")
-	accountId, err := utils.ToUUID(gaccountId)
+	accountId := ParseAccountId(ctx)
 	res, err := c.accountService.GetDetail(ctx.Request.Context(), accountId)
 	ResponseJSON(ctx, gin.H{"accountId": accountId}, res, err)
 }
@@ -33,8 +31,7 @@ func (c *accountDetailController) GetDetail(ctx *gin.Context) {
 func (c *accountDetailController) UpdateDetail(ctx *gin.Context) {
 	req := RequestJSON[dto.UpdateAccountDetailRequest](ctx)
 
-	gaccountId, _ := ctx.Get("account_id")
-	accountId, err := utils.ToUUID(gaccountId)
+	accountId := ParseAccountId(ctx)
 
 	details := entity.AccountDetail{
 		AccountId:   accountId,

@@ -19,4 +19,6 @@ var (
 	EMAIL_ALREADY_EXISTS        = errors.New("Email already registered")
 	NOT_REGISTERED_TO_EVENT     = errors.New("Account is not registered to this event")
 	INVALID_OTP                 = errors.New("Invalid OTP Code")
+	ERR_PROBLEM_SET_NOT_FOUND   = errors.New("problem set not found")
+	ERR_QUESTION_NOT_FOUND      = errors.New("question not found")
 )

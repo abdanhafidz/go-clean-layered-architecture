@@ -10,6 +10,7 @@ import (
 
 type AuthorizationMiddleware interface {
 	AuthorizeUserToEvent(ctx *gin.Context)
+	// AuthorizeUserToExamEvent(ctx *gin.Context)
 }
 type authorizationMiddleware struct {
 	eventService services.EventService
@@ -40,5 +41,17 @@ func (m *authorizationMiddleware) AuthorizeUserToEvent(c *gin.Context) {
 	}
 
 	c.Next()
-
 }
+
+// func (m *authorizationMiddleware) AuthorizeUserToExamEvent(c *gin.Context) {
+// 	eventSlug := c.Param("slug")
+// 	accountId, exists := c.Get("account_id")
+// 	if !exists {
+// 		utils.ResponseFAILED(c, eventSlug, http_error.DATA_NOT_FOUND)
+// 		c.Abort()
+// 		return
+// 	}
+
+// 	err := m.eventService.AuthorizeUserToEvent(c.Request.Context(), eventSlug, accountId.(uuid.UUID))
+
+// }

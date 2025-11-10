@@ -13,16 +13,15 @@ import (
 
 type EventService interface {
 	AuthorizeUserToEvent(ctx context.Context, slug string, accountId uuid.UUID) error
-	List(ctx context.Context, p repositories.Pagination) ([]entity.Events, int64, error)
+	List(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Events, int64, error)
 	DetailBySlug(ctx context.Context, slug string, accountId uuid.UUID) (dto.EventDetailResponse, error)
 	JoinByCode(ctx context.Context, accountID uuid.UUID, code string) (dto.EventDetailResponse, error)
-	QuizListByEvent(ctx context.Context, slug string) ([]entity.ProblemSet, error)
+	GetStatus(ctx context.Context, slug string, accountId uuid.UUID) (eventStatus dto.EventStatus, err error)
 }
 
 type eventService struct {
-	problemSetService ProblemSetService
-	eventsRepo        repositories.EventsRepository
-	eventAssignRepo   repositories.EventAssignRepository
+	eventsRepo      repositories.EventsRepository
+	eventAssignRepo repositories.EventAssignRepository
 }
 
 func NewEventService(eventsRepo repositories.EventsRepository, eventAssignRepo repositories.EventAssignRepository) EventService {
@@ -51,9 +50,30 @@ func (s *eventService) AuthorizeUserToEvent(ctx context.Context, slug string, ac
 
 	return err
 }
-func (s *eventService) List(ctx context.Context, pagination repositories.Pagination) ([]entity.Events, int64, error) {
-	list, total, err := s.eventsRepo.GetAllPaginate(ctx, pagination)
-	return list, total, err
+func (s *eventService) List(ctx context.Context, accountId uuid.UUID, pagination repositories.Pagination) ([]entity.Events, int64, error) {
+	evList := []entity.Events{}
+	evPublicList, total, err := s.eventsRepo.ListPublic(ctx, &pagination)
+	evList = append(evList, evPublicList...)
+
+	if err != nil {
+		return []entity.Events{}, 0, err
+	}
+
+	evAssignList, err := s.eventAssignRepo.ListByAccount(ctx, accountId)
+
+	if err != nil {
+		return []entity.Events{}, 0, err
+	}
+
+	for _, evAssign := range evAssignList {
+		evPrivate, err := s.eventsRepo.GetByID(ctx, evAssign.EventId)
+		if err != nil {
+			return []entity.Events{}, 0, err
+		}
+		evList = append(evList, evPrivate)
+	}
+
+	return evList, total, err
 }
 
 func (s *eventService) DetailBySlug(ctx context.Context, slug string, accountId uuid.UUID) (dto.EventDetailResponse, error) {
@@ -88,6 +108,7 @@ func (s *eventService) JoinByCode(ctx context.Context, accountID uuid.UUID, code
 	}
 
 	assign := entity.EventAssign{EventId: ev.Id, AccountId: accountID, AssignedAt: time.Now()}
+
 	if _, err := s.eventAssignRepo.Assign(ctx, assign); err != nil {
 		return dto.EventDetailResponse{}, err
 	}
@@ -95,8 +116,16 @@ func (s *eventService) JoinByCode(ctx context.Context, accountID uuid.UUID, code
 	return dto.EventDetailResponse{Data: &ev, RegisterStatus: 1}, nil
 }
 
-func (s *eventService) QuizListByEvent(ctx context.Context, slug string) ([]entity.ProblemSet, error) {
-	ev, err := s.eventsRepo.GetBySlug(ctx, slug)
-	psList, err := s.problemSetService.GetProblemSetListByEventId(ctx, ev.Id)
-	return psList, err
+func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uuid.UUID) (eventStatus dto.EventStatus, err error) {
+	
+	
+	event, err := s.DetailBySlug(ctx, slug, accountId)
+	currentTime := time.Now()
+	eventStatus.IsHasNotStarted = currentTime.Before(event.Data.StartEvent)
+	eventStatus.IsFinished = currentTime.Before(event.Data.EndEvent)
+	eventStatus.IsOnGoing = !(eventStatus.IsHasNotStarted) && !(eventStatus.IsFinished)
+
+	return eventStatus, err
+
+
 }

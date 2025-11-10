@@ -30,6 +30,7 @@ func NewAppProvider() AppProvider {
 	controllerProvider := NewControllerProvider(servicesProvider)
 	middlewareProvider := NewMiddlewareProvider(servicesProvider)
 	configProvider.ProvideDatabaseConfig().AutoMigrateAll(
+		// Accounts & Auth
 		&entity.Account{},
 		&entity.AccountDetail{},
 		&entity.EmailVerification{},
@@ -37,22 +38,31 @@ func NewAppProvider() AppProvider {
 		&entity.FCM{},
 		&entity.ForgotPassword{},
 
+		// Events
 		&entity.Events{},
 		&entity.EventAssign{},
 		&entity.Announcement{},
 
+		// Problemset & Exam
 		&entity.ProblemSet{},
 		&entity.Questions{},
-		&entity.ProblemSetAssign{},
-		&entity.ExamProgress{},
+		&entity.Exam{},
+		&entity.ProblemSetExamAssign{},
+		&entity.ExamEventAssign{},
+
+		// Exam Attempt & Result
+		&entity.ExamEventAnswer{},
+		&entity.ExamEventAttempt{},
 		&entity.Result{},
 
+		// Academy LMS
 		&entity.Academy{},
 		&entity.AcademyMaterial{},
 		&entity.AcademyContent{},
 		&entity.AcademyMaterialProgress{},
 		&entity.AcademyContentProgress{},
 
+		// Options & Regions
 		&entity.OptionCategory{},
 		&entity.OptionValues{},
 		&entity.RegionProvince{},

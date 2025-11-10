@@ -8,16 +8,16 @@ type MiddlewareProvider interface {
 }
 
 type middlewareProvider struct {
-	authorizationMiddleware  middleware.AuthorizationMiddleware
 	authenticationMiddleware middleware.AuthenticationMiddleware
+	authorizationMiddleware  middleware.AuthorizationMiddleware
 }
 
 func NewMiddlewareProvider(servicesProvider ServicesProvider) MiddlewareProvider {
-	authorizationMiddleware := middleware.NewAuthorizationMiddleware(servicesProvider.ProvideEventService())
 	authenticationMiddleware := middleware.NewAuthenticationMiddleware(servicesProvider.ProvideJWTService())
+	authorizationMiddleware := middleware.NewAuthorizationMiddleware(servicesProvider.ProvideEventService())
 	return &middlewareProvider{
-		authorizationMiddleware:  authorizationMiddleware,
 		authenticationMiddleware: authenticationMiddleware,
+		authorizationMiddleware:  authorizationMiddleware,
 	}
 }
 

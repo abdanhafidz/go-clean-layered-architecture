@@ -1,54 +1,60 @@
 package provider
 
-import (
-	"abdanhafidz.com/go-boilerplate/controllers"
-)
+import "abdanhafidz.com/go-boilerplate/controllers"
 
 type ControllerProvider interface {
+	ProvideAcademyController() controllers.AcademyController
 	ProvideAccountDetailController() controllers.AccountDetailController
 	ProvideAuthenticationController() controllers.AuthenticationController
 	ProvideEmailVerificationController() controllers.EmailVerificationController
 	ProvideEventController() controllers.EventController
+	ProvideExamController() controllers.ExamController
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
 	ProvideRegionController() controllers.RegionController
-	ProvideAcademyController() controllers.AcademyController
 }
 
 type controllerProvider struct {
-	accountDetailController     controllers.AccountDetailController
-	authenticationController    controllers.AuthenticationController
+	academyController controllers.AcademyController
+	accountDetailController controllers.AccountDetailController
+	authenticationController controllers.AuthenticationController
 	emailVerificationController controllers.EmailVerificationController
-	eventController             controllers.EventController
-	forgotPasswordController    controllers.ForgotPasswordController
-	optionController            controllers.OptionController
-	regionController            controllers.RegionController
-	academyController           controllers.AcademyController
+	eventController controllers.EventController
+	examController controllers.ExamController
+	forgotPasswordController controllers.ForgotPasswordController
+	optionController controllers.OptionController
+	regionController controllers.RegionController
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
 
+	academyController := controllers.NewAcademyController(servicesProvider.ProvideAcademyService())
 	accountDetailController := controllers.NewAccountDetailController(servicesProvider.ProvideAccountService())
 	authenticationController := controllers.NewAuthenticationController(servicesProvider.ProvideAccountService(), servicesProvider.ProvideExternalAuthService())
 	emailVerificationController := controllers.NewEmailVerificationController(servicesProvider.ProvideEmailVerificationService())
 	eventController := controllers.NewEventController(servicesProvider.ProvideEventService())
+	examController := controllers.NewExamController(servicesProvider.ProvideExamService())
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
 	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
 	regionController := controllers.NewRegionController(servicesProvider.ProvideRegionService())
-	academyController := controllers.NewAcademyController(servicesProvider.ProvideAcademyService())
 	return &controllerProvider{
-		accountDetailController:     accountDetailController,
-		authenticationController:    authenticationController,
+		academyController: academyController,
+		accountDetailController: accountDetailController,
+		authenticationController: authenticationController,
 		emailVerificationController: emailVerificationController,
-		eventController:             eventController,
-		forgotPasswordController:    forgotPasswordController,
-		optionController:            optionController,
-		regionController:            regionController,
-		academyController:           academyController,
+		eventController: eventController,
+		examController: examController,
+		forgotPasswordController: forgotPasswordController,
+		optionController: optionController,
+		regionController: regionController,
 	}
 }
 
 // --- Getter Methods ---
+
+func (c *controllerProvider) ProvideAcademyController() controllers.AcademyController {
+	return c.academyController
+}
 
 func (c *controllerProvider) ProvideAccountDetailController() controllers.AccountDetailController {
 	return c.accountDetailController
@@ -66,6 +72,10 @@ func (c *controllerProvider) ProvideEventController() controllers.EventControlle
 	return c.eventController
 }
 
+func (c *controllerProvider) ProvideExamController() controllers.ExamController {
+	return c.examController
+}
+
 func (c *controllerProvider) ProvideForgotPasswordController() controllers.ForgotPasswordController {
 	return c.forgotPasswordController
 }
@@ -78,6 +88,3 @@ func (c *controllerProvider) ProvideRegionController() controllers.RegionControl
 	return c.regionController
 }
 
-func (c *controllerProvider) ProvideAcademyController() controllers.AcademyController {
-	return c.academyController
-}

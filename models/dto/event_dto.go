@@ -6,9 +6,15 @@ import (
 
 type EventDetailResponse struct {
 	Data           *entity.Events
-	RegisterStatus int `json:"register_status"`
+	RegisterStatus int `json:"register_status" binding:"required"`
 }
 
 type JoinEventRequest struct {
-	EventCode string `json:"event_code"`
+	EventCode string `json:"event_code" binding:"required"`
+}
+
+type EventStatus struct {
+	IsHasNotStarted bool
+	IsOnGoing       bool
+	IsFinished      bool
 }

@@ -30,7 +30,6 @@ func NewAcademyController(academyService services.AcademyService) AcademyControl
 
 func (c *academyController) CreateAcademy(ctx *gin.Context) {
 	req := RequestJSON[dto.CreateAcademyRequest](ctx)
-
 	res, err := c.academyService.CreateAcademy(ctx.Request.Context(), req)
 	ResponseJSON(ctx, req, res, err)
 }

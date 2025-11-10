@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"time"
+
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"github.com/google/uuid"
 )
@@ -17,4 +19,19 @@ func ToUUID(s any) (uuid.UUID, error) {
 	}
 
 	return res, nil
+}
+func CalculateRemainingTime(startTime, dueTime time.Time) int {
+	now := time.Now()
+
+	// kalau belum mulai (startTime > now), remaining = full duration
+	if startTime.After(now) {
+		return int(dueTime.Sub(startTime).Seconds())
+	}
+
+	remaining := int(dueTime.Sub(now).Seconds())
+
+	if remaining < 0 {
+		return 0
+	}
+	return remaining
 }

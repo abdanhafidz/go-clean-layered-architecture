@@ -3,7 +3,6 @@ package controllers
 import (
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	"abdanhafidz.com/go-boilerplate/services"
-	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,8 +38,7 @@ func (c *authenticationController) SignIn(ctx *gin.Context) {
 
 func (c *authenticationController) ChangePassword(ctx *gin.Context) {
 	req := RequestJSON[dto.ChangePasswordRequest](ctx)
-	gaccountId, _ := ctx.Get("account_id")
-	accountId, err := utils.ToUUID(gaccountId)
+	accountId := ParseAccountId(ctx)
 	res, err := c.accountService.ChangePassword(ctx.Request.Context(), accountId, req.OldPassword, req.NewPassword)
 	ResponseJSON(ctx, req, res, err)
 }

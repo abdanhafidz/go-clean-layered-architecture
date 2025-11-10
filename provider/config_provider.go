@@ -3,41 +3,37 @@ package provider
 import "abdanhafidz.com/go-boilerplate/config"
 
 type ConfigProvider interface {
+	ProvideJWTConfig() config.JWTConfig
 	ProvideEnvConfig() config.EnvConfig
 	ProvideDatabaseConfig() config.DatabaseConfig
-	ProvideJWTConfig() config.JWTConfig
 }
 
 type configProvider struct {
+	jWTConfig      config.JWTConfig
 	envConfig      config.EnvConfig
 	databaseConfig config.DatabaseConfig
-	jwtConfig      config.JWTConfig
 }
 
 func NewConfigProvider() ConfigProvider {
+
 	envConfig := config.NewEnvConfig("Asia/Jakarta")
+	jWTConfig := config.NewJWTConfig(envConfig.GetSalt())
+	databaseConfig := config.NewDatabaseConfig(envConfig.GetDatabaseHost(), envConfig.GetDatabaseUser(), envConfig.GetDatabasePassword(), envConfig.GetDatabaseName(), envConfig.GetDatabasePort())
 	return &configProvider{
-		envConfig: envConfig,
-		databaseConfig: config.NewDatabaseConfig(
-			envConfig.GetDatabaseHost(),
-			envConfig.GetDatabaseUser(),
-			envConfig.GetDatabasePassword(),
-			envConfig.GetDatabaseName(),
-			envConfig.GetDatabasePort(),
-		),
-		jwtConfig: config.NewJWTConfig(
-			envConfig.GetSalt(),
-		),
+		jWTConfig:      jWTConfig,
+		envConfig:      envConfig,
+		databaseConfig: databaseConfig,
 	}
+}
+
+func (c *configProvider) ProvideJWTConfig() config.JWTConfig {
+	return c.jWTConfig
 }
 
 func (c *configProvider) ProvideEnvConfig() config.EnvConfig {
 	return c.envConfig
 }
+
 func (c *configProvider) ProvideDatabaseConfig() config.DatabaseConfig {
 	return c.databaseConfig
-}
-
-func (c *configProvider) ProvideJWTConfig() config.JWTConfig {
-	return c.jwtConfig
 }

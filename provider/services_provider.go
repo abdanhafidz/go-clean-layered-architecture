@@ -1,88 +1,101 @@
 package provider
 
-import (
-	"abdanhafidz.com/go-boilerplate/services"
-)
+import "abdanhafidz.com/go-boilerplate/services"
 
 type ServicesProvider interface {
-	ProvideAccountService() services.AccountService
-	ProvideEmailVerificationService() services.EmailVerificationService
 	ProvideEventService() services.EventService
-	ProvideForgotPasswordService() services.ForgotPasswordService
-	ProvideJWTService() services.JWTService
-	ProvideOptionService() services.OptionService
-	ProvideRegionService() services.RegionService
 	ProvideAcademyService() services.AcademyService
+	ProvideProblemSetService() services.ProblemSetService
+	ProvideJWTService() services.JWTService
+	ProvideRegionService() services.RegionService
+	ProvideOptionService() services.OptionService
+	ProvideExamService() services.ExamService
+	ProvideAccountService() services.AccountService
+	ProvideForgotPasswordService() services.ForgotPasswordService
+	ProvideEmailVerificationService() services.EmailVerificationService
 	ProvideExternalAuthService() services.ExternalAuthService
 }
 
 type servicesProvider struct {
-	accountService           services.AccountService
-	emailVerificationService services.EmailVerificationService
 	eventService             services.EventService
-	forgotPasswordService    services.ForgotPasswordService
-	jwtService               services.JWTService
-	optionService            services.OptionService
-	regionService            services.RegionService
 	academyService           services.AcademyService
+	problemSetService        services.ProblemSetService
+	jWTService               services.JWTService
+	regionService            services.RegionService
+	optionService            services.OptionService
+	examService              services.ExamService
+	accountService           services.AccountService
+	forgotPasswordService    services.ForgotPasswordService
+	emailVerificationService services.EmailVerificationService
 	externalAuthService      services.ExternalAuthService
 }
 
-// Konstruktor utama yang menginisialisasi semua service
 func NewServicesProvider(repoProvider RepositoriesProvider, configProvider ConfigProvider) ServicesProvider {
-	jwtService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
-	accountService := services.NewAccountService(jwtService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideAccountDetailRepository())
-	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
 	eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
-	forgotPasswordService := services.NewForgotPasswordService(jwtService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
-	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
-	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
 	academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
-	externalAuthService := services.NewExternalAuthService(jwtService, accountService, repoProvider.ProvideExternalAuthRepository())
+	problemSetService := services.NewProblemSetService(repoProvider.ProvideProblemSetRepository(), repoProvider.ProvideQuestionsRepository(), repoProvider.ProvideProblemSetExamAssignRepository())
+	jWTService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
+	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
+	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
+	examService := services.NewExamService(eventService, problemSetService, repoProvider.ProvideProblemSetExamAssignRepository(), repoProvider.ProvideExamRepository(), repoProvider.ProvideExamEventAttemptRepository(), repoProvider.ProvideExamEventAnswerRepository(), repoProvider.ProvideResultRepository())
+	accountService := services.NewAccountService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideAccountDetailRepository())
+	forgotPasswordService := services.NewForgotPasswordService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
+	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
+	externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
+
 	return &servicesProvider{
-		accountService:           accountService,
-		emailVerificationService: emailVerificationService,
 		eventService:             eventService,
-		forgotPasswordService:    forgotPasswordService,
-		jwtService:               jwtService,
-		optionService:            optionService,
-		regionService:            regionService,
 		academyService:           academyService,
+		problemSetService:        problemSetService,
+		jWTService:               jWTService,
+		regionService:            regionService,
+		optionService:            optionService,
+		examService:              examService,
+		accountService:           accountService,
+		forgotPasswordService:    forgotPasswordService,
+		emailVerificationService: emailVerificationService,
 		externalAuthService:      externalAuthService,
 	}
-}
-
-// Getter methods (implementasi interface)
-func (s *servicesProvider) ProvideAccountService() services.AccountService {
-	return s.accountService
-}
-
-func (s *servicesProvider) ProvideEmailVerificationService() services.EmailVerificationService {
-	return s.emailVerificationService
 }
 
 func (s *servicesProvider) ProvideEventService() services.EventService {
 	return s.eventService
 }
 
-func (s *servicesProvider) ProvideForgotPasswordService() services.ForgotPasswordService {
-	return s.forgotPasswordService
+func (s *servicesProvider) ProvideAcademyService() services.AcademyService {
+	return s.academyService
+}
+
+func (s *servicesProvider) ProvideProblemSetService() services.ProblemSetService {
+	return s.problemSetService
 }
 
 func (s *servicesProvider) ProvideJWTService() services.JWTService {
-	return s.jwtService
-}
-
-func (s *servicesProvider) ProvideOptionService() services.OptionService {
-	return s.optionService
+	return s.jWTService
 }
 
 func (s *servicesProvider) ProvideRegionService() services.RegionService {
 	return s.regionService
 }
 
-func (s *servicesProvider) ProvideAcademyService() services.AcademyService {
-	return s.academyService
+func (s *servicesProvider) ProvideOptionService() services.OptionService {
+	return s.optionService
+}
+
+func (s *servicesProvider) ProvideExamService() services.ExamService {
+	return s.examService
+}
+
+func (s *servicesProvider) ProvideAccountService() services.AccountService {
+	return s.accountService
+}
+
+func (s *servicesProvider) ProvideForgotPasswordService() services.ForgotPasswordService {
+	return s.forgotPasswordService
+}
+
+func (s *servicesProvider) ProvideEmailVerificationService() services.EmailVerificationService {
+	return s.emailVerificationService
 }
 
 func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthService {
