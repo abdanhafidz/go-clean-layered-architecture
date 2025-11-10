@@ -31,7 +31,7 @@ func (r *problemSetRepository) Create(ctx context.Context, ps entity.ProblemSet)
 func (r *problemSetRepository) Get(ctx context.Context, id uuid.UUID) (entity.ProblemSet, error) {
 	var ps entity.ProblemSet
 	err := r.db.WithContext(ctx).
-		First(&ps, "id_problem_set = ?", id).Error
+		First(&ps, "id = ?", id).Error
 	return ps, err
 }
 
@@ -46,12 +46,12 @@ func (r *problemSetRepository) List(ctx context.Context) ([]entity.ProblemSet, e
 func (r *problemSetRepository) Update(ctx context.Context, ps entity.ProblemSet) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.ProblemSet{}).
-		Where("id_problem_set = ?", ps.Id).
+		Where("id = ?", ps.Id).
 		Updates(ps).Error
 }
 
 func (r *problemSetRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).
-		Where("id_problem_set = ?", id).
+		Where("id = ?", id).
 		Delete(&entity.ProblemSet{}).Error
 }

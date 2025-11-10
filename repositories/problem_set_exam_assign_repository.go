@@ -27,7 +27,7 @@ func (r *problemSetExamAssignRepository) Create(ctx context.Context, m entity.Pr
 func (r *problemSetExamAssignRepository) GetByExam(ctx context.Context, examId uuid.UUID) (entity.ProblemSetExamAssign, error) {
 	var items entity.ProblemSetExamAssign
 	err := r.db.WithContext(ctx).
-		Where("id_exam = ?", examId).
+		Where("exam_id = ?", examId).
 		Preload("ProblemSet").
 		First(&items).Error
 	return items, err
@@ -35,6 +35,6 @@ func (r *problemSetExamAssignRepository) GetByExam(ctx context.Context, examId u
 
 func (r *problemSetExamAssignRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).
-		Where("id_problem_set_exam_assign = ?", id).
+		Where("id = ?", id).
 		Delete(&entity.ProblemSetExamAssign{}).Error
 }

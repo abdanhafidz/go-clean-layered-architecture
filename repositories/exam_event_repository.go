@@ -37,7 +37,7 @@ func (r *examRepository) Create(ctx context.Context, e entity.Exam) error {
 func (r *examRepository) Get(ctx context.Context, id uuid.UUID) (entity.Exam, error) {
 	var e entity.Exam
 	err := r.db.WithContext(ctx).
-		First(&e, "id_exam = ?", id).Error
+		First(&e, "exam_id = ?", id).Error
 	return e, err
 }
 
@@ -52,13 +52,13 @@ func (r *examRepository) GetBySlug(ctx context.Context, slug string) (entity.Exa
 func (r *examRepository) Update(ctx context.Context, e entity.Exam) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.Exam{}).
-		Where("id_exam = ?", e.Id).
+		Where("exam_id = ?", e.Id).
 		Updates(e).Error
 }
 
 func (r *examRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).
-		Where("id_exam = ?", id).
+		Where("exam_id = ?", id).
 		Delete(&entity.Exam{}).Error
 }
 
@@ -77,8 +77,8 @@ func (r *examRepository) ListByEvent(ctx context.Context, eventId uuid.UUID) ([]
 
 	err := r.db.WithContext(ctx).
 		Table("exam").
-		Joins(`JOIN exam_event_assign ON exam_event_assign.id_exam = exam.id_exam`).
-		Where("exam_event_assign.id_event = ?", eventId).
+		Joins(`JOIN exam_event_assign ON exam_event_assign.exam_id = exam.exam_id`).
+		Where("exam_event_assign.event_id = ?", eventId).
 		Find(&exams).Error
 
 	return exams, err

@@ -8,18 +8,19 @@ import (
 func ExamEventRouter(router *gin.Engine, middleware provider.MiddlewareProvider, controller provider.ControllerProvider) {
 	examController := controller.ProvideExamController()
 	auth := middleware.ProvideAuthenticationMiddleware()
-
-	routerGroup := router.Group("api/v1/exam")
+	routerGroup := router.Group("api/v1/events")
 	{
-		routerGroup.GET("/:event_slug/:exam_slug/attempt",
+		routerGroup.GET("/:event_slug/exam/:exam_slug/attempt",
 			auth.VerifyAccount,
 			examController.Attempt,
 		)
-		routerGroup.POST("/answer_question/:attempt_id",
+
+		routerGroup.POST("/:event_slug/exam/:attempt_id/answer_question/",
 			auth.VerifyAccount,
 			examController.Answer,
 		)
-		routerGroup.POST("/submit/:attempt_id",
+
+		routerGroup.POST("/:event_slug/exam/:attempt_id/submit/",
 			auth.VerifyAccount,
 			examController.Submit,
 		)

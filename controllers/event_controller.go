@@ -38,10 +38,10 @@ func (c *eventController) List(ctx *gin.Context) {
 }
 
 func (c *eventController) DetailBySlug(ctx *gin.Context) {
-	slug := ctx.Param("slug")
+	slug := ctx.Param("event_slug")
 	accountId := ParseAccountId(ctx)
 	res, err := c.eventService.DetailBySlug(ctx.Request.Context(), slug, accountId)
-	ResponseJSON(ctx, gin.H{"slug": slug, "id_account": accountId}, res, err)
+	ResponseJSON(ctx, gin.H{"event_slug": slug, "id_account": accountId}, res, err)
 }
 
 func (c *eventController) Join(ctx *gin.Context) {

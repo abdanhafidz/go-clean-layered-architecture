@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
@@ -52,7 +53,7 @@ func NewExamService(eventService EventService, problemSetService ProblemSetServi
 func ProtectExamEventAttempt(attempt entity.ExamEventAttempt) entity.ExamEventAttempt {
 
 	var cleanQuestions []entity.Questions
-	for _, q := range *attempt.Questions {
+	for _, q := range attempt.Questions {
 		qCopy := q
 		qCopy.AnsKey = nil // hide answer key
 		qCopy.CorrMark = 0
@@ -61,19 +62,19 @@ func ProtectExamEventAttempt(attempt entity.ExamEventAttempt) entity.ExamEventAt
 
 		cleanQuestions = append(cleanQuestions, qCopy)
 	}
-	attempt.Questions = &cleanQuestions
+	attempt.Questions = cleanQuestions
 
 	// protect answers verdict info
 	var cleanAnswers []entity.ExamEventAnswer
 
-	for _, a := range *attempt.Answers {
+	for _, a := range attempt.Answers {
 		aCopy := a
 		aCopy.Score = 0 // hide score
 
 		cleanAnswers = append(cleanAnswers, aCopy)
 	}
 
-	attempt.Answers = &cleanAnswers
+	attempt.Answers = cleanAnswers
 
 	return attempt
 }
@@ -99,7 +100,7 @@ func (s *examService) GetEventExamExisting(ctx context.Context, eventSlug string
 		return ev, exam, err
 	}
 
-	if exam, err = s.examRepo.GetBySlug(ctx, eventSlug); err != nil {
+	if exam, err = s.examRepo.GetBySlug(ctx, examSlug); err != nil {
 		return ev, exam, err
 	}
 
@@ -115,7 +116,7 @@ func (s *examService) GetExamEventAttempt(ctx context.Context, eventSlug string,
 	}
 
 	examEventAttempt, err := s.examEventAttemptRepo.GetByExamEvent(ctx, ev.Data.Id, exam.Id, accountId)
-
+	fmt.Println("Error Exam Event Attempt", errors.Is(err, gorm.ErrRecordNotFound))
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return dto.UserExamStatus{}, entity.ExamEventAttempt{}, err
 	}
@@ -126,7 +127,7 @@ func (s *examService) GetExamEventAttempt(ctx context.Context, eventSlug string,
 	attemptStatus.IsSubmitted = examEventAttempt.Submitted
 	attemptStatus.IsOnAttempt = !attemptStatus.IsNotAttempt && !attemptStatus.IsTimeOut && !attemptStatus.IsSubmitted
 
-	return attemptStatus, examEventAttempt, err
+	return attemptStatus, examEventAttempt, nil
 }
 func (s *examService) SetupQuestions(ctx context.Context, eventSlug string, examId uuid.UUID, accountId uuid.UUID) ([]entity.Questions, error) {
 	examAssign, err := s.problemSetExamAssignRepo.GetByExam(ctx, examId)
@@ -134,13 +135,8 @@ func (s *examService) SetupQuestions(ctx context.Context, eventSlug string, exam
 	if err != nil {
 		return []entity.Questions{}, err
 	}
-	problemSet, err := s.problemSetService.GetProblemSet(ctx, examAssign.ProblemSetId)
 
-	if err != nil {
-		return []entity.Questions{}, err
-	}
-
-	questions, err := s.problemSetService.ListQuestions(ctx, problemSet.Id)
+	questions, err := s.problemSetService.ListQuestions(ctx, examAssign.ProblemSetId)
 
 	if err != nil {
 		return []entity.Questions{}, err
@@ -158,7 +154,7 @@ func (s *examService) SetupAnswer(ctx context.Context, questions []entity.Questi
 			QuestionId: q.Id,
 		}
 
-		err := s.examEventAnswerRepo.Create(ctx, blank_ans)
+		err := s.examEventAnswerRepo.Create(ctx, &blank_ans)
 		if err != nil {
 			return []entity.ExamEventAnswer{}, err
 		}
@@ -170,31 +166,43 @@ func (s *examService) SetupAnswer(ctx context.Context, questions []entity.Questi
 
 func (s *examService) SetupExamTimer(ctx context.Context, exam entity.Exam) (time.Time, time.Time) {
 	startTime := time.Now()
-	dueTime := startTime.Add(exam.Duration)
+	dueTime := startTime.Add(exam.Duration * time.Minute)
 	return startTime, dueTime
 }
 
 func (s *examService) SubmitExamEvent(ctx context.Context, attemptId uuid.UUID) (result entity.Result, err error) {
 	attempt, err := s.examEventAttemptRepo.GetById(ctx, attemptId)
-
+	finalScore := float32(0)
 	if err != nil {
 		return entity.Result{}, err
 	}
 
-	for _, ans := range *attempt.Answers {
-		result.FinalScore += ans.Score
+	for _, ans := range attempt.Answers {
+		finalScore += ans.Score
 	}
 
-	result.ExamEventAttemptId = attempt.Id
-	result.ExamEventAttempt = &attempt
-
 	if !attempt.Submitted {
-		err := s.resultRepo.Create(ctx, result)
+
+		attempt.Submitted = true
+		result.AttemptId = attempt.Id
+		result.ExamEventAttempt = &attempt
+		result.FinalScore = float32(finalScore)
+
+		s.examEventAttemptRepo.Update(ctx, &attempt)
+		err := s.resultRepo.Create(ctx, &result)
+
 		if err != nil {
 			return entity.Result{}, err
 		}
 	} else {
-		err := s.resultRepo.Update(ctx, result)
+		result, err = s.resultRepo.GetByAttemptId(ctx, attempt.Id)
+
+		if err != nil {
+			return entity.Result{}, err
+		}
+
+		result.FinalScore = float32(finalScore)
+		err := s.resultRepo.Update(ctx, &result)
 		if err != nil {
 			return entity.Result{}, err
 		}
@@ -214,36 +222,40 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 	if err != nil {
 		return entity.ExamEventAttempt{}, err
 	}
+	questions, err := s.SetupQuestions(ctx, eventSlug, exam.Id, accountId)
+	examEventAttempt.Questions = questions
+	fmt.Println("Question = ", questions)
 
+	if err != nil {
+		return entity.ExamEventAttempt{}, err
+	}
 	if attemptStatus.IsNotAttempt {
-		questions, err := s.SetupQuestions(ctx, eventSlug, exam.Id, accountId)
-
-		if err != nil {
-			return entity.ExamEventAttempt{}, err
-		}
-
-		answers, err := s.SetupAnswer(ctx, questions, examEventAttempt.Id)
-
-		if err != nil {
-			return entity.ExamEventAttempt{}, err
-		}
 
 		startTime, dueTime := s.SetupExamTimer(ctx, exam)
+		remTime := utils.CalculateRemainingTime(startTime, dueTime)
+
+		fmt.Println("Rem Time = ", remTime)
 		examEventAttempt = entity.ExamEventAttempt{
 			AccountId: accountId,
 			EventId:   ev.Data.Id,
 			ExamId:    exam.Id,
-			Questions: &questions,
-			Answers:   &answers,
 			CreatedAt: startTime,
 			DueAt:     dueTime,
 			Submitted: false,
+			RemTime:   remTime,
 		}
 
-		if err := s.examEventAttemptRepo.Create(ctx, examEventAttempt); err != nil {
+		if err := s.examEventAttemptRepo.Create(ctx, &examEventAttempt); err != nil {
 			return entity.ExamEventAttempt{}, err
 		}
 
+		answers, err := s.SetupAnswer(ctx, questions, examEventAttempt.Id)
+		fmt.Println("Answer = ", answers)
+		if err != nil {
+			return entity.ExamEventAttempt{}, err
+		}
+
+		examEventAttempt.Answers = answers
 		return ProtectExamEventAttempt(examEventAttempt), err
 
 	} else if attemptStatus.IsOnAttempt {
@@ -251,9 +263,11 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 		remTime := utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt)
 		examEventAttempt.RemTime = remTime
 
-		if err := s.examEventAttemptRepo.Update(ctx, examEventAttempt); err != nil {
+		if err := s.examEventAttemptRepo.Update(ctx, &examEventAttempt); err != nil {
 			return entity.ExamEventAttempt{}, err
 		}
+
+		examEventAttempt.Questions = questions
 
 		return ProtectExamEventAttempt(examEventAttempt), err
 
@@ -265,7 +279,7 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 
 		s.SubmitExamEvent(ctx, examEventAttempt.Id)
 		examEventAttempt.Submitted = true
-		if err := s.examEventAttemptRepo.Update(ctx, examEventAttempt); err != nil {
+		if err := s.examEventAttemptRepo.Update(ctx, &examEventAttempt); err != nil {
 			return entity.ExamEventAttempt{}, err
 		}
 
@@ -279,15 +293,25 @@ func (s *examService) EvaluateAnswer(ctx context.Context, question entity.Questi
 
 	nonCPEvaluator := func(answer []string) (float32, entity.CPQuestionVerdict) {
 		score := float32(0)
+		isCorrect := true
 		for i, ans := range answer {
+			fmt.Println("User Answer :", ans)
+			fmt.Println("Answer Key :", question.AnsKey[i])
 			if ans != question.AnsKey[i] && ans != "" {
 				score += float32(question.IncorrMark)
+				isCorrect = false
+				break
 			} else if ans == "" {
 				score += float32(question.NullMark)
-			} else {
-				score += float32(question.CorrMark)
+				isCorrect = false
+				break
 			}
 		}
+
+		if isCorrect {
+			score += float32(question.CorrMark)
+		}
+
 		return score, entity.CPQuestionVerdict{}
 	}
 
@@ -321,7 +345,7 @@ func (s *examService) AnswerExamEvent(ctx context.Context, attemptId uuid.UUID, 
 
 	score, CPQuestionVerdict := s.EvaluateAnswer(ctx, question)(answer)
 
-	err = s.examEventAnswerRepo.Update(ctx, entity.ExamEventAnswer{
+	err = s.examEventAnswerRepo.Update(ctx, &entity.ExamEventAnswer{
 		AttemptId:  attemptId,
 		QuestionId: questionId,
 		Answers:    answer,

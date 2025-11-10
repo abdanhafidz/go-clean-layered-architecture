@@ -33,5 +33,5 @@ func CalculateRemainingTime(startTime, dueTime time.Time) int {
 	if remaining < 0 {
 		return 0
 	}
-	return remaining
+	return remaining / 60
 }

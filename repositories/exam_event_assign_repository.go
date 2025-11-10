@@ -27,7 +27,7 @@ func (r *examEventAssignRepository) Create(ctx context.Context, m entity.ExamEve
 func (r *examEventAssignRepository) ListByEvent(ctx context.Context, eventId uuid.UUID) ([]entity.ExamEventAssign, error) {
 	var items []entity.ExamEventAssign
 	err := r.db.WithContext(ctx).
-		Where("id_event = ?", eventId).
+		Where("event_id = ?", eventId).
 		Preload("Exam").
 		Find(&items).Error
 	return items, err
@@ -35,6 +35,6 @@ func (r *examEventAssignRepository) ListByEvent(ctx context.Context, eventId uui
 
 func (r *examEventAssignRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).
-		Where("id_exam_event_assign = ?", id).
+		Where("id = ?", id).
 		Delete(&entity.ExamEventAssign{}).Error
 }

@@ -28,28 +28,28 @@ func (r *questionsRepository) Create(ctx context.Context, q entity.Questions) er
 
 func (r *questionsRepository) Get(ctx context.Context, id uuid.UUID) (entity.Questions, error) {
 	var q entity.Questions
-	err := r.db.WithContext(ctx).First(&q, "id_question = ?", id).Error
+	err := r.db.WithContext(ctx).First(&q, "id = ?", id).Error
 	return q, err
 }
 
 func (r *questionsRepository) Update(ctx context.Context, q entity.Questions) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.Questions{}).
-		Where("id_question = ?", q.Id).
+		Where("id = ?", q.Id).
 		Updates(q).Error
 }
 
 func (r *questionsRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).
-		Where("id_question = ?", id).
+		Where("id = ?", id).
 		Delete(&entity.Questions{}).Error
 }
 
 func (r *questionsRepository) ListByProblemSet(ctx context.Context, problemSetId uuid.UUID) ([]entity.Questions, error) {
 	var q []entity.Questions
 	err := r.db.WithContext(ctx).
-		Where("id_problem_set = ?", problemSetId).
-		Order("id_question").
+		Where("problem_set_id = ?", problemSetId).
+		Order("id").
 		Find(&q).Error
 	return q, err
 }
