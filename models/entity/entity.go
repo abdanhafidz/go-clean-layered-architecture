@@ -214,13 +214,14 @@ type CPQuestionVerdict struct {
 	Score         float32 `json:"score"`
 }
 type ExamEventAnswer struct {
-	Id         uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	AttemptId  uuid.UUID `json:"id_attempt" gorm:"index"`  // FK ke ExamEventAttempt
-	QuestionId uuid.UUID `json:"id_question" gorm:"index"` // FK ke Questions
-	Answers    []string  `gorm:"type:text[]" json:"answers"`
-	Score      float32   `json:"score"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	Id               uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	AttemptId        uuid.UUID         `json:"id_attempt" gorm:"index"`  // FK ke ExamEventAttempt
+	QuestionId       uuid.UUID         `json:"id_question" gorm:"index"` // FK ke Questions
+	Answers          []string          `gorm:"type:text[]" json:"answers"`
+	Score            float32           `json:"score"`
+	ExamEventAttempt *ExamEventAttempt `gorm:"foreignKey:AttemptId" json:"-"`
+	CreatedAt        time.Time         `json:"created_at"`
+	UpdatedAt        time.Time         `json:"updated_at"`
 }
 
 func (ExamEventAnswer) TableName() string { return "exam_event_answer" }
@@ -230,8 +231,8 @@ type ExamEventAttempt struct {
 	AccountId uuid.UUID          `json:"id_account"`
 	EventId   uuid.UUID          `json:"id_event"`
 	ExamId    uuid.UUID          `json:"id_exam"`
-	Questions *[]Questions       `json:"questions"`
-	Answers   *[]ExamEventAnswer `json:"answers"`
+	Questions *[]Questions       `gorm:"-" json:"questions"`
+	Answers   *[]ExamEventAnswer `gorm:"foreignKey:AttemptId;references:Id" json:"answers"`
 	Account   *Account           `gorm:"foreignKey:AccountId"`
 	Event     *Events            `gorm:"foreignKey:EventId"`
 	Exam      *Exam              `gorm:"foreignKey:ExamId"`
