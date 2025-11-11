@@ -21,4 +21,7 @@ var (
 	INVALID_OTP                 = errors.New("Invalid OTP Code")
 	ERR_PROBLEM_SET_NOT_FOUND   = errors.New("problem set not found")
 	ERR_QUESTION_NOT_FOUND      = errors.New("question not found")
+	EVENT_FINISHED              = errors.New("The event has ended, you were disallowed to do the exam!")
+	EVENT_NOT_STARTED           = errors.New("Take it easy, event hasn't starting yet! you cannot do the exam!")
+	EXAMS_SUBMITTED             = errors.New("You've submitted the exam, you were diasallowed to answer the question!")
 )

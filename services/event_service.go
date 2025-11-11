@@ -117,8 +117,7 @@ func (s *eventService) JoinByCode(ctx context.Context, accountID uuid.UUID, code
 }
 
 func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uuid.UUID) (eventStatus dto.EventStatus, err error) {
-	
-	
+
 	event, err := s.DetailBySlug(ctx, slug, accountId)
 	currentTime := time.Now()
 	eventStatus.IsHasNotStarted = currentTime.Before(event.Data.StartEvent)
@@ -126,6 +125,5 @@ func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uui
 	eventStatus.IsOnGoing = !(eventStatus.IsHasNotStarted) && !(eventStatus.IsFinished)
 
 	return eventStatus, err
-
 
 }

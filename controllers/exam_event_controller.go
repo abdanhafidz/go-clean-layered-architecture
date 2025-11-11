@@ -11,6 +11,7 @@ type ExamController interface {
 	Attempt(ctx *gin.Context)
 	Answer(ctx *gin.Context)
 	Submit(ctx *gin.Context)
+	List(ctx *gin.Context)
 }
 
 type examController struct {
@@ -32,14 +33,22 @@ func (c *examController) Attempt(ctx *gin.Context) {
 }
 
 func (c *examController) Answer(ctx *gin.Context) {
+	eventSlug := ctx.Param("event_slug")
 	attemptId, _ := utils.ToUUID(ctx.Param("attempt_id"))
 	req := RequestJSON[dto.AnswerExamEventRequest](ctx)
-	res, err := c.examService.AnswerExamEvent(ctx.Request.Context(), attemptId, req.QuestionId, req.Answer)
+	res, err := c.examService.AnswerExamEvent(ctx.Request.Context(), eventSlug, attemptId, req.QuestionId, req.Answer)
 	ResponseJSON(ctx, gin.H{"cp_grader_result": res}, req, err)
 }
 
 func (c *examController) Submit(ctx *gin.Context) {
 	attemptId, _ := utils.ToUUID(ctx.Param("attempt_id"))
 	res, err := c.examService.SubmitExamEvent(ctx.Request.Context(), attemptId)
+	ResponseJSON(ctx, gin.H{}, res, err)
+}
+
+func (c *examController) List(ctx *gin.Context) {
+	eventSlug := ctx.Param("event_slug")
+	accountId := ParseAccountId(ctx)
+	res, err := c.examService.ListExamByEvent(ctx.Request.Context(), eventSlug, accountId)
 	ResponseJSON(ctx, gin.H{}, res, err)
 }

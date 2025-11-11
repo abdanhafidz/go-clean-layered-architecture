@@ -77,7 +77,7 @@ func (r *examRepository) ListByEvent(ctx context.Context, eventId uuid.UUID) ([]
 
 	err := r.db.WithContext(ctx).
 		Table("exam").
-		Joins(`JOIN exam_event_assign ON exam_event_assign.exam_id = exam.exam_id`).
+		Joins(`JOIN exam_event_assign ON exam_event_assign.exam_id = exam.id`).
 		Where("exam_event_assign.event_id = ?", eventId).
 		Find(&exams).Error
 

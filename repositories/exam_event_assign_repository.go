@@ -12,6 +12,7 @@ type ExamEventAssignRepository interface {
 	Create(ctx context.Context, m entity.ExamEventAssign) error
 	ListByEvent(ctx context.Context, eventId uuid.UUID) ([]entity.ExamEventAssign, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	Check(ctx context.Context, eventId uuid.UUID, examId uuid.UUID) error
 }
 
 type examEventAssignRepository struct{ db *gorm.DB }
@@ -20,6 +21,11 @@ func NewExamEventAssignRepository(db *gorm.DB) ExamEventAssignRepository {
 	return &examEventAssignRepository{db}
 }
 
+func (r *examEventAssignRepository) Check(ctx context.Context, eventId uuid.UUID, examId uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Where("event_id = ? AND exam_id = ?", eventId, examId).
+		First(&entity.ExamEventAssign{}).Error
+}
 func (r *examEventAssignRepository) Create(ctx context.Context, m entity.ExamEventAssign) error {
 	return r.db.WithContext(ctx).Create(&m).Error
 }
