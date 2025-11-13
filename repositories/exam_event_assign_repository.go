@@ -23,7 +23,8 @@ func NewExamEventAssignRepository(db *gorm.DB) ExamEventAssignRepository {
 
 func (r *examEventAssignRepository) Check(ctx context.Context, eventId uuid.UUID, examId uuid.UUID) error {
 	return r.db.WithContext(ctx).
-		Where("event_id = ? AND exam_id = ?", eventId, examId).
+		Where("event_id = ?", eventId).
+		Where("exam_id = ?", examId).
 		First(&entity.ExamEventAssign{}).Error
 }
 func (r *examEventAssignRepository) Create(ctx context.Context, m entity.ExamEventAssign) error {

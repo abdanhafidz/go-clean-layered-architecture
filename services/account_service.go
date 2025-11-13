@@ -37,6 +37,7 @@ func NewAccountService(jwtService JWTService, accountRepo repositories.AccountRe
 		jwtService:        jwtService,
 		accountRepo:       accountRepo,
 		accountDetailRepo: accountDetailRepo,
+		
 	}
 }
 
