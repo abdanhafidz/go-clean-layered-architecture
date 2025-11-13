@@ -38,7 +38,6 @@ func (r *examEventAttemptRepository) GetByExamEvent(ctx context.Context, eventId
 	var attempt entity.ExamEventAttempt
 
 	err := r.db.WithContext(ctx).
-		Preload("Questions").
 		Preload("Answers").
 		Where("event_id = ?", eventId).
 		Where("exam_id = ?", examId).
