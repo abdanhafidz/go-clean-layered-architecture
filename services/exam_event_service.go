@@ -39,13 +39,14 @@ type examService struct {
 	resultRepo               repositories.ResultRepository
 }
 
-func NewExamService(eventService EventService, problemSetService ProblemSetService, problemSetExamAssignRepo repositories.ProblemSetExamAssignRepository, examRepo repositories.ExamRepository, examEventAttemptRepo repositories.ExamEventAttemptRepository, examEventAnswerRepo repositories.ExamEventAnswerRepository, resultRepo repositories.ResultRepository) ExamService {
+func NewExamService(eventService EventService, problemSetService ProblemSetService, problemSetExamAssignRepo repositories.ProblemSetExamAssignRepository, examRepo repositories.ExamRepository, examEventAttemptRepo repositories.ExamEventAttemptRepository, examEventAssignRepo repositories.ExamEventAssignRepository, examEventAnswerRepo repositories.ExamEventAnswerRepository, resultRepo repositories.ResultRepository) ExamService {
 	return &examService{
 		eventService:             eventService,
 		problemSetService:        problemSetService,
 		problemSetExamAssignRepo: problemSetExamAssignRepo,
 		examRepo:                 examRepo,
 		examEventAttemptRepo:     examEventAttemptRepo,
+		examEventAssignRepo:      examEventAssignRepo,
 		examEventAnswerRepo:      examEventAnswerRepo,
 		resultRepo:               resultRepo,
 	}

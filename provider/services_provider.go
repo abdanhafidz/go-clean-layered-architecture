@@ -37,7 +37,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 	jWTService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
 	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
 	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
-	examService := services.NewExamService(eventService, problemSetService, repoProvider.ProvideProblemSetExamAssignRepository(), repoProvider.ProvideExamRepository(), repoProvider.ProvideExamEventAttemptRepository(), repoProvider.ProvideExamEventAnswerRepository(), repoProvider.ProvideResultRepository())
+	examService := services.NewExamService(eventService, problemSetService, repoProvider.ProvideProblemSetExamAssignRepository(), repoProvider.ProvideExamRepository(), repoProvider.ProvideExamEventAttemptRepository(), repoProvider.ProvideExamEventAssignRepository(), repoProvider.ProvideExamEventAnswerRepository(), repoProvider.ProvideResultRepository())
 	accountService := services.NewAccountService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideAccountDetailRepository())
 	forgotPasswordService := services.NewForgotPasswordService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
 	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
