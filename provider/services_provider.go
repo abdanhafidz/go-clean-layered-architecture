@@ -13,13 +13,13 @@ type ServicesProvider interface {
 }
 
 type servicesProvider struct {
-	jWTService services.JWTService
-	regionService services.RegionService
-	optionService services.OptionService
-	accountService services.AccountService
-	forgotPasswordService services.ForgotPasswordService
+	jWTService               services.JWTService
+	regionService            services.RegionService
+	optionService            services.OptionService
+	accountService           services.AccountService
+	forgotPasswordService    services.ForgotPasswordService
 	emailVerificationService services.EmailVerificationService
-	externalAuthService services.ExternalAuthService
+	externalAuthService      services.ExternalAuthService
 }
 
 func NewServicesProvider(repoProvider RepositoriesProvider, configProvider ConfigProvider) ServicesProvider {
@@ -32,13 +32,13 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 	externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
 
 	return &servicesProvider{
-		jWTService: jWTService,
-		regionService: regionService,
-		optionService: optionService,
-		accountService: accountService,
-		forgotPasswordService: forgotPasswordService,
+		jWTService:               jWTService,
+		regionService:            regionService,
+		optionService:            optionService,
+		accountService:           accountService,
+		forgotPasswordService:    forgotPasswordService,
 		emailVerificationService: emailVerificationService,
-		externalAuthService: externalAuthService,
+		externalAuthService:      externalAuthService,
 	}
 }
 
@@ -69,4 +69,3 @@ func (s *servicesProvider) ProvideEmailVerificationService() services.EmailVerif
 func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthService {
 	return s.externalAuthService
 }
-

@@ -10,9 +10,6 @@ func RunRouter(appProvider provider.AppProvider) {
 	ForgotPasswordRouter(router, controller)
 	AccountDetailRouter(router, middleware, controller)
 	EmailVerificationRouter(router, controller)
-	EventRouter(router, middleware, controller)
 	OptionsRouter(router, controller)
-	AcademyRouter(router, middleware, controller)
-	ExamEventRouter(router, middleware, controller)
 	router.Run(config.ProvideEnvConfig().GetTCPAddress())
 }

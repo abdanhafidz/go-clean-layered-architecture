@@ -14,14 +14,14 @@ type RepositoriesProvider interface {
 }
 
 type repositoriesProvider struct {
-	accountDetailRepository repositories.AccountDetailRepository
-	accountRepository repositories.AccountRepository
+	accountDetailRepository     repositories.AccountDetailRepository
+	accountRepository           repositories.AccountRepository
 	emailVerificationRepository repositories.EmailVerificationRepository
-	externalAuthRepository repositories.ExternalAuthRepository
-	fCMRepository repositories.FCMRepository
-	forgotPasswordRepository repositories.ForgotPasswordRepository
-	optionRepository repositories.OptionRepository
-	regionRepository repositories.RegionRepository
+	externalAuthRepository      repositories.ExternalAuthRepository
+	fCMRepository               repositories.FCMRepository
+	forgotPasswordRepository    repositories.ForgotPasswordRepository
+	optionRepository            repositories.OptionRepository
+	regionRepository            repositories.RegionRepository
 }
 
 func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
@@ -38,14 +38,14 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	regionRepository := repositories.NewRegionRepository(db)
 
 	return &repositoriesProvider{
-		accountDetailRepository: accountDetailRepository,
-		accountRepository: accountRepository,
+		accountDetailRepository:     accountDetailRepository,
+		accountRepository:           accountRepository,
 		emailVerificationRepository: emailVerificationRepository,
-		externalAuthRepository: externalAuthRepository,
-		fCMRepository: fCMRepository,
-		forgotPasswordRepository: forgotPasswordRepository,
-		optionRepository: optionRepository,
-		regionRepository: regionRepository,
+		externalAuthRepository:      externalAuthRepository,
+		fCMRepository:               fCMRepository,
+		forgotPasswordRepository:    forgotPasswordRepository,
+		optionRepository:            optionRepository,
+		regionRepository:            regionRepository,
 	}
 }
 
@@ -80,4 +80,3 @@ func (r *repositoriesProvider) ProvideOptionRepository() repositories.OptionRepo
 func (r *repositoriesProvider) ProvideRegionRepository() repositories.RegionRepository {
 	return r.regionRepository
 }
-
