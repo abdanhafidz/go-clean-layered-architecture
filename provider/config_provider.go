@@ -1,6 +1,6 @@
 package provider
 
-import "abdanhafidz.com/go-boilerplate/config"
+import "abdanhafidz.com/go-clean-layered-architecture/config"
 
 type ConfigProvider interface {
 	ProvideJWTConfig() config.JWTConfig

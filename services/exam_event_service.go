@@ -242,7 +242,6 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 
 	questions, err := s.SetupQuestions(ctx, eventSlug, exam.Id, accountId)
 	examEventAttempt.Questions = questions
-	fmt.Println("Question = ", questions)
 
 	if err != nil {
 		return entity.ExamEventAttempt{}, err
@@ -265,6 +264,7 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 			DueAt:     dueTime,
 			Submitted: false,
 			RemTime:   remTime,
+			Questions: questions,
 		}
 
 		if err := s.examEventAttemptRepo.Create(ctx, &examEventAttempt); err != nil {
@@ -374,6 +374,7 @@ func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, att
 	if err != nil {
 		return entity.CPQuestionVerdict{}, err
 	}
+
 	eventStatus, err := s.eventService.GetStatus(ctx, eventSlug, attempt.AccountId)
 
 	if err != nil {

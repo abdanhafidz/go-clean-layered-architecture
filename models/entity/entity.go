@@ -82,6 +82,7 @@ type Events struct {
 	StartEvent time.Time `json:"start_event,omitempty"`
 	EndEvent   time.Time `json:"end_event,omitempty"`
 	Overview   string    `json:"overview,omitempty"`
+	ImgBanner string `json:"img_banner,omitempty"`
 	EventCode  string    `json:"event_code,omitempty"`
 	IsPublic   bool      `json:"is_public,omitempty"`
 }
