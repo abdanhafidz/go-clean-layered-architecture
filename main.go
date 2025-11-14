@@ -1,8 +1,8 @@
 package main
 
 import (
-	"abdanhafidz.com/go-boilerplate/provider"
-	"abdanhafidz.com/go-boilerplate/router"
+	"abdanhafidz.com/go-clean-layered-architecture/provider"
+	"abdanhafidz.com/go-clean-layered-architecture/router"
 )
 
 func main() {

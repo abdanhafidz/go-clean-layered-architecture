@@ -2,14 +2,14 @@ package dto
 
 import (
 	"github.com/golang-jwt/jwt/v4"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 )
 
 type JWTCustomClaims struct {
-	IdUser uuid.UUID `json:"user_id" binding:"required"`
+	AccountId string `json:"account_id" binding:"required"`
 	jwt.RegisteredClaims
 }
 
 type AccountData struct {
-	IdUser uuid.UUID `json:"user_id" binding:"required"`
+	AccountId uuid.UUID `json:"account_id" binding:"required"`
 }

@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type DatabaseConfig interface {
@@ -17,9 +16,20 @@ type databaseConfig struct {
 	db *gorm.DB
 }
 
-func NewDatabaseConfig(DB_HOST string, DB_USER string, DB_PASSWORD string, DB_NAME string, DB_PORT string) DatabaseConfig {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
+func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) DatabaseConfig {
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Asia/Jakarta "+
+			"prefer_simple_protocol=true",
+		DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT,
+	)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		TranslateError: true,
+	})
+
+	db = db.Session(&gorm.Session{
+		PrepareStmt: false,
+	})
 
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
@@ -29,8 +39,6 @@ func NewDatabaseConfig(DB_HOST string, DB_USER string, DB_PASSWORD string, DB_NA
 }
 
 func (cfg *databaseConfig) AutoMigrateAll(entities ...interface{}) error {
-
-	cfg.db.Logger.LogMode(logger.Info)
 
 	err := cfg.db.AutoMigrate(
 		entities...,

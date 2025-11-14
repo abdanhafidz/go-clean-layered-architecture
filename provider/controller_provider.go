@@ -1,24 +1,58 @@
 package provider
 
-import "abdanhafidz.com/go-boilerplate/controller"
+import "abdanhafidz.com/go-clean-layered-architecture/controllers"
 
 type ControllerProvider interface {
-	ProvideAccountController() controller.AccountController
+	ProvideAccountDetailController() controllers.AccountDetailController
+	ProvideAuthenticationController() controllers.AuthenticationController
+	ProvideForgotPasswordController() controllers.ForgotPasswordController
+	ProvideOptionController() controllers.OptionController
+	ProvideRegionController() controllers.RegionController
 }
 
 type controllerProvider struct {
-	accountController controller.AccountController
+	accountDetailController controllers.AccountDetailController
+	authenticationController controllers.AuthenticationController
+	forgotPasswordController controllers.ForgotPasswordController
+	optionController controllers.OptionController
+	regionController controllers.RegionController
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
 
-	accountController := controller.NewAccountController(servicesProvider.ProvideAccountService())
-
+	accountDetailController := controllers.NewAccountDetailController(servicesProvider.ProvideAccountService())
+	authenticationController := controllers.NewAuthenticationController(servicesProvider.ProvideAccountService(), servicesProvider.ProvideExternalAuthService())
+	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
+	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
+	regionController := controllers.NewRegionController(servicesProvider.ProvideRegionService())
 	return &controllerProvider{
-		accountController: accountController,
+		accountDetailController: accountDetailController,
+		authenticationController: authenticationController,
+		forgotPasswordController: forgotPasswordController,
+		optionController: optionController,
+		regionController: regionController,
 	}
 }
 
-func (c *controllerProvider) ProvideAccountController() controller.AccountController {
-	return c.accountController
+// --- Getter Methods ---
+
+func (c *controllerProvider) ProvideAccountDetailController() controllers.AccountDetailController {
+	return c.accountDetailController
 }
+
+func (c *controllerProvider) ProvideAuthenticationController() controllers.AuthenticationController {
+	return c.authenticationController
+}
+
+func (c *controllerProvider) ProvideForgotPasswordController() controllers.ForgotPasswordController {
+	return c.forgotPasswordController
+}
+
+func (c *controllerProvider) ProvideOptionController() controllers.OptionController {
+	return c.optionController
+}
+
+func (c *controllerProvider) ProvideRegionController() controllers.RegionController {
+	return c.regionController
+}
+

@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"abdanhafidz.com/go-boilerplate/models/entity"
+	entity "abdanhafidz.com/go-clean-layered-architecture/models/entity"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,6 +11,7 @@ type AppProvider interface {
 	ProvideRepositories() RepositoriesProvider
 	ProvideServices() ServicesProvider
 	ProvideControllers() ControllerProvider
+	ProvideMiddlewares() MiddlewareProvider
 }
 type appProvider struct {
 	ginRouter            *gin.Engine
@@ -18,6 +19,7 @@ type appProvider struct {
 	repositoriesProvider RepositoriesProvider
 	servicesProvider     ServicesProvider
 	controllerProvider   ControllerProvider
+	middlewareProvider   MiddlewareProvider
 }
 
 func NewAppProvider() AppProvider {
@@ -26,9 +28,21 @@ func NewAppProvider() AppProvider {
 	repositoriesProvider := NewRepositoriesProvider(configProvider)
 	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider)
 	controllerProvider := NewControllerProvider(servicesProvider)
-
+	middlewareProvider := NewMiddlewareProvider(servicesProvider)
 	configProvider.ProvideDatabaseConfig().AutoMigrateAll(
+		// Accounts & Auth
 		&entity.Account{},
+		&entity.AccountDetail{},
+		&entity.EmailVerification{},
+		&entity.ExternalAuth{},
+		&entity.FCM{},
+		&entity.ForgotPassword{},
+
+		// Options & Regions
+		&entity.OptionCategory{},
+		&entity.OptionValues{},
+		&entity.RegionProvince{},
+		&entity.RegionCity{},
 	)
 
 	return &appProvider{
@@ -37,6 +51,7 @@ func NewAppProvider() AppProvider {
 		repositoriesProvider: repositoriesProvider,
 		servicesProvider:     servicesProvider,
 		controllerProvider:   controllerProvider,
+		middlewareProvider:   middlewareProvider,
 	}
 }
 func (a *appProvider) ProvideRouter() *gin.Engine {
@@ -56,4 +71,8 @@ func (a *appProvider) ProvideServices() ServicesProvider {
 
 func (a *appProvider) ProvideControllers() ControllerProvider {
 	return a.controllerProvider
+}
+
+func (a *appProvider) ProvideMiddlewares() MiddlewareProvider {
+	return a.middlewareProvider
 }

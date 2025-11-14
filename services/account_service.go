@@ -3,81 +3,192 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
-	"math/rand"
-	"time"
+	"regexp"
+	"strings"
 
-	"abdanhafidz.com/go-boilerplate/models/dto"
-	"abdanhafidz.com/go-boilerplate/models/entity"
-	http_error "abdanhafidz.com/go-boilerplate/models/error"
-	"abdanhafidz.com/go-boilerplate/repositories"
+	dto "abdanhafidz.com/go-clean-layered-architecture/models/dto"
+	entity "abdanhafidz.com/go-clean-layered-architecture/models/entity"
+	http_error "abdanhafidz.com/go-clean-layered-architecture/models/error"
+	"abdanhafidz.com/go-clean-layered-architecture/repositories"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AccountService interface {
-	CreateAccount(ctx context.Context, name string, date_of_birth time.Time) (res entity.Account, err error)
-	VerifyAccount(ctx context.Context, req dto.VerifyAccountRequest) (res entity.Account, err error)
-	ResetPIN(ctx context.Context, req dto.VerifyAccountRequest) (res entity.Account, err error)
-	BlockAccount(ctx context.Context, req dto.VerifyAccountRequest) (res entity.Account, err error)
+	GetByEmail(ctx context.Context, email string) (entity.Account, error)
+	Create(ctx context.Context, name string, email string, username string, password string) (entity.Account, error)
+	Update(ctx context.Context, account entity.Account) (entity.Account, error)
+	Validate(ctx context.Context, emailorusername string, password string) (dto.AuthenticatedUser, error)
+	ChangePassword(ctx context.Context, accountId uuid.UUID, oldPassword string, newPassword string) (dto.AuthenticatedUser, error)
+	GetDetail(ctx context.Context, accountId uuid.UUID) (dto.AccountDetailResponse, error)
+	CreateEmptyDetail(ctx context.Context, accountId uuid.UUID) (dto.AccountDetailResponse, error)
+	UpdateDetail(ctx context.Context, details entity.AccountDetail) (dto.AccountDetailResponse, error)
 }
 
 type accountService struct {
-	accountRepo repositories.AccountRepository
+	jwtService        JWTService
+	accountRepo       repositories.AccountRepository
+	accountDetailRepo repositories.AccountDetailRepository
 }
 
-func NewAccountService(accountRepo repositories.AccountRepository) AccountService {
+func NewAccountService(jwtService JWTService, accountRepo repositories.AccountRepository, accountDetailRepo repositories.AccountDetailRepository) AccountService {
 	return &accountService{
-		accountRepo: accountRepo,
+		jwtService:        jwtService,
+		accountRepo:       accountRepo,
+		accountDetailRepo: accountDetailRepo,
 	}
 }
-func (s *accountService) CreateAccount(ctx context.Context, name string, date_of_birth time.Time) (res entity.Account, err error) {
-	account_number := uint(rand.Intn(90_000_000) + 10_000_000)
-	if name == "" || date_of_birth.IsZero() {
-		return res, http_error.BAD_REQUEST_ERROR
+
+func (s *accountService) GetByEmail(ctx context.Context, email string) (entity.Account, error) {
+	return s.accountRepo.GetAccountByEmail(ctx, email)
+}
+func (s *accountService) Create(ctx context.Context, name string, email string, username string, password string) (entity.Account, error) {
+	if email == "" || username == "" || password == "" {
+		return entity.Account{}, http_error.BAD_REQUEST_ERROR
 	}
-	res, err = s.accountRepo.CreateAccount(ctx, name, date_of_birth, account_number)
+
+	if _, err := s.accountRepo.GetAccountByEmail(ctx, email); err == nil {
+		return entity.Account{}, http_error.EMAIL_ALREADY_EXISTS
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return entity.Account{}, err
+	}
+
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+
 	if err != nil {
-		return res, err
+		return entity.Account{}, err
 	}
-	return res, err
+
+	acc := entity.Account{Email: email, Username: username, Password: string(bytes), Role: "user"}
+	created, err := s.accountRepo.CreateAccount(ctx, acc)
+
+	if err != nil {
+		return entity.Account{}, err
+	}
+
+	_, err = s.CreateEmptyDetail(ctx, created.Id)
+
+	return created, nil
+
 }
 
-func (s *accountService) VerifyAccount(ctx context.Context, req dto.VerifyAccountRequest) (res entity.Account, err error) {
-	res, err = s.accountRepo.GetAccount(ctx, req.Name, req.Dateofbirth, req.LastDigit)
-
+func (s *accountService) Update(ctx context.Context, account entity.Account) (entity.Account, error) {
+	return s.accountRepo.UpdateAccount(ctx, account)
+}
+func (s *accountService) Validate(ctx context.Context, emailorusername string, password string) (dto.AuthenticatedUser, error) {
+	acc, err := s.accountRepo.GetAccountByEmail(ctx, emailorusername)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return res, http_error.DATA_NOT_FOUND
+		acc, err = s.accountRepo.GetAccountByUsername(ctx, emailorusername)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.AuthenticatedUser{}, errors.New("account not found")
+		}
+	}
+	if err != nil {
+		return dto.AuthenticatedUser{}, err
 	}
 
-	if errors.Is(err, gorm.ErrInvalidValue) {
-		return res, http_error.INVALID_ACCOUNT_DIGITS
+	if err := s.jwtService.VerifyPassword(ctx, acc.Password, password); err != nil {
+		return dto.AuthenticatedUser{}, errors.New("invalid credentials")
 	}
 
-	return res, err
+	token, err := s.jwtService.GenerateToken(ctx, dto.JWTCustomClaims{
+		AccountId: acc.Id.String(),
+	})
+
+	if err != nil {
+		return dto.AuthenticatedUser{}, err
+	}
+
+	return dto.AuthenticatedUser{Account: acc, Token: token}, nil
 }
 
-func (s *accountService) ResetPIN(ctx context.Context, req dto.VerifyAccountRequest) (res entity.Account, err error) {
-	res_verify, err_verify := s.VerifyAccount(ctx, req)
-
-	if err_verify != nil {
-		return res, http_error.UNAUTHORIZED
+func (s *accountService) ChangePassword(ctx context.Context, accountId uuid.UUID, oldPassword string, newPassword string) (dto.AuthenticatedUser, error) {
+	acc, err := s.accountRepo.GetAccountById(ctx, accountId)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dto.AuthenticatedUser{}, errors.New("account not found")
+	}
+	if err != nil {
+		return dto.AuthenticatedUser{}, err
 	}
 
-	newPIN := int(rand.Intn(90_000) + 10_000)
+	if err := s.jwtService.VerifyPassword(ctx, acc.Password, oldPassword); err != nil {
+		return dto.AuthenticatedUser{}, errors.New("incorrect old password!")
+	}
 
-	res, err = s.accountRepo.ResetPIN(ctx, res_verify.Id, newPIN)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(newPassword), 14)
 
-	return res, err
+	if err != nil {
+		return dto.AuthenticatedUser{}, err
+	}
+
+	acc.Password = string(bytes)
+	acc, err = s.accountRepo.UpdateAccount(ctx, acc)
+	if err != nil {
+		return dto.AuthenticatedUser{}, err
+	}
+	return dto.AuthenticatedUser{Account: acc}, nil
 }
 
-func (s *accountService) BlockAccount(ctx context.Context, req dto.VerifyAccountRequest) (res entity.Account, err error) {
-	res_verify, err_verify := s.VerifyAccount(ctx, req)
-
-	if err_verify != nil {
-		return res, http_error.UNAUTHORIZED
+func sanitizePhone(input string) string {
+	p := strings.TrimSpace(input)
+	p = strings.ReplaceAll(p, " ", "")
+	re := regexp.MustCompile(`[^0-9+]`)
+	p = re.ReplaceAllString(p, "")
+	if strings.HasPrefix(p, "0") {
+		p = "+62" + p[1:]
 	}
-	fmt.Println(res_verify)
-	res, err = s.accountRepo.UpdateAccountStatus(ctx, res_verify.Id, false)
+	if !strings.HasPrefix(p, "+62") && !strings.HasPrefix(p, "+") {
+		p = "+" + p
+	}
+	return p
+}
 
-	return res, err
+func (s *accountService) GetDetail(ctx context.Context, accountId uuid.UUID) (dto.AccountDetailResponse, error) {
+	d, err := s.accountDetailRepo.GetAccountDetailByAccountId(ctx, accountId)
+	if err != nil {
+		return dto.AccountDetailResponse{}, err
+	}
+	acc, err := s.accountRepo.GetAccountById(ctx, accountId)
+	if err != nil {
+		return dto.AccountDetailResponse{}, err
+	}
+	acc.Password = "SECRET"
+	return dto.AccountDetailResponse{Account: acc, Details: entity.AccountDetail(d)}, nil
+}
+
+func (s *accountService) CreateEmptyDetail(ctx context.Context, accountID uuid.UUID) (dto.AccountDetailResponse, error) {
+	d, err := s.accountDetailRepo.CreateAccountDetail(ctx, entity.AccountDetail{AccountId: accountID})
+	if err != nil {
+		return dto.AccountDetailResponse{}, err
+	}
+	acc, err := s.accountRepo.GetAccountById(ctx, accountID)
+	if err != nil {
+		return dto.AccountDetailResponse{}, err
+	}
+	acc.IsDetailCompleted = false
+	_, _ = s.accountRepo.UpdateAccount(ctx, acc)
+	acc.Password = "SECRET"
+	return dto.AccountDetailResponse{Account: acc, Details: entity.AccountDetail(d)}, nil
+}
+
+func (s *accountService) UpdateDetail(ctx context.Context, details entity.AccountDetail) (dto.AccountDetailResponse, error) {
+
+	if details.PhoneNumber != nil {
+		v := sanitizePhone(*details.PhoneNumber)
+		details.PhoneNumber = &v
+	}
+
+	d, err := s.accountDetailRepo.UpdateAccountDetail(ctx, details)
+	if err != nil {
+		return dto.AccountDetailResponse{}, err
+	}
+
+	acc, err := s.accountRepo.GetAccountById(ctx, details.AccountId)
+	if err != nil {
+		return dto.AccountDetailResponse{}, err
+	}
+	acc.IsDetailCompleted = (d.FullName != nil && d.PhoneNumber != nil && d.SchoolName != nil && d.Province != nil && d.City != nil)
+	_, _ = s.accountRepo.UpdateAccount(ctx, acc)
+	return dto.AccountDetailResponse{Account: acc, Details: entity.AccountDetail(d)}, nil
 }

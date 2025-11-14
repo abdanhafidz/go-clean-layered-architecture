@@ -1,0 +1,49 @@
+name: Deploy to Huggingface
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy-to-huggingface:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      # Setup Git
+      - name: Setup Git for Huggingface
+        run: |
+          git config --global user.email "abdan.hafidz@gmail.com"
+          git config --global user.name "abdanhafidz"
+      # Clone Huggingface Space Repository
+      - name: Clone Huggingface Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev-v2 space
+      # Update Git Remote URL and Pull Latest Changes
+      - name: Update Remote and Pull Changes
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd space
+          git remote set-url origin https://lifedebugger:$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-dev-v2
+          git pull origin main || echo "No changes to pull"
+      # Clean Space Directory - Delete all files except .git
+      - name: Clean Space Directory
+        run: |
+          cd space
+          find . -mindepth 1 -not -path "./.git*" -delete
+      # Copy Files to Huggingface Space
+      - name: Copy Files to Space
+        run: |
+          rsync -av --exclude='.git' ./ space/
+      # Commit and Push to Huggingface Space
+      - name: Commit and Push to Huggingface
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd space
+          git add .
+          git commit -m "Deploy files from GitHub repository" || echo "No changes to commit"
+          git push origin main || echo "No changes to push"
