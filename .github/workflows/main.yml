@@ -20,14 +20,14 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev-v2 space
+          git clone https://huggingface.co/spaces/lifedebugger/${{secrets.HF_REPO_NAME}} space
       # Update Git Remote URL and Pull Latest Changes
       - name: Update Remote and Pull Changes
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           cd space
-          git remote set-url origin https://lifedebugger:$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-dev-v2
+          git remote set-url origin https://lifedebugger:$HF_TOKEN@huggingface.co/spaces/lifedebugger/${{secrets.HF_REPO_NAME}}
           git pull origin main || echo "No changes to pull"
       # Clean Space Directory - Delete all files except .git
       - name: Clean Space Directory
