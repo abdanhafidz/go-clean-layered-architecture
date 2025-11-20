@@ -61,6 +61,7 @@ func NewAppProvider() AppProvider {
 		&entity.AcademyContent{},
 		&entity.AcademyMaterialProgress{},
 		&entity.AcademyContentProgress{},
+		&entity.AcademyProgress{},
 
 		// Options & Regions
 		&entity.OptionCategory{},
