@@ -19,11 +19,12 @@ type AcademyController interface {
 	UpdateAcademy(ctx *gin.Context)
 	DeleteAcademy(ctx *gin.Context)
 
-	CreateMaterial(ctx *gin.Context)
-	CreateContent(ctx *gin.Context)
-
 	GetMaterial(ctx *gin.Context)
+	CreateMaterial(ctx *gin.Context)
+
+	CreateContent(ctx *gin.Context)
 	GetContent(ctx *gin.Context)
+
 	UpdateContentProgress(ctx *gin.Context)
 }
 
@@ -35,18 +36,10 @@ func NewAcademyController(academyService services.AcademyService) AcademyControl
 	return &academyController{academyService}
 }
 
-func (c *academyController) CreateAcademy(ctx *gin.Context) {
-	req := RequestJSON[dto.CreateAcademyRequest](ctx)
-	res, err := c.academyService.CreateAcademy(ctx.Request.Context(), req)
-	ResponseJSON(ctx, req, res, err)
-}
-
 func (c *academyController) GetAcademy(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
-	accountIdVal := ctx.Value("account_id")
-	accountId, _ := accountIdVal.(string)
+	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
 	res, err := c.academyService.GetAcademy(ctx.Request.Context(), accountId, academySlug)
-
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug}, res, err)
 }
 
@@ -57,11 +50,16 @@ func (c *academyController) GetAcademyDetail(ctx *gin.Context) {
 }
 
 func (c *academyController) ListAcademies(ctx *gin.Context) {
-	accountIdVal := ctx.Value("account_id")
-	accountId, _ := accountIdVal.(string)
+	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
 	fmt.Println("Account ID in ListAcademies:", accountId)
 	res, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId)
 	ResponseJSON(ctx, gin.H{}, res, err)
+}
+
+func (c *academyController) CreateAcademy(ctx *gin.Context) {
+	req := RequestJSON[dto.CreateAcademyRequest](ctx)
+	res, err := c.academyService.CreateAcademy(ctx.Request.Context(), req)
+	ResponseJSON(ctx, req, res, err)
 }
 
 func (c *academyController) UpdateAcademy(ctx *gin.Context) {
@@ -79,6 +77,14 @@ func (c *academyController) DeleteAcademy(ctx *gin.Context) {
 }
 
 // MATERIAL
+func (c *academyController) GetMaterial(ctx *gin.Context) {
+	academySlug := ctx.Param("academy_slug")
+	materialSlug := ctx.Param("material_slug")
+	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
+
+	res, err := c.academyService.GetMaterial(ctx.Request.Context(), accountId, academySlug, materialSlug)
+	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug}, res, err)
+}
 
 func (c *academyController) CreateMaterial(ctx *gin.Context) {
 	req := RequestJSON[dto.CreateMaterialRequest](ctx)
@@ -87,22 +93,10 @@ func (c *academyController) CreateMaterial(ctx *gin.Context) {
 	ResponseJSON(ctx, req, res, err)
 }
 
-func (c *academyController) GetMaterial(ctx *gin.Context) {
-	academySlug := ctx.Param("academy_slug")
-	materialSlug := ctx.Param("material_slug")
-	res, err := c.academyService.GetMaterial(ctx.Request.Context(), academySlug, materialSlug)
-	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug}, res, err)
-}
 
 // CONTENT
-
-func (c *academyController) CreateContent(ctx *gin.Context) {
-	req := RequestJSON[dto.CreateContentRequest](ctx)
-	res, err := c.academyService.CreateContent(ctx.Request.Context(), req)
-	ResponseJSON(ctx, req, res, err)
-}
-
 func (c *academyController) GetContent(ctx *gin.Context) {
+	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
 	orderString := ctx.Param("order")
@@ -114,16 +108,22 @@ func (c *academyController) GetContent(ctx *gin.Context) {
 	}
 	order := uint(orderID64)
 
-	res, err := c.academyService.GetContent(ctx.Request.Context(), academySlug, materialSlug, order)
+	res, err := c.academyService.GetContent(ctx.Request.Context(),accountId, academySlug, materialSlug, order)
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_slug": order}, res, err)
 }
 
+func (c *academyController) CreateContent(ctx *gin.Context) {
+	req := RequestJSON[dto.CreateContentRequest](ctx)
+	res, err := c.academyService.CreateContent(ctx.Request.Context(), req)
+	ResponseJSON(ctx, req, res, err)
+}
+
+
 func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
-	accountIdVal := ctx.Value("account_id")
+	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
 	orderString := ctx.Param("order")
-	accountId, _ := accountIdVal.(string)
 
 	orderID64, err := strconv.ParseUint(orderString, 10, 64)
 	if err != nil {
@@ -141,3 +141,5 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_slug": order}, res, err)
 }
+
+//! TODO: MAKE FULL CRUD FOR ADMIN USER
