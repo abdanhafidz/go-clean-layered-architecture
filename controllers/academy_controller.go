@@ -6,12 +6,14 @@ import (
 	"strconv"
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
+	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type AcademyController interface {
+	// Academy
 	CreateAcademy(ctx *gin.Context)
 	GetAcademy(ctx *gin.Context)
 	GetAcademyDetail(ctx *gin.Context)
@@ -19,12 +21,17 @@ type AcademyController interface {
 	UpdateAcademy(ctx *gin.Context)
 	DeleteAcademy(ctx *gin.Context)
 
+	// Material
 	GetMaterial(ctx *gin.Context)
 	CreateMaterial(ctx *gin.Context)
+	DeleteMaterial(ctx *gin.Context)
 
+	// Content
 	CreateContent(ctx *gin.Context)
 	GetContent(ctx *gin.Context)
+	DeleteContent(ctx *gin.Context)
 
+	// Progress
 	UpdateContentProgress(ctx *gin.Context)
 }
 
@@ -36,21 +43,43 @@ func NewAcademyController(academyService services.AcademyService) AcademyControl
 	return &academyController{academyService}
 }
 
+// ================= ACADEMY =================
+
 func (c *academyController) GetAcademy(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
-	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
+	accountIdStr := ctx.GetString("account_id")
+	accountId, err := uuid.Parse(accountIdStr)
+	if err != nil {
+		// [FIX] Tambahkan [any, any] agar compiler tau tipenya
+		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
+		return
+	}
+
 	res, err := c.academyService.GetAcademy(ctx.Request.Context(), accountId, academySlug)
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug}, res, err)
 }
 
 func (c *academyController) GetAcademyDetail(ctx *gin.Context) {
-	id, _ := uuid.Parse(ctx.Param("id"))
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+
 	res, err := c.academyService.GetAcademyDetail(ctx.Request.Context(), id)
 	ResponseJSON(ctx, gin.H{"id": id}, res, err)
 }
 
 func (c *academyController) ListAcademies(ctx *gin.Context) {
-	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
+	accountIdStr := ctx.GetString("account_id")
+	accountId, err := uuid.Parse(accountIdStr)
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
+		return
+	}
+	
 	fmt.Println("Account ID in ListAcademies:", accountId)
 	res, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId)
 	ResponseJSON(ctx, gin.H{}, res, err)
@@ -63,24 +92,43 @@ func (c *academyController) CreateAcademy(ctx *gin.Context) {
 }
 
 func (c *academyController) UpdateAcademy(ctx *gin.Context) {
-	id, _ := uuid.Parse(ctx.Param("id"))
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+
 	req := RequestJSON[dto.UpdateAcademyRequest](ctx)
 	res, err := c.academyService.UpdateAcademy(ctx.Request.Context(), id, req)
 	ResponseJSON(ctx, req, res, err)
 }
 
 func (c *academyController) DeleteAcademy(ctx *gin.Context) {
-	id, _ := uuid.Parse(ctx.Param("id"))
-	err := c.academyService.DeleteAcademy(ctx.Request.Context(), id)
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
 
+	err = c.academyService.DeleteAcademy(ctx.Request.Context(), id)
 	ResponseJSON(ctx, gin.H{"id": id}, gin.H{"deleted": true}, err)
 }
 
-// MATERIAL
+// ================= MATERIAL =================
+
 func (c *academyController) GetMaterial(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
-	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
+	
+	accountIdStr := ctx.GetString("account_id")
+	accountId, err := uuid.Parse(accountIdStr)
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
+		return
+	}
 
 	res, err := c.academyService.GetMaterial(ctx.Request.Context(), accountId, academySlug, materialSlug)
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug}, res, err)
@@ -88,28 +136,45 @@ func (c *academyController) GetMaterial(ctx *gin.Context) {
 
 func (c *academyController) CreateMaterial(ctx *gin.Context) {
 	req := RequestJSON[dto.CreateMaterialRequest](ctx)
-
 	res, err := c.academyService.CreateMaterial(ctx.Request.Context(), req)
 	ResponseJSON(ctx, req, res, err)
 }
 
+func (c *academyController) DeleteMaterial(ctx *gin.Context) {
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
 
-// CONTENT
+	err = c.academyService.DeleteMaterial(ctx.Request.Context(), id)
+	ResponseJSON(ctx, gin.H{"id": id}, gin.H{"deleted": true}, err)
+}
+
+// ================= CONTENT =================
+
 func (c *academyController) GetContent(ctx *gin.Context) {
-	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
+	accountIdStr := ctx.GetString("account_id")
+	accountId, err := uuid.Parse(accountIdStr)
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
+		return
+	}
+
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
-	orderString := ctx.Param("order")
-
-	orderID64, err := strconv.ParseUint(orderString, 10, 64)
+	
+	orderID64, err := strconv.ParseUint(ctx.Param("order"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'order' parameter. Must be a positive integer."})
 		return
 	}
 	order := uint(orderID64)
 
-	res, err := c.academyService.GetContent(ctx.Request.Context(),accountId, academySlug, materialSlug, order)
-	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_slug": order}, res, err)
+	res, err := c.academyService.GetContent(ctx.Request.Context(), accountId, academySlug, materialSlug, order)
+	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_order": order}, res, err)
 }
 
 func (c *academyController) CreateContent(ctx *gin.Context) {
@@ -118,28 +183,47 @@ func (c *academyController) CreateContent(ctx *gin.Context) {
 	ResponseJSON(ctx, req, res, err)
 }
 
+func (c *academyController) DeleteContent(ctx *gin.Context) {
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+
+	err = c.academyService.DeleteContent(ctx.Request.Context(), id)
+	ResponseJSON(ctx, gin.H{"id": id}, gin.H{"deleted": true}, err)
+}
+
+// ================= PROGRESS =================
 
 func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
-	accountId,_ := uuid.Parse(ctx.Value("account_id").(string))
+	accountIdStr := ctx.GetString("account_id")
+	accountId, err := uuid.Parse(accountIdStr)
+	if err != nil {
+		// [FIX] Tambahkan [any, any]
+		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
+		return
+	}
+
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
-	orderString := ctx.Param("order")
-
-	orderID64, err := strconv.ParseUint(orderString, 10, 64)
+	
+	orderID64, err := strconv.ParseUint(ctx.Param("order"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'order' parameter. Must be a positive integer."})
 		return
 	}
 	order := uint(orderID64)
 
-	contentProgress, materialProgress, academyProgress, err := c.academyService.UpdateContentProgress(ctx, accountId, academySlug, materialSlug, order)
+	contentProgress, materialProgress, academyProgress, err := c.academyService.UpdateContentProgress(ctx.Request.Context(), accountId, academySlug, materialSlug, order)
+	
 	res := gin.H{
 		"content_progress":  contentProgress,
 		"material_progress": materialProgress,
 		"academy_progress":  academyProgress,
 	}
 
-	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_slug": order}, res, err)
+	// Disini tidak perlu [any, any] karena 'res' sudah jelas tipenya (gin.H)
+	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_order": order}, res, err)
 }
-
-//! TODO: MAKE FULL CRUD FOR ADMIN USER

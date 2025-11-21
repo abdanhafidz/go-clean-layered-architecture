@@ -3,36 +3,57 @@ package provider
 import "abdanhafidz.com/go-boilerplate/config"
 
 type ConfigProvider interface {
-	ProvideJWTConfig() config.JWTConfig
-	ProvideEnvConfig() config.EnvConfig
-	ProvideDatabaseConfig() config.DatabaseConfig
+    ProvideJWTConfig() config.JWTConfig
+    ProvideEnvConfig() config.EnvConfig
+    ProvideDatabaseConfig() config.DatabaseConfig
+    ProvideSupabaseConfig() config.SupabaseConfig 
 }
 
 type configProvider struct {
-	jWTConfig      config.JWTConfig
-	envConfig      config.EnvConfig
-	databaseConfig config.DatabaseConfig
+    jWTConfig      config.JWTConfig
+    envConfig      config.EnvConfig
+    databaseConfig config.DatabaseConfig
+    supabaseConfig config.SupabaseConfig 
 }
 
 func NewConfigProvider() ConfigProvider {
-	envConfig := config.NewEnvConfig("Asia/Jakarta")
-	jWTConfig := config.NewJWTConfig(envConfig.GetSalt())
-	databaseConfig := config.NewDatabaseConfig(envConfig.GetDatabaseHost(), envConfig.GetDatabaseUser(), envConfig.GetDatabasePassword(), envConfig.GetDatabaseName(), envConfig.GetDatabasePort())
-	return &configProvider{
-		jWTConfig:      jWTConfig,
-		envConfig:      envConfig,
-		databaseConfig: databaseConfig,
-	}
+    envConfig := config.NewEnvConfig("Asia/Jakarta")
+    jWTConfig := config.NewJWTConfig(envConfig.GetSalt())
+    
+    databaseConfig := config.NewDatabaseConfig(
+        envConfig.GetDatabaseHost(), 
+        envConfig.GetDatabaseUser(), 
+        envConfig.GetDatabasePassword(), 
+        envConfig.GetDatabaseName(), 
+        envConfig.GetDatabasePort(),
+    )
+
+    supabaseConfig := config.NewSupabaseConfig(
+        envConfig.GetSupabaseURL(),
+        envConfig.GetSupabaseKey(),
+        envConfig.GetSupabaseBucket(),
+    )
+
+    return &configProvider{
+        jWTConfig:      jWTConfig,
+        envConfig:      envConfig,
+        databaseConfig: databaseConfig,
+        supabaseConfig: supabaseConfig,
+    }
 }
 
 func (c *configProvider) ProvideJWTConfig() config.JWTConfig {
-	return c.jWTConfig
+    return c.jWTConfig
 }
 
 func (c *configProvider) ProvideEnvConfig() config.EnvConfig {
-	return c.envConfig
+    return c.envConfig
 }
 
 func (c *configProvider) ProvideDatabaseConfig() config.DatabaseConfig {
-	return c.databaseConfig
+    return c.databaseConfig
+}
+
+func (c *configProvider) ProvideSupabaseConfig() config.SupabaseConfig {
+    return c.supabaseConfig
 }

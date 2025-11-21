@@ -13,6 +13,7 @@ type AppProvider interface {
 	ProvideControllers() ControllerProvider
 	ProvideMiddlewares() MiddlewareProvider
 }
+
 type appProvider struct {
 	ginRouter            *gin.Engine
 	configProvider       ConfigProvider
@@ -26,9 +27,14 @@ func NewAppProvider() AppProvider {
 	ginRouter := gin.Default()
 	configProvider := NewConfigProvider()
 	repositoriesProvider := NewRepositoriesProvider(configProvider)
-	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider)
+	supabaseCfg := configProvider.ProvideSupabaseConfig()
+	storageDriver := NewSupabaseStorage(supabaseCfg.URL, supabaseCfg.ServiceKey, supabaseCfg.BucketName)
+	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
+
 	controllerProvider := NewControllerProvider(servicesProvider)
 	middlewareProvider := NewMiddlewareProvider(servicesProvider)
+
+	// Database Migrations
 	configProvider.ProvideDatabaseConfig().AutoMigrateAll(
 		// Accounts & Auth
 		&entity.Account{},
@@ -79,9 +85,11 @@ func NewAppProvider() AppProvider {
 		middlewareProvider:   middlewareProvider,
 	}
 }
+
 func (a *appProvider) ProvideRouter() *gin.Engine {
 	return a.ginRouter
 }
+
 func (a *appProvider) ProvideConfig() ConfigProvider {
 	return a.configProvider
 }

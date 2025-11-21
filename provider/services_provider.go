@@ -14,6 +14,9 @@ type ServicesProvider interface {
 	ProvideForgotPasswordService() services.ForgotPasswordService
 	ProvideEmailVerificationService() services.EmailVerificationService
 	ProvideExternalAuthService() services.ExternalAuthService
+	
+	// UPDATE: Menggunakan Pointer (*) karena UploadService adalah struct
+	ProvideUploadService() *services.UploadService 
 }
 
 type servicesProvider struct {
@@ -28,9 +31,18 @@ type servicesProvider struct {
 	forgotPasswordService    services.ForgotPasswordService
 	emailVerificationService services.EmailVerificationService
 	externalAuthService      services.ExternalAuthService
+	
+	// UPDATE: Menggunakan Pointer (*)
+	uploadService            *services.UploadService 
 }
 
-func NewServicesProvider(repoProvider RepositoriesProvider, configProvider ConfigProvider) ServicesProvider {
+// UPDATE: Menambahkan argument storageProvider dengan tipe interface dari package services
+func NewServicesProvider(
+	repoProvider RepositoriesProvider, 
+	configProvider ConfigProvider, 
+	storageProvider services.StorageProvider,
+) ServicesProvider {
+
 	eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
 	academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
 	problemSetService := services.NewProblemSetService(repoProvider.ProvideProblemSetRepository(), repoProvider.ProvideQuestionsRepository(), repoProvider.ProvideProblemSetExamAssignRepository())
@@ -42,6 +54,9 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 	forgotPasswordService := services.NewForgotPasswordService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
 	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
 	externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
+
+	// UPDATE: Inisialisasi Upload Service
+	uploadService := services.NewUploadService(storageProvider)
 
 	return &servicesProvider{
 		eventService:             eventService,
@@ -55,6 +70,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 		forgotPasswordService:    forgotPasswordService,
 		emailVerificationService: emailVerificationService,
 		externalAuthService:      externalAuthService,
+		uploadService:            uploadService, // Pointer assign ke Pointer
 	}
 }
 
@@ -100,4 +116,9 @@ func (s *servicesProvider) ProvideEmailVerificationService() services.EmailVerif
 
 func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthService {
 	return s.externalAuthService
+}
+
+// UPDATE: Return Pointer (*)
+func (s *servicesProvider) ProvideUploadService() *services.UploadService {
+	return s.uploadService
 }
