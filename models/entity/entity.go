@@ -332,3 +332,18 @@ type AcademyContentProgress struct {
 }
 
 func (AcademyContentProgress) TableName() string { return "academy_content_progress" }
+
+type File struct {
+    Id           uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+    OriginalName string    `json:"original_name,omitempty"`
+    StoredName   string    `json:"stored_name,omitempty"`
+    MimeType     string    `json:"mime_type,omitempty"`
+    Size         int64     `json:"size,omitempty"`
+    Path         string    `json:"path,omitempty"`
+    Context      string    `json:"context,omitempty"`
+    AccountId    uuid.UUID `json:"account_id,omitempty"`
+    CreatedAt    time.Time `json:"created_at,omitempty"`
+    Account      *Account  `gorm:"foreignKey:AccountId" json:"account,omitempty"`
+}
+
+func (File) TableName() string { return "files" }

@@ -1,89 +1,96 @@
 package provider
 
 import (
-	entity "abdanhafidz.com/go-boilerplate/models/entity"
-	"github.com/gin-gonic/gin"
+    "log"
+    entity "abdanhafidz.com/go-boilerplate/models/entity"
+    "github.com/gin-gonic/gin"
 )
 
 type AppProvider interface {
-	ProvideRouter() *gin.Engine
-	ProvideConfig() ConfigProvider
-	ProvideRepositories() RepositoriesProvider
-	ProvideServices() ServicesProvider
-	ProvideControllers() ControllerProvider
-	ProvideMiddlewares() MiddlewareProvider
+    ProvideRouter() *gin.Engine
+    ProvideConfig() ConfigProvider
+    ProvideRepositories() RepositoriesProvider
+    ProvideServices() ServicesProvider
+    ProvideControllers() ControllerProvider
+    ProvideMiddlewares() MiddlewareProvider
 }
 
 type appProvider struct {
-	ginRouter            *gin.Engine
-	configProvider       ConfigProvider
-	repositoriesProvider RepositoriesProvider
-	servicesProvider     ServicesProvider
-	controllerProvider   ControllerProvider
-	middlewareProvider   MiddlewareProvider
+    ginRouter            *gin.Engine
+    configProvider       ConfigProvider
+    repositoriesProvider RepositoriesProvider
+    servicesProvider     ServicesProvider
+    controllerProvider   ControllerProvider
+    middlewareProvider   MiddlewareProvider
 }
 
 func NewAppProvider() AppProvider {
-	ginRouter := gin.Default()
-	configProvider := NewConfigProvider()
-	repositoriesProvider := NewRepositoriesProvider(configProvider)
-	supabaseCfg := configProvider.ProvideSupabaseConfig()
-	storageDriver := NewSupabaseStorage(supabaseCfg.URL, supabaseCfg.ServiceKey, supabaseCfg.BucketName)
-	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
+    ginRouter := gin.Default()
+    configProvider := NewConfigProvider()
+    repositoriesProvider := NewRepositoriesProvider(configProvider)
+    supabaseCfg := configProvider.ProvideSupabaseConfig()
+    storageDriver := NewSupabaseStorage(supabaseCfg.URL, supabaseCfg.ServiceKey, supabaseCfg.BucketName)
+    servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
+    controllerProvider := NewControllerProvider(servicesProvider)
+    middlewareProvider := NewMiddlewareProvider(servicesProvider)
 
-	controllerProvider := NewControllerProvider(servicesProvider)
-	middlewareProvider := NewMiddlewareProvider(servicesProvider)
+    // Database Migrations with error handling
+    err := configProvider.ProvideDatabaseConfig().AutoMigrateAll(
+        // Accounts & Auth
+        &entity.Account{},
+        &entity.AccountDetail{},
+        &entity.EmailVerification{},
+        &entity.ExternalAuth{},
+        &entity.FCM{},
+        &entity.ForgotPassword{},
 
-	// Database Migrations
-	configProvider.ProvideDatabaseConfig().AutoMigrateAll(
-		// Accounts & Auth
-		&entity.Account{},
-		&entity.AccountDetail{},
-		&entity.EmailVerification{},
-		&entity.ExternalAuth{},
-		&entity.FCM{},
-		&entity.ForgotPassword{},
+        // Events
+        &entity.Events{},
+        &entity.EventAssign{},
+        &entity.Announcement{},
 
-		// Events
-		&entity.Events{},
-		&entity.EventAssign{},
-		&entity.Announcement{},
+        // Problemset & Exam
+        &entity.ProblemSet{},
+        &entity.Questions{},
+        &entity.Exam{},
+        &entity.ProblemSetExamAssign{},
+        &entity.ExamEventAssign{},
 
-		// Problemset & Exam
-		&entity.ProblemSet{},
-		&entity.Questions{},
-		&entity.Exam{},
-		&entity.ProblemSetExamAssign{},
-		&entity.ExamEventAssign{},
+        // Exam Attempt & Result
+        &entity.ExamEventAnswer{},
+        &entity.ExamEventAttempt{},
+        &entity.Result{},
 
-		// Exam Attempt & Result
-		&entity.ExamEventAnswer{},
-		&entity.ExamEventAttempt{},
-		&entity.Result{},
+        // Academy LMS
+        &entity.Academy{},
+        &entity.AcademyMaterial{},
+        &entity.AcademyContent{},
+        &entity.AcademyMaterialProgress{},
+        &entity.AcademyContentProgress{},
+        &entity.AcademyProgress{},
 
-		// Academy LMS
-		&entity.Academy{},
-		&entity.AcademyMaterial{},
-		&entity.AcademyContent{},
-		&entity.AcademyMaterialProgress{},
-		&entity.AcademyContentProgress{},
-		&entity.AcademyProgress{},
+        // Options & Regions
+        &entity.OptionCategory{},
+        &entity.OptionValues{},
+        &entity.RegionProvince{},
+        &entity.RegionCity{},
 
-		// Options & Regions
-		&entity.OptionCategory{},
-		&entity.OptionValues{},
-		&entity.RegionProvince{},
-		&entity.RegionCity{},
-	)
+        // Files Storage
+        &entity.File{},
+    )
+    
+    if err != nil {
+        log.Fatalf("Database migration failed: %v", err)
+    }
 
-	return &appProvider{
-		ginRouter:            ginRouter,
-		configProvider:       configProvider,
-		repositoriesProvider: repositoriesProvider,
-		servicesProvider:     servicesProvider,
-		controllerProvider:   controllerProvider,
-		middlewareProvider:   middlewareProvider,
-	}
+    return &appProvider{
+        ginRouter:            ginRouter,
+        configProvider:       configProvider,
+        repositoriesProvider: repositoriesProvider,
+        servicesProvider:     servicesProvider,
+        controllerProvider:   controllerProvider,
+        middlewareProvider:   middlewareProvider,
+    }
 }
 
 func (a *appProvider) ProvideRouter() *gin.Engine {

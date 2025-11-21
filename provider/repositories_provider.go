@@ -22,6 +22,7 @@ type RepositoriesProvider interface {
 	ProvideQuestionsRepository() repositories.QuestionsRepository
 	ProvideRegionRepository() repositories.RegionRepository
 	ProvideResultRepository() repositories.ResultRepository
+	ProvideFileRepository() repositories.FileRepository
 }
 
 type repositoriesProvider struct {
@@ -44,6 +45,7 @@ type repositoriesProvider struct {
 	questionsRepository            repositories.QuestionsRepository
 	regionRepository               repositories.RegionRepository
 	resultRepository               repositories.ResultRepository
+	fileRepository                 repositories.FileRepository // Added field
 }
 
 func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
@@ -69,6 +71,7 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	questionsRepository := repositories.NewQuestionsRepository(db)
 	regionRepository := repositories.NewRegionRepository(db)
 	resultRepository := repositories.NewResultRepository(db)
+	fileRepository := repositories.NewFileRepository(db) // Init here
 
 	return &repositoriesProvider{
 		academyRepository:              academyRepository,
@@ -90,6 +93,7 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 		questionsRepository:            questionsRepository,
 		regionRepository:               regionRepository,
 		resultRepository:               resultRepository,
+		fileRepository:                 fileRepository, // Assign here
 	}
 }
 
@@ -167,4 +171,8 @@ func (r *repositoriesProvider) ProvideRegionRepository() repositories.RegionRepo
 
 func (r *repositoriesProvider) ProvideResultRepository() repositories.ResultRepository {
 	return r.resultRepository
+}
+
+func (r *repositoriesProvider) ProvideFileRepository() repositories.FileRepository {
+	return r.fileRepository
 }

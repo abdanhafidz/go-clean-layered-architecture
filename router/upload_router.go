@@ -6,11 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-func UploadRouter(r *gin.Engine, controller provider.ControllerProvider) {
+// Perlu tambahan argument middleware provider
+func UploadRouter(r *gin.Engine, middleware provider.MiddlewareProvider, controller provider.ControllerProvider) {
 	uploadController := controller.ProvideUploadController()
-	routerGroup := r.Group("/api/v1/files")
-	routerGroup.Use(gzip.Gzip(gzip.DefaultCompression))
+	authenticationMiddleware := middleware.ProvideAuthenticationMiddleware() 
+    routerGroup := r.Group("/api/v1/files")
+    routerGroup.Use(gzip.Gzip(gzip.DefaultCompression), authenticationMiddleware.VerifyAccount,) 
 	{
 		routerGroup.POST("/", uploadController.Upload)
 	}

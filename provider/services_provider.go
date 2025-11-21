@@ -1,124 +1,121 @@
 package provider
 
-import "abdanhafidz.com/go-boilerplate/services"
+import (
+    // Pastikan path ini sesuai dengan go.mod kamu (misal: quzuu-backend-v2/services)
+    "abdanhafidz.com/go-boilerplate/services" 
+)
 
 type ServicesProvider interface {
-	ProvideEventService() services.EventService
-	ProvideAcademyService() services.AcademyService
-	ProvideProblemSetService() services.ProblemSetService
-	ProvideJWTService() services.JWTService
-	ProvideRegionService() services.RegionService
-	ProvideOptionService() services.OptionService
-	ProvideExamService() services.ExamService
-	ProvideAccountService() services.AccountService
-	ProvideForgotPasswordService() services.ForgotPasswordService
-	ProvideEmailVerificationService() services.EmailVerificationService
-	ProvideExternalAuthService() services.ExternalAuthService
-	
-	// UPDATE: Menggunakan Pointer (*) karena UploadService adalah struct
-	ProvideUploadService() *services.UploadService 
+    ProvideEventService() services.EventService
+    ProvideAcademyService() services.AcademyService
+    ProvideProblemSetService() services.ProblemSetService
+    ProvideJWTService() services.JWTService
+    ProvideRegionService() services.RegionService
+    ProvideOptionService() services.OptionService
+    ProvideExamService() services.ExamService
+    ProvideAccountService() services.AccountService
+    ProvideForgotPasswordService() services.ForgotPasswordService
+    ProvideEmailVerificationService() services.EmailVerificationService
+    ProvideExternalAuthService() services.ExternalAuthService
+    
+    // UPDATE: Mengembalikan pointer karena UploadService adalah struct, bukan interface
+    ProvideUploadService() *services.UploadService 
 }
 
 type servicesProvider struct {
-	eventService             services.EventService
-	academyService           services.AcademyService
-	problemSetService        services.ProblemSetService
-	jWTService               services.JWTService
-	regionService            services.RegionService
-	optionService            services.OptionService
-	examService              services.ExamService
-	accountService           services.AccountService
-	forgotPasswordService    services.ForgotPasswordService
-	emailVerificationService services.EmailVerificationService
-	externalAuthService      services.ExternalAuthService
-	
-	// UPDATE: Menggunakan Pointer (*)
-	uploadService            *services.UploadService 
+    eventService             services.EventService
+    academyService           services.AcademyService
+    problemSetService        services.ProblemSetService
+    jWTService               services.JWTService
+    regionService            services.RegionService
+    optionService            services.OptionService
+    examService              services.ExamService
+    accountService           services.AccountService
+    forgotPasswordService    services.ForgotPasswordService
+    emailVerificationService services.EmailVerificationService
+    externalAuthService      services.ExternalAuthService
+    
+    // Field untuk menyimpan instance UploadService
+    uploadService            *services.UploadService 
 }
 
-// UPDATE: Menambahkan argument storageProvider dengan tipe interface dari package services
 func NewServicesProvider(
-	repoProvider RepositoriesProvider, 
-	configProvider ConfigProvider, 
-	storageProvider services.StorageProvider,
+    repoProvider RepositoriesProvider, 
+    configProvider ConfigProvider, 
+    storageProvider services.StorageProvider, // Didapat dari main/wire
 ) ServicesProvider {
 
-	eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
-	academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
-	problemSetService := services.NewProblemSetService(repoProvider.ProvideProblemSetRepository(), repoProvider.ProvideQuestionsRepository(), repoProvider.ProvideProblemSetExamAssignRepository())
-	jWTService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
-	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
-	optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
-	examService := services.NewExamService(eventService, problemSetService, repoProvider.ProvideProblemSetExamAssignRepository(), repoProvider.ProvideExamRepository(), repoProvider.ProvideExamEventAttemptRepository(), repoProvider.ProvideExamEventAssignRepository(), repoProvider.ProvideExamEventAnswerRepository(), repoProvider.ProvideResultRepository())
-	accountService := services.NewAccountService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideAccountDetailRepository())
-	forgotPasswordService := services.NewForgotPasswordService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
-	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
-	externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
+    // Inisialisasi service lain...
+    eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
+    academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
+    problemSetService := services.NewProblemSetService(repoProvider.ProvideProblemSetRepository(), repoProvider.ProvideQuestionsRepository(), repoProvider.ProvideProblemSetExamAssignRepository())
+    jWTService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
+    regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
+    optionService := services.NewOptionService(repoProvider.ProvideOptionRepository())
+    examService := services.NewExamService(eventService, problemSetService, repoProvider.ProvideProblemSetExamAssignRepository(), repoProvider.ProvideExamRepository(), repoProvider.ProvideExamEventAttemptRepository(), repoProvider.ProvideExamEventAssignRepository(), repoProvider.ProvideExamEventAnswerRepository(), repoProvider.ProvideResultRepository())
+    accountService := services.NewAccountService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideAccountDetailRepository())
+    forgotPasswordService := services.NewForgotPasswordService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
+    emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
+    externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
 
-	// UPDATE: Inisialisasi Upload Service
-	uploadService := services.NewUploadService(storageProvider)
 
-	return &servicesProvider{
-		eventService:             eventService,
-		academyService:           academyService,
-		problemSetService:        problemSetService,
-		jWTService:               jWTService,
-		regionService:            regionService,
-		optionService:            optionService,
-		examService:              examService,
-		accountService:           accountService,
-		forgotPasswordService:    forgotPasswordService,
-		emailVerificationService: emailVerificationService,
-		externalAuthService:      externalAuthService,
-		uploadService:            uploadService, // Pointer assign ke Pointer
-	}
+    uploadService := services.NewUploadService(
+        storageProvider, 
+        repoProvider.ProvideFileRepository(), 
+    )
+
+    return &servicesProvider{
+        eventService:             eventService,
+        academyService:           academyService,
+        problemSetService:        problemSetService,
+        jWTService:               jWTService,
+        regionService:            regionService,
+        optionService:            optionService,
+        examService:              examService,
+        accountService:           accountService,
+        forgotPasswordService:    forgotPasswordService,
+        emailVerificationService: emailVerificationService,
+        externalAuthService:      externalAuthService,
+        uploadService:            uploadService, 
+    }
 }
+
+// ... (Getter method lainnya tetap sama) ...
 
 func (s *servicesProvider) ProvideEventService() services.EventService {
-	return s.eventService
+    return s.eventService
 }
-
 func (s *servicesProvider) ProvideAcademyService() services.AcademyService {
-	return s.academyService
+    return s.academyService
 }
-
 func (s *servicesProvider) ProvideProblemSetService() services.ProblemSetService {
-	return s.problemSetService
+    return s.problemSetService
 }
-
 func (s *servicesProvider) ProvideJWTService() services.JWTService {
-	return s.jWTService
+    return s.jWTService
 }
-
 func (s *servicesProvider) ProvideRegionService() services.RegionService {
-	return s.regionService
+    return s.regionService
 }
-
 func (s *servicesProvider) ProvideOptionService() services.OptionService {
-	return s.optionService
+    return s.optionService
 }
-
 func (s *servicesProvider) ProvideExamService() services.ExamService {
-	return s.examService
+    return s.examService
 }
-
 func (s *servicesProvider) ProvideAccountService() services.AccountService {
-	return s.accountService
+    return s.accountService
 }
-
 func (s *servicesProvider) ProvideForgotPasswordService() services.ForgotPasswordService {
-	return s.forgotPasswordService
+    return s.forgotPasswordService
 }
-
 func (s *servicesProvider) ProvideEmailVerificationService() services.EmailVerificationService {
-	return s.emailVerificationService
+    return s.emailVerificationService
 }
-
 func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthService {
-	return s.externalAuthService
+    return s.externalAuthService
 }
 
-// UPDATE: Return Pointer (*)
 func (s *servicesProvider) ProvideUploadService() *services.UploadService {
-	return s.uploadService
+    return s.uploadService
 }
