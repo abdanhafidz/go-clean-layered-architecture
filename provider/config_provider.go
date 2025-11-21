@@ -1,6 +1,6 @@
 package provider
 
-import "abdanhafidz.com/go-clean-layered-architecture/config"
+import "abdanhafidz.com/go-boilerplate/config"
 
 type ConfigProvider interface {
 	ProvideJWTConfig() config.JWTConfig
@@ -15,7 +15,6 @@ type configProvider struct {
 }
 
 func NewConfigProvider() ConfigProvider {
-
 	envConfig := config.NewEnvConfig("Asia/Jakarta")
 	jWTConfig := config.NewJWTConfig(envConfig.GetSalt())
 	databaseConfig := config.NewDatabaseConfig(envConfig.GetDatabaseHost(), envConfig.GetDatabaseUser(), envConfig.GetDatabasePassword(), envConfig.GetDatabaseName(), envConfig.GetDatabasePort())

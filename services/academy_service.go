@@ -4,28 +4,39 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	"abdanhafidz.com/go-boilerplate/repositories"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
 )
 
 type AcademyService interface {
 	// Academy
-	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
-	GetAcademy(ctx context.Context, id uuid.UUID) (entity.Academy, error)
-	ListAcademies(ctx context.Context) ([]entity.Academy, error)
+	GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error)
 	GetAcademyDetail(ctx context.Context, id uuid.UUID) (entity.Academy, error)
+
+	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
 
+	ListAcademies(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error)
+
 	// Material
 	CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error)
+	GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error)
 
 	// Content
 	CreateContent(ctx context.Context, req dto.CreateContentRequest) (entity.AcademyContent, error)
+	GetContent(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContent, error)
+
+	// Progress
+	UpdateContentProgress(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContentProgress, entity.AcademyMaterialProgress, entity.AcademyProgress, error)
+	UpdateMaterialProgress(ctx context.Context, accountId uuid.UUID, academy entity.Academy, material entity.AcademyMaterial) (entity.AcademyMaterialProgress, error)
+	UpdateAcademyProgress(ctx context.Context, accountId uuid.UUID, academy entity.Academy) (entity.AcademyProgress, error)
 }
 type academyService struct {
 	repo repositories.AcademyRepository
@@ -38,6 +49,15 @@ func NewAcademyService(repo repositories.AcademyRepository) AcademyService {
 //
 // ===== Academy =====
 //
+
+func (s *academyService) GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error) {
+	return s.repo.GetAcademyWithProgress(ctx, accountId, slug)
+}
+
+func (s *academyService) GetAcademyDetail(ctx context.Context, id uuid.UUID) (entity.Academy, error) {
+	a, _, err := s.repo.GetAcademyWithMaterials(ctx, id)
+	return a, err
+}
 
 func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error) {
 	if strings.TrimSpace(req.Title) == "" {
@@ -54,25 +74,15 @@ func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcadem
 	}
 
 	a := entity.Academy{
-		Title:       req.Title,
-		Slug:        slugVal,
-		Description: req.Description,
+		Id:             uuid.New(),
+		Title:          req.Title,
+		Slug:           slugVal,
+		Description:    req.Description,
+		ImageUrl:       req.ImageUrl,
+		MaterialsCount: 0,
 	}
 
 	return s.repo.CreateAcademy(ctx, a)
-}
-
-func (s *academyService) GetAcademy(ctx context.Context, id uuid.UUID) (entity.Academy, error) {
-	return s.repo.GetAcademyByID(ctx, id)
-}
-
-func (s *academyService) ListAcademies(ctx context.Context) ([]entity.Academy, error) {
-	return s.repo.ListAcademy(ctx)
-}
-
-func (s *academyService) GetAcademyDetail(ctx context.Context, id uuid.UUID) (entity.Academy, error) {
-	a, _, err := s.repo.GetAcademyWithMaterials(ctx, id)
-	return a, err
 }
 
 func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error) {
@@ -108,9 +118,26 @@ func (s *academyService) DeleteAcademy(ctx context.Context, id uuid.UUID) error 
 	return s.repo.DeleteAcademy(ctx, id)
 }
 
+func (s *academyService) ListAcademies(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error) {
+	return s.repo.ListAcademy(ctx, accountId)
+}
+
 //
 // ===== Material =====
 //
+
+func (s *academyService) GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error) {
+	if strings.TrimSpace(academySlug) == "" || strings.TrimSpace(materialSlug) == "" {
+		return entity.AcademyMaterial{}, errors.New("slug required")
+	}
+	academy, err := s.repo.GetAcademyBySlug(ctx, academySlug)
+	if err != nil {
+		return entity.AcademyMaterial{}, errors.New("academy not found: " + err.Error())
+	}
+
+	academyId := academy.Id
+	return s.repo.GetMaterialWithProgress(ctx,accountId, academyId, materialSlug)
+}
 
 func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error) {
 	if req.AcademyId == uuid.Nil {
@@ -125,12 +152,23 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 		slugVal = slug.Make(req.Title)
 	}
 
+	orderCount, _ := s.repo.CountMaterialsByAcademyID(ctx, req.AcademyId)
+	order := uint(orderCount + 1)
+
 	m := entity.AcademyMaterial{
-		AcademyId:   req.AcademyId,
-		Title:       req.Title,
-		Slug:        slugVal,
-		Description: req.Description,
+		Id:            uuid.New(),
+		AcademyId:     req.AcademyId,
+		Title:         req.Title,
+		Slug:          slugVal,
+		Description:   req.Description,
+		Order:         order,
+		ContentsCount: 0,
 	}
+
+	// Update total materials in academy
+	a, _ := s.repo.GetAcademyByID(ctx, req.AcademyId)
+	a.MaterialsCount = a.MaterialsCount + 1
+	s.repo.UpdateAcademy(ctx, a)
 
 	return s.repo.CreateMaterial(ctx, m)
 }
@@ -140,27 +178,144 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 //
 
 func (s *academyService) CreateContent(ctx context.Context, req dto.CreateContentRequest) (entity.AcademyContent, error) {
-	if req.AcademyMaterialId == uuid.Nil {
+	if req.MaterialId == uuid.Nil {
 		return entity.AcademyContent{}, errors.New("academy_material_id required")
 	}
 
-	if _, err := s.repo.GetMaterialByID(ctx, req.AcademyMaterialId); err != nil {
+	if _, err := s.repo.GetMaterialByID(ctx, req.MaterialId); err != nil {
 		return entity.AcademyContent{}, errors.New("material not found")
 	}
 
 	// auto order last++
-	list, _ := s.repo.ListContentsByMaterialID(ctx, req.AcademyMaterialId)
-	order := req.Order
-	if order == 0 {
-		order = uint(len(list) + 1)
-	}
+	count, _ := s.repo.CountContentsByMaterialID(ctx, req.MaterialId)
+	order := uint(count + 1)
+	Id := uuid.New()
 
 	c := entity.AcademyContent{
-		AcademyMaterialId: req.AcademyMaterialId,
-		Title:             req.Title,
-		Contents:          req.Contents,
-		Order:             order,
+		Id:         Id,
+		MaterialId: req.MaterialId,
+		Title:      req.Title,
+		Contents:   req.Contents,
+		Order:      order,
 	}
 
+	// Update total progress in material
+	m, _ := s.repo.GetMaterialByID(ctx, req.MaterialId)
+	m.ContentsCount = int64(order)
+	s.repo.UpdateMaterial(ctx, m)
+
+	acp := entity.AcademyContentProgress{
+		Status    : "NOT_STARTED",
+	}
+	c.AcademyContentProgress = acp
+
 	return s.repo.CreateContent(ctx, c)
+}
+
+func (s *academyService) GetContent(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContent, error) {
+	material, err := s.GetMaterial(ctx,accountId, academySlug, materialSlug)
+	if err != nil {
+		return entity.AcademyContent{}, errors.New("material not found")
+	}
+	materialId := material.Id
+	academyId := material.AcademyId
+
+	return s.repo.GetContentWithProgress(ctx,accountId, academyId, materialId,order)
+}
+
+// Progress
+func (s *academyService) UpdateAcademyProgress(ctx context.Context, accountId uuid.UUID, academy entity.Academy) (entity.AcademyProgress, error) {
+	//Count total completed materials for academy progress update
+	totalMaterialsCompleted, _ := s.repo.CountCompletedMaterialsByAcademyAndAccount(ctx, accountId, academy.Id)
+	status := "IN_PROGRESS"
+	var completedAt *time.Time
+	if totalMaterialsCompleted == academy.MaterialsCount {
+		status = "COMPLETED"
+		completedAt = utils.Ptr(time.Now())
+	}
+	ap := entity.AcademyProgress{
+		Id:                      uuid.New(),
+		AccountId:               accountId,
+		AcademyId:               academy.Id,
+		Progress:                float64((float64(totalMaterialsCompleted) / float64(academy.MaterialsCount) * 100)),
+		TotalCompletedMaterials: uint(totalMaterialsCompleted),
+		Status:                  status,
+		CompletedAt: completedAt,
+	}
+	_, err := s.repo.UpsertAcademyProgress(ctx, ap)
+	return ap, err
+}
+
+func (s *academyService) UpdateMaterialProgress(ctx context.Context, accountId uuid.UUID, academy entity.Academy, material entity.AcademyMaterial) (entity.AcademyMaterialProgress, error) {
+	// Count total completed contents for material progress update
+	totalContentsCompleted, _ := s.repo.CountCompletedContentsByMaterialAndAccount(ctx, accountId, material.Id)
+	m, err := s.repo.GetMaterialByID(ctx, material.Id)
+	if err != nil {
+		return entity.AcademyMaterialProgress{}, errors.New("material not found")
+	}
+	status := "IN_PROGRESS"
+	var completedAt *time.Time
+	if totalContentsCompleted == m.ContentsCount {
+		status = "COMPLETED"
+		completedAt = utils.Ptr(time.Now())
+	}
+
+	amp := entity.AcademyMaterialProgress{
+		Id:                     uuid.New(),
+		AccountId:              accountId,
+		AcademyId:              academy.Id,
+		MaterialId:             material.Id,
+		Progress:               float64((float64(totalContentsCompleted) / float64(m.ContentsCount)) * 100),
+		TotalCompletedContents: uint(totalContentsCompleted),
+		Status:                 status,
+		CompletedAt: completedAt,
+	}
+
+	_, err = s.repo.UpsertMaterialProgress(ctx, amp)
+	return amp, err
+}
+
+func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContentProgress, entity.AcademyMaterialProgress, entity.AcademyProgress, error) {
+	academy, err := s.repo.GetAcademyBySlug(ctx, academySlug)
+
+	if err != nil {
+		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errors.New("academy not found")
+	}
+
+	material, err := s.repo.GetMaterialBySlug(ctx, academy.Id, materialSlug)
+
+	if err != nil {
+		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errors.New("material not found")
+	}
+
+	content, err := s.repo.GetContentBySlug(ctx, material.Id, order)
+
+	if err != nil {
+		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errors.New("content not found")
+	}
+
+	acp := entity.AcademyContentProgress{
+		Id:          uuid.New(),
+		AccountId:   accountId,
+		AcademyId:   academy.Id,
+		MaterialId:  material.Id,
+		ContentId:   content.Id,
+		Status:      "COMPLETED",
+		CompletedAt: utils.Ptr(time.Now()),
+	}
+
+	_, err = s.repo.UpsertContentProgress(ctx, acp)
+	if err != nil {
+		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errors.New("failed to upsert content progress: " + err.Error())
+	}
+	amp, err := s.UpdateMaterialProgress(ctx, accountId, academy, material)
+	if err != nil {
+		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errors.New("failed to update material progress: " + err.Error())
+	}
+	ap, err := s.UpdateAcademyProgress(ctx, accountId, academy)
+	if err != nil {
+		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errors.New("failed to update academy progress: " + err.Error())
+	}
+
+	return acp, amp, ap, nil
 }

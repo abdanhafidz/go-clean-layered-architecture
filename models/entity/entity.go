@@ -1,10 +1,9 @@
 package models
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"time"
 )
 
 type Account struct {
@@ -82,7 +81,7 @@ type Events struct {
 	StartEvent time.Time `json:"start_event,omitempty"`
 	EndEvent   time.Time `json:"end_event,omitempty"`
 	Overview   string    `json:"overview,omitempty"`
-	ImgBanner string `json:"img_banner,omitempty"`
+	ImgBanner  string    `json:"img_banner,omitempty"`
 	EventCode  string    `json:"event_code,omitempty"`
 	IsPublic   bool      `json:"is_public,omitempty"`
 }
@@ -257,48 +256,79 @@ type Result struct {
 
 func (Result) TableName() string { return "result" }
 
+// ACADEMY ENTITY
+
 type Academy struct {
-	Id          uuid.UUID `gorm:"primaryKey" json:"id"`
-	Title       string    `json:"title,omitempty"`
-	Slug        string    `json:"slug,omitempty"`
-	Description string    `json:"description,omitempty"`
+	Id               uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
+	Title            string          `json:"title,omitempty"`
+	Slug             string          `gorm:"unique" json:"slug,omitempty"`
+	Description      string          `json:"description,omitempty"`
+	ImageUrl         string          `json:"image_url,omitempty"`
+	MaterialsCount   int64           `json:"materials_count,omitempty"`
+	AcademyProgresss AcademyProgress `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progresses,omitempty"`
 }
 
 func (Academy) TableName() string { return "academy" }
 
 type AcademyMaterial struct {
-	Id          uuid.UUID `gorm:"primaryKey" json:"id"`
-	AcademyId   uuid.UUID `json:"academy_id,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Slug        string    `json:"slug,omitempty"`
-	Description string    `json:"description,omitempty"`
+	Id                      uuid.UUID               `gorm:"type:uuid;primaryKey" json:"id"`
+	AcademyId               uuid.UUID               `json:"academy_id,omitempty"`
+	Title                   string                  `json:"title,omitempty"`
+	Slug                    string                  `gorm:"unique" json:"slug,omitempty"`
+	Description             string                  `json:"description,omitempty"`
+	Order                   uint                    `json:"order,omitempty"`
+	ContentsCount           int64                   `json:"contents_count,omitempty"`
+	AcademyMaterialProgress AcademyMaterialProgress `gorm:"foreignKey:MaterialId;references:Id" json:"academy_material_progresses,omitempty"`
 }
 
 func (AcademyMaterial) TableName() string { return "academy_materials" }
 
 type AcademyContent struct {
-	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
-	Title             string    `json:"title,omitempty"`
-	Order             uint      `json:"order,omitempty"`
-	AcademyMaterialId uuid.UUID `json:"academy_material_id,omitempty"`
-	Contents          string    `json:"contents,omitempty"`
+	Id                     uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
+	MaterialId             uuid.UUID              `json:"material_id,omitempty"`
+	Title                  string                 `json:"title,omitempty"`
+	Order                  uint                   `json:"order,omitempty"`
+	Contents               string                 `json:"contents,omitempty"`
+	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progresses,omitempty"`
 }
 
 func (AcademyContent) TableName() string { return "academy_contents" }
 
-type AcademyMaterialProgress struct {
-	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
-	AccountId         uint      `json:"account_id,omitempty"`
-	AcademyMaterialId uuid.UUID `json:"academy_material_id,omitempty"`
-	Progress          uint      `json:"progress,omitempty"`
+// Progress
+
+type AcademyProgress struct {
+	Id                      uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId               uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId               uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	Status                  string    `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
+	Progress                float64   `gorm:"default:0" json:"progress"`
+	TotalCompletedMaterials uint      `gorm:"default:0" json:"total_completed_materials"`
+	CompletedAt             *time.Time `json:"completed_at"`
 }
 
-func (AcademyMaterialProgress) TableName() string { return "academy_materials_progress" }
+func (AcademyProgress) TableName() string { return "academy_progress" }
+
+type AcademyMaterialProgress struct {
+	Id                     uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId              uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId              uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	MaterialId             uuid.UUID `gorm:"type:uuid;index" json:"material_id,omitempty"`
+	Progress               float64   `gorm:"default:0" json:"progress,omitempty"`
+	TotalCompletedContents uint      `gorm:"default:0" json:"total_completed_contents,omitempty"`
+	Status                 string    `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
+	CompletedAt            *time.Time `json:"completed_at"`
+}
+
+func (AcademyMaterialProgress) TableName() string { return "academy_material_progress" }
 
 type AcademyContentProgress struct {
-	Id        uuid.UUID `gorm:"primaryKey" json:"id"`
-	AccountId uuid.UUID `json:"account_id,omitempty"`
-	AcademyId uuid.UUID `json:"academy_id,omitempty"`
+	Id          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId   uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId   uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	MaterialId  uuid.UUID `gorm:"type:uuid;index" json:"material_id,omitempty"`
+	ContentId   uuid.UUID `gorm:"type:uuid;index" json:"content_id,omitempty"`
+	Status      string    `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
+	CompletedAt *time.Time `json:"completed_at"`
 }
 
-func (AcademyContentProgress) TableName() string { return "academy_contents_progress" }
+func (AcademyContentProgress) TableName() string { return "academy_content_progress" }

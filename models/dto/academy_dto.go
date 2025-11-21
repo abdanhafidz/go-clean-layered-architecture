@@ -6,12 +6,14 @@ type CreateAcademyRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
+	ImageUrl   	string `json:"image_url"`
 }
 
 type UpdateAcademyRequest struct {
 	Title       string `json:"title"`
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
+	ImageUrl   	string `json:"image_url"`
 }
 
 type CreateMaterialRequest struct {
@@ -22,8 +24,7 @@ type CreateMaterialRequest struct {
 }
 
 type CreateContentRequest struct {
-	AcademyMaterialId uuid.UUID `json:"academy_material_id" binding:"required"`
-	Title             string    `json:"title" binding:"required"`
-	Contents          string    `json:"contents"`
-	Order             uint      `json:"order"`
+	MaterialId uuid.UUID `json:"material_id" binding:"required"`
+	Title             	string    `json:"title" binding:"required"`
+	Contents          	string    `json:"contents"`
 }

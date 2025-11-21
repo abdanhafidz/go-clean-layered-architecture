@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,8 +17,7 @@ type databaseConfig struct {
 
 func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) DatabaseConfig {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Asia/Jakarta "+
-			"prefer_simple_protocol=true",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta ",
 		DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT,
 	)
 
@@ -39,13 +37,13 @@ func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) D
 }
 
 func (cfg *databaseConfig) AutoMigrateAll(entities ...interface{}) error {
-
-	err := cfg.db.AutoMigrate(
-		entities...,
-	)
-
-	return err
-
+    // Enable UUID extension first
+    if err := cfg.db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"").Error; err != nil {
+        return err
+    }
+    
+    err := cfg.db.AutoMigrate(entities...)
+    return err
 }
 
 func (cfg *databaseConfig) GetInstance() *gorm.DB {

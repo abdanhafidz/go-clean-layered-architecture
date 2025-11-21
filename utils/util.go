@@ -35,3 +35,7 @@ func CalculateRemainingTime(startTime, dueTime time.Time) int {
 	}
 	return remaining / 60
 }
+
+func Ptr[T any](v T) *T {
+    return &v
+}
