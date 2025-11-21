@@ -13,18 +13,11 @@ import (
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/repositories"
-	"abdanhafidz.com/go-boilerplate/utils"
+	"abdanhafidz.com/go-boilerplate/utils" 
 )
 
-// Tambahkan method kontrak ini di Interface Repository Anda
-// agar logic update massal dilakukan di level database (Query SQL) demi performa.
 type AcademyRepositoryExtensions interface {
-	// Logic: Update progress = (completed / new_total).
-	// Jika status 'Completed' tapi progress < 100, ubah jadi 'InProgress'.
 	BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error
-	
-	// Logic: Update progress material = (completed_content / new_total_content).
-	// Trigger juga update parent Academy-nya.
 	BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error
 }
 
@@ -58,7 +51,6 @@ func NewAcademyService(academyRepo repositories.AcademyRepository) AcademyServic
 // ================= ACADEMY =================
 
 func (s *academyService) GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error) {
-	// Mengambil data yang sudah dihitung real-time/disinkronisasi oleh trigger Create/Delete
 	return s.academyRepo.GetAcademyWithProgress(ctx, accountId, slug)
 }
 
