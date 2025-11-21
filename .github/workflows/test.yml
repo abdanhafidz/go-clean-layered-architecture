@@ -1,4 +1,4 @@
-name: Deploy to Huggingface
+name: Deploy to Huggingface - tests
 on:
   push:
     branches:
