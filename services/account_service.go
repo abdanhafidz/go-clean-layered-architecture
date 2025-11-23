@@ -68,7 +68,7 @@ func (s *accountService) Create(ctx context.Context, name string, email string, 
 		return entity.Account{}, err
 	}
 
-	_, err = s.CreateEmptyDetail(ctx, created.Id)
+	_, _ = s.CreateEmptyDetail(ctx, created.Id)
 
 	return created, nil
 

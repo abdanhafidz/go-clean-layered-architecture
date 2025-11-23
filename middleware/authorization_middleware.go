@@ -26,7 +26,7 @@ func (m *authorizationMiddleware) AuthorizeUserToEvent(c *gin.Context) {
 	eventSlug := c.Param("slug")
 	accountId, exists := c.Get("account_id")
 	if !exists {
-		utils.ResponseFAILED(c, eventSlug, http_error.DATA_NOT_FOUND)
+		utils.ResponseFAILED(c, eventSlug, http_error.NOT_FOUND_ERROR)
 		c.Abort()
 		return
 	}
