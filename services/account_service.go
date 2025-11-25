@@ -68,7 +68,7 @@ func (s *accountService) Create(ctx context.Context, name string, email string, 
 		return entity.Account{}, err
 	}
 
-	_, err = s.CreateEmptyDetail(ctx, created.Id)
+	_, _ = s.CreateEmptyDetail(ctx, created.Id)
 
 	return created, nil
 
@@ -114,7 +114,7 @@ func (s *accountService) ChangePassword(ctx context.Context, accountId uuid.UUID
 	}
 
 	if err := s.jwtService.VerifyPassword(ctx, acc.Password, oldPassword); err != nil {
-		return dto.AuthenticatedUser{}, errors.New("incorrect old password!")
+		return dto.AuthenticatedUser{}, errors.New("incorrect old password")
 	}
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(newPassword), 14)

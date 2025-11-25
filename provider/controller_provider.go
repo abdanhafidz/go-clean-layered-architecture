@@ -12,18 +12,24 @@ type ControllerProvider interface {
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
 	ProvideRegionController() controllers.RegionController
+	
+	// UPDATE: Menggunakan Pointer (*)
+	ProvideUploadController() *controllers.UploadController 
 }
 
 type controllerProvider struct {
-	academyController controllers.AcademyController
-	accountDetailController controllers.AccountDetailController
-	authenticationController controllers.AuthenticationController
+	academyController           controllers.AcademyController
+	accountDetailController     controllers.AccountDetailController
+	authenticationController    controllers.AuthenticationController
 	emailVerificationController controllers.EmailVerificationController
-	eventController controllers.EventController
-	examController controllers.ExamController
-	forgotPasswordController controllers.ForgotPasswordController
-	optionController controllers.OptionController
-	regionController controllers.RegionController
+	eventController             controllers.EventController
+	examController              controllers.ExamController
+	forgotPasswordController    controllers.ForgotPasswordController
+	optionController            controllers.OptionController
+	regionController            controllers.RegionController
+	
+	// UPDATE: Menggunakan Pointer (*)
+	uploadController            *controllers.UploadController 
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
@@ -37,16 +43,22 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
 	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
 	regionController := controllers.NewRegionController(servicesProvider.ProvideRegionService())
+
+	// UPDATE: Inisialisasi Upload Controller
+	// servicesProvider.ProvideUploadService() sekarang sudah return Pointer (*), jadi aman.
+	uploadController := controllers.NewUploadController(servicesProvider.ProvideUploadService())
+
 	return &controllerProvider{
-		academyController: academyController,
-		accountDetailController: accountDetailController,
-		authenticationController: authenticationController,
+		academyController:           academyController,
+		accountDetailController:     accountDetailController,
+		authenticationController:    authenticationController,
 		emailVerificationController: emailVerificationController,
-		eventController: eventController,
-		examController: examController,
-		forgotPasswordController: forgotPasswordController,
-		optionController: optionController,
-		regionController: regionController,
+		eventController:             eventController,
+		examController:              examController,
+		forgotPasswordController:    forgotPasswordController,
+		optionController:            optionController,
+		regionController:            regionController,
+		uploadController:            uploadController, // Pointer assign ke Pointer
 	}
 }
 
@@ -88,3 +100,7 @@ func (c *controllerProvider) ProvideRegionController() controllers.RegionControl
 	return c.regionController
 }
 
+// UPDATE: Return Pointer (*)
+func (c *controllerProvider) ProvideUploadController() *controllers.UploadController {
+	return c.uploadController
+}
