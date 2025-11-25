@@ -55,7 +55,7 @@ func (c *academyController) GetAcademy(ctx *gin.Context) {
 		return
 	}
 
-	res, err := c.academyService.GetAcademy(ctx.Request.Context(), accountId, academySlug)
+	res, err := c.academyService.GetAcademyResponse(ctx.Request.Context(), accountId, academySlug)
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug}, res, err)
 }
 
@@ -79,7 +79,7 @@ func (c *academyController) ListAcademies(ctx *gin.Context) {
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
-	
+
 	fmt.Println("Account ID in ListAcademies:", accountId)
 	res, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId)
 	ResponseJSON(ctx, gin.H{}, res, err)
@@ -121,7 +121,7 @@ func (c *academyController) DeleteAcademy(ctx *gin.Context) {
 func (c *academyController) GetMaterial(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
-	
+
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
@@ -130,7 +130,7 @@ func (c *academyController) GetMaterial(ctx *gin.Context) {
 		return
 	}
 
-	res, err := c.academyService.GetMaterial(ctx.Request.Context(), accountId, academySlug, materialSlug)
+	res, err := c.academyService.GetMaterialResponse(ctx.Request.Context(), accountId, academySlug, materialSlug)
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug}, res, err)
 }
 
@@ -165,7 +165,7 @@ func (c *academyController) GetContent(ctx *gin.Context) {
 
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
-	
+
 	orderID64, err := strconv.ParseUint(ctx.Param("order"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'order' parameter. Must be a positive integer."})
@@ -208,7 +208,7 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 
 	academySlug := ctx.Param("academy_slug")
 	materialSlug := ctx.Param("material_slug")
-	
+
 	orderID64, err := strconv.ParseUint(ctx.Param("order"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'order' parameter. Must be a positive integer."})
@@ -217,7 +217,7 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 	order := uint(orderID64)
 
 	contentProgress, materialProgress, academyProgress, err := c.academyService.UpdateContentProgress(ctx.Request.Context(), accountId, academySlug, materialSlug, order)
-	
+
 	res := gin.H{
 		"content_progress":  contentProgress,
 		"material_progress": materialProgress,

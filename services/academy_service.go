@@ -13,7 +13,7 @@ import (
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/repositories"
-	"abdanhafidz.com/go-boilerplate/utils" 
+	"abdanhafidz.com/go-boilerplate/utils"
 )
 
 type AcademyRepositoryExtensions interface {
@@ -38,6 +38,10 @@ type AcademyService interface {
 	DeleteContent(ctx context.Context, id uuid.UUID) error
 
 	UpdateContentProgress(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContentProgress, entity.AcademyMaterialProgress, entity.AcademyProgress, error)
+
+	// Response DTOs
+	GetAcademyResponse(ctx context.Context, accountId uuid.UUID, slug string) (*dto.AcademyDetailResponse, error)
+	GetMaterialResponse(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (*dto.MaterialDetailResponse, error)
 }
 
 type academyService struct {
@@ -133,7 +137,7 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 	if req.AcademyId == uuid.Nil {
 		return entity.AcademyMaterial{}, http_error.ACADEMY_ID_REQUIRED
 	}
-	
+
 	slugVal := req.Slug
 	if slugVal == "" {
 		slugVal = slug.Make(req.Title)
@@ -143,7 +147,7 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 
 	err := s.academyRepo.Atomic(ctx, func(txRepo repositories.AcademyRepository) error {
 		orderCount, _ := txRepo.CountMaterialsByAcademyID(ctx, req.AcademyId)
-		
+
 		m := entity.AcademyMaterial{
 			Id:            uuid.New(),
 			AcademyId:     req.AcademyId,
@@ -172,9 +176,6 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 			return err
 		}
 
-		// 3. VALIDASI KRUSIAL: Recalculate Progress User
-		// Karena MaterialsCount bertambah (misal 3 -> 4), user yang sebelumnya 100% (3/3)
-		// sekarang menjadi 75% (3/4). Status harus berubah jadi 'InProgress'.
 		if err := txRepo.BatchRecalculateAcademyProgress(ctx, req.AcademyId); err != nil {
 			return err
 		}
@@ -197,33 +198,42 @@ func (s *academyService) DeleteMaterial(ctx context.Context, id uuid.UUID) error
 
 	return s.academyRepo.Atomic(ctx, func(txRepo repositories.AcademyRepository) error {
 		// 1. Cleanup Child Progress & Content
-		if err := txRepo.DeleteContentProgressByMaterialID(ctx, id); err != nil { return err }
-		if err := txRepo.DeleteMaterialProgressByMaterialID(ctx, id); err != nil { return err }
-		
+		if err := txRepo.DeleteContentProgressByMaterialID(ctx, id); err != nil {
+			return err
+		}
+		if err := txRepo.DeleteMaterialProgressByMaterialID(ctx, id); err != nil {
+			return err
+		}
+
 		// 2. Delete Material
-		if err := txRepo.DeleteMaterial(ctx, id); err != nil { return err }
+		if err := txRepo.DeleteMaterial(ctx, id); err != nil {
+			return err
+		}
 
 		// 3. Reorder
-		if err := txRepo.DecrementMaterialOrdersGreaterThan(ctx, m.AcademyId, m.Order); err != nil { return err }
+		if err := txRepo.DecrementMaterialOrdersGreaterThan(ctx, m.AcademyId, m.Order); err != nil {
+			return err
+		}
 
 		// 4. Update Parent Count
 		realCount, err := txRepo.CountMaterialsByAcademyID(ctx, m.AcademyId)
-		if err != nil { return err }
-		
+		if err != nil {
+			return err
+		}
+
 		academy, _ := txRepo.GetAcademyByID(ctx, m.AcademyId)
 		academy.MaterialsCount = int64(realCount)
-		if _, err := txRepo.UpdateAcademy(ctx, academy); err != nil { return err }
+		if _, err := txRepo.UpdateAcademy(ctx, academy); err != nil {
+			return err
+		}
 
-		// 5. VALIDASI KRUSIAL: Recalculate Progress
-		// Karena MaterialsCount berkurang (misal 4 -> 3), user yang sebelumnya 75% (3/4)
-		// sekarang menjadi 100% (3/3). Status harus berubah jadi 'Completed'.
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, m.AcademyId); err != nil { return err }
+		if err := txRepo.BatchRecalculateAcademyProgress(ctx, m.AcademyId); err != nil {
+			return err
+		}
 
 		return nil
 	})
 }
-
-// ================= CONTENT (CRITICAL LOGIC HERE) =================
 
 func (s *academyService) CreateContent(ctx context.Context, req dto.CreateContentRequest) (entity.AcademyContent, error) {
 	if req.MaterialId == uuid.Nil {
@@ -234,38 +244,46 @@ func (s *academyService) CreateContent(ctx context.Context, req dto.CreateConten
 
 	err := s.academyRepo.Atomic(ctx, func(txRepo repositories.AcademyRepository) error {
 		m, err := txRepo.GetMaterialByID(ctx, req.MaterialId)
-		if err != nil { return http_error.MATERIAL_NOT_FOUND }
+		if err != nil {
+			return http_error.MATERIAL_NOT_FOUND
+		}
 
 		count, _ := txRepo.CountContentsByMaterialID(ctx, req.MaterialId)
-		
+
 		c := entity.AcademyContent{
 			Id:         uuid.New(),
 			MaterialId: req.MaterialId,
 			Title:      req.Title,
 			Contents:   req.Contents,
 			Order:      uint(count + 1),
-			// Progress status untuk content baru default-nya NotStarted
 		}
 
 		// 1. Create Content
 		res, err := txRepo.CreateContent(ctx, c)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		createdContent = res
 
 		// 2. Update Parent Count (Material)
 		realCount, err := txRepo.CountContentsByMaterialID(ctx, req.MaterialId)
-		if err != nil { return err }
-		
-		m.ContentsCount = realCount
-		if _, err := txRepo.UpdateMaterial(ctx, m); err != nil { return err }
+		if err != nil {
+			return err
+		}
 
-		// 3. VALIDASI KRUSIAL: Recalculate Progress Material
-		// Konten bertambah -> Material user yang 'Completed' harus jadi 'InProgress'.
-		// Ini juga akan men-trigger efek domino ke Academy Progress (accumulated value berubah).
-		if err := txRepo.BatchRecalculateMaterialProgress(ctx, req.MaterialId); err != nil { return err }
-		
+		m.ContentsCount = realCount
+		if _, err := txRepo.UpdateMaterial(ctx, m); err != nil {
+			return err
+		}
+
+		if err := txRepo.BatchRecalculateMaterialProgress(ctx, req.MaterialId); err != nil {
+			return err
+		}
+
 		// Update Academy juga karena bobot material berubah
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, m.AcademyId); err != nil { return err }
+		if err := txRepo.BatchRecalculateAcademyProgress(ctx, m.AcademyId); err != nil {
+			return err
+		}
 
 		return nil
 	})
@@ -289,26 +307,40 @@ func (s *academyService) DeleteContent(ctx context.Context, id uuid.UUID) error 
 
 	return s.academyRepo.Atomic(ctx, func(txRepo repositories.AcademyRepository) error {
 		// 1. Delete Progress & Content
-		if err := txRepo.DeleteContentProgressByContentID(ctx, id); err != nil { return err }
-		if err := txRepo.DeleteContent(ctx, id); err != nil { return err }
+		if err := txRepo.DeleteContentProgressByContentID(ctx, id); err != nil {
+			return err
+		}
+		if err := txRepo.DeleteContent(ctx, id); err != nil {
+			return err
+		}
 
 		// 2. Reorder
-		if err := txRepo.DecrementContentOrdersGreaterThan(ctx, c.MaterialId, c.Order); err != nil { return err }
+		if err := txRepo.DecrementContentOrdersGreaterThan(ctx, c.MaterialId, c.Order); err != nil {
+			return err
+		}
 
 		// 3. Update Parent Count (Material)
 		realCount, err := txRepo.CountContentsByMaterialID(ctx, c.MaterialId)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
 		material, _ := txRepo.GetMaterialByID(ctx, c.MaterialId)
 		material.ContentsCount = realCount
-		if _, err := txRepo.UpdateMaterial(ctx, material); err != nil { return err }
+		if _, err := txRepo.UpdateMaterial(ctx, material); err != nil {
+			return err
+		}
 
 		// 4. VALIDASI KRUSIAL: Recalculate
 		// Konten berkurang -> Material user 'InProgress' bisa jadi 'Completed'.
-		if err := txRepo.BatchRecalculateMaterialProgress(ctx, c.MaterialId); err != nil { return err }
-		
+		if err := txRepo.BatchRecalculateMaterialProgress(ctx, c.MaterialId); err != nil {
+			return err
+		}
+
 		// Update Academy juga
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, material.AcademyId); err != nil { return err }
+		if err := txRepo.BatchRecalculateAcademyProgress(ctx, material.AcademyId); err != nil {
+			return err
+		}
 
 		return nil
 	})
@@ -340,7 +372,9 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 		// 1. Tandai Konten Selesai
 		existingACP, _ := txRepo.GetContentProgress(ctx, accountId, academy.Id, material.Id, content.Id)
 		acpID := existingACP.Id
-		if acpID == uuid.Nil { acpID = uuid.New() }
+		if acpID == uuid.Nil {
+			acpID = uuid.New()
+		}
 
 		acp = entity.AcademyContentProgress{
 			Id:          acpID,
@@ -351,11 +385,13 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			Status:      entity.StatusCompleted,
 			CompletedAt: utils.Ptr(time.Now()),
 		}
-		if _, err := txRepo.UpsertContentProgress(ctx, acp); err != nil { return err }
+		if _, err := txRepo.UpsertContentProgress(ctx, acp); err != nil {
+			return err
+		}
 
 		totalContentsCompleted, _ := txRepo.CountCompletedContentsByMaterialAndAccount(ctx, accountId, material.Id)
 		m, _ := txRepo.GetMaterialByID(ctx, material.Id) // Ambil count terbaru
-		
+
 		matStatus := entity.StatusInProgress
 		var matCompletedAt *time.Time
 		progressPct := 0.0
@@ -376,7 +412,9 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 
 		existingAMP, _ := txRepo.GetMaterialProgress(ctx, accountId, academy.Id, material.Id)
 		ampID := existingAMP.Id
-		if ampID == uuid.Nil { ampID = uuid.New() }
+		if ampID == uuid.Nil {
+			ampID = uuid.New()
+		}
 
 		amp = entity.AcademyMaterialProgress{
 			Id:                     ampID,
@@ -388,13 +426,15 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			Status:                 matStatus,
 			CompletedAt:            matCompletedAt,
 		}
-		if _, err := txRepo.UpsertMaterialProgress(ctx, amp); err != nil { return err }
+		if _, err := txRepo.UpsertMaterialProgress(ctx, amp); err != nil {
+			return err
+		}
 
 		// 3. Hitung Ulang Progress Academy (Aggregation)
 		// Logic: Average dari seluruh Material Progress
 		// Atau Logic Sederhana: (Completed Material / Total Material) -> Ini kurang akurat jika material bobotnya sama.
 		// Logic Lebih Akurat: Sum(MaterialProgress) / TotalMaterial
-		
+
 		accumulatedProgress, _ := txRepo.GetAccumulatedMaterialProgress(ctx, accountId, academy.Id)
 		a, _ := txRepo.GetAcademyByID(ctx, academy.Id) // Ambil count terbaru
 
@@ -422,7 +462,9 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 
 		existingAP, _ := txRepo.GetAcademyProgress(ctx, accountId, academy.Id)
 		apID := existingAP.Id
-		if apID == uuid.Nil { apID = uuid.New() }
+		if apID == uuid.Nil {
+			apID = uuid.New()
+		}
 
 		ap = entity.AcademyProgress{
 			Id:                      apID,
@@ -433,10 +475,69 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			Status:                  acadStatus,
 			CompletedAt:             acadCompletedAt,
 		}
-		if _, err := txRepo.UpsertAcademyProgress(ctx, ap); err != nil { return err }
+		if _, err := txRepo.UpsertAcademyProgress(ctx, ap); err != nil {
+			return err
+		}
 
 		return nil
 	})
 
 	return acp, amp, ap, err
+}
+
+// ================= RESPONSE METHODS =================
+
+// GetAcademyResponse returns formatted academy detail with all materials and progress
+func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.UUID, slug string) (*dto.AcademyDetailResponse, error) {
+	if strings.TrimSpace(slug) == "" {
+		return nil, http_error.SLUG_REQUIRED
+	}
+
+	// Get academy
+	academy, err := s.academyRepo.GetAcademyBySlug(ctx, slug)
+	if err != nil {
+		return nil, http_error.ACADEMY_NOT_FOUND
+	}
+
+	// Get academy progress
+	academyProgress, _ := s.academyRepo.GetAcademyProgress(ctx, accountId, academy.Id)
+
+	// Get materials with preloaded contents (optimized single query)
+	materials, err := s.academyRepo.GetMaterialsWithContents(ctx, academy.Id)
+	if err != nil {
+		materials = []entity.AcademyMaterial{}
+	}
+
+	// Build response
+	return buildAcademyDetailResponse(academy, materials, academyProgress, ctx, s.academyRepo), nil
+}
+
+func (s *academyService) GetMaterialResponse(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (*dto.MaterialDetailResponse, error) {
+	if strings.TrimSpace(academySlug) == "" || strings.TrimSpace(materialSlug) == "" {
+		return nil, http_error.SLUG_REQUIRED
+	}
+
+	// Get academy
+	academy, err := s.academyRepo.GetAcademyBySlug(ctx, academySlug)
+	if err != nil {
+		return nil, http_error.ACADEMY_NOT_FOUND
+	}
+
+	// Get material
+	material, err := s.academyRepo.GetMaterialBySlug(ctx, academy.Id, materialSlug)
+	if err != nil {
+		return nil, http_error.MATERIAL_NOT_FOUND
+	}
+
+	// Get material progress
+	materialProgress, _ := s.academyRepo.GetMaterialProgress(ctx, accountId, academy.Id, material.Id)
+
+	// Get contents
+	_, contents, err := s.academyRepo.GetMaterialWithContents(ctx, material.Id)
+	if err != nil {
+		contents = []entity.AcademyContent{}
+	}
+
+	// Build response
+	return buildMaterialDetailResponse(material, contents, materialProgress, accountId, academy.Id, ctx, s.academyRepo, academySlug, materialSlug), nil
 }

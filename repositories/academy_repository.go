@@ -31,6 +31,7 @@ type AcademyRepository interface {
 	DeleteMaterial(ctx context.Context, id uuid.UUID) error
 	ListMaterials(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyMaterial, error)
 	GetMaterialWithContents(ctx context.Context, id uuid.UUID) (entity.AcademyMaterial, []entity.AcademyContent, error)
+	GetMaterialsWithContents(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyMaterial, error)
 
 	GetContentBySlug(ctx context.Context, materialId uuid.UUID, order uint) (entity.AcademyContent, error)
 	GetContentByID(ctx context.Context, id uuid.UUID) (entity.AcademyContent, error)
@@ -59,6 +60,10 @@ type AcademyRepository interface {
 
 	BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error
 	BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error
+
+	// Batch loading methods for optimization
+	GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error)
+	GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error)
 }
 
 type academyRepository struct{ db *gorm.DB }
@@ -206,6 +211,18 @@ func (r *academyRepository) CreateMaterial(ctx context.Context, m entity.Academy
 func (r *academyRepository) ListMaterials(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyMaterial, error) {
 	var list []entity.AcademyMaterial
 	return list, r.db.WithContext(ctx).Where("academy_id = ?", academyId).Order("\"order\" ASC").Find(&list).Error
+}
+
+// GetMaterialsWithContents retrieves all materials for an academy with their contents preloaded
+func (r *academyRepository) GetMaterialsWithContents(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyMaterial, error) {
+	var materials []entity.AcademyMaterial
+	return materials, r.db.WithContext(ctx).
+		Where("academy_id = ?", academyId).
+		Order("\"order\" ASC").
+		Preload("Contents", func(db *gorm.DB) *gorm.DB {
+			return db.Order("\"order\" ASC")
+		}).
+		Find(&materials).Error
 }
 
 func (r *academyRepository) UpdateMaterial(ctx context.Context, m entity.AcademyMaterial) (entity.AcademyMaterial, error) {
@@ -469,4 +486,30 @@ func (r *academyRepository) BatchRecalculateAcademyProgress(ctx context.Context,
 			END
 		WHERE ap.academy_id = ?
 	`, totalMaterials, totalMaterials, totalMaterials, academyId).Error
+}
+
+// GetMaterialProgressBatch loads multiple material progress records in a single query
+func (r *academyRepository) GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error) {
+	var progresses []entity.AcademyMaterialProgress
+	result := r.db.WithContext(ctx).Where("account_id = ? AND academy_id = ? AND material_id IN ?", accountId, academyId, materialIds).Find(&progresses)
+
+	progressMap := make(map[uuid.UUID]entity.AcademyMaterialProgress)
+	for _, p := range progresses {
+		progressMap[p.MaterialId] = p
+	}
+
+	return progressMap, result.Error
+}
+
+// GetContentProgressBatch loads multiple content progress records in a single query
+func (r *academyRepository) GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error) {
+	var progresses []entity.AcademyContentProgress
+	result := r.db.WithContext(ctx).Where("account_id = ? AND academy_id = ? AND content_id IN ?", accountId, academyId, contentIds).Find(&progresses)
+
+	progressMap := make(map[uuid.UUID]entity.AcademyContentProgress)
+	for _, p := range progresses {
+		progressMap[p.ContentId] = p
+	}
+
+	return progressMap, result.Error
 }
