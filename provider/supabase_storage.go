@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-
-	// Pastikan import library supabase client yang Anda pakai benar
 	storage_go "github.com/supabase-community/storage-go" 
 )
+
 
 type SupabaseStorage struct {
 	client     *storage_go.Client
@@ -27,7 +26,7 @@ func NewSupabaseStorage(url string, key string, bucketName string) *SupabaseStor
 func (s *SupabaseStorage) UploadFile(ctx context.Context, file io.Reader, destinationPath string, contentType string) (string, error) {
 	_, err := s.client.UploadFile(s.bucketName, destinationPath, file, storage_go.FileOptions{
 		ContentType: &contentType, 
-		Upsert:      new(bool), // Use new(bool) to create a pointer to false
+		Upsert:      new(bool), 
 	})
 
 	if err != nil {

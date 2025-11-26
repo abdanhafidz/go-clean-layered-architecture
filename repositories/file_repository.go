@@ -38,6 +38,5 @@ func (r *fileRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.Fi
 		}
 		return nil, result.Error
 	}
-
 	return &file, nil
 }

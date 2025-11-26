@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"time"
 )
 
 type Account struct {
@@ -259,13 +260,14 @@ func (Result) TableName() string { return "result" }
 // ACADEMY ENTITY
 
 type Academy struct {
-	Id               uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
-	Title            string          `json:"title,omitempty"`
-	Slug             string          `gorm:"unique" json:"slug,omitempty"`
-	Description      string          `json:"description,omitempty"`
-	ImageUrl         string          `json:"image_url,omitempty"`
-	MaterialsCount   int64           `json:"materials_count,omitempty"`
-	AcademyProgresss AcademyProgress `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progresses,omitempty"`
+	Id               uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
+	Title            string            `json:"title,omitempty"`
+	Slug             string            `gorm:"unique" json:"slug,omitempty"`
+	Description      string            `json:"description,omitempty"`
+	ImageUrl         string            `json:"image_url,omitempty"`
+	MaterialsCount   int64             `json:"materials_count,omitempty"`
+	Materials        []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
+	AcademyProgresss AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progresses,omitempty"`
 }
 
 func (Academy) TableName() string { return "academy" }
@@ -278,6 +280,7 @@ type AcademyMaterial struct {
 	Description             string                  `json:"description,omitempty"`
 	Order                   uint                    `json:"order,omitempty"`
 	ContentsCount           int64                   `json:"contents_count,omitempty"`
+	Contents                []AcademyContent        `gorm:"foreignKey:MaterialId;references:Id" json:"contents,omitempty"`
 	AcademyMaterialProgress AcademyMaterialProgress `gorm:"foreignKey:MaterialId;references:Id" json:"academy_material_progresses,omitempty"`
 }
 
@@ -297,53 +300,53 @@ func (AcademyContent) TableName() string { return "academy_contents" }
 // Progress
 
 type AcademyProgress struct {
-	Id                      uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	AccountId               uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
-	AcademyId               uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
-	Status                  string    `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
-	Progress                float64   `gorm:"default:0" json:"progress"`
-	TotalCompletedMaterials uint      `gorm:"default:0" json:"total_completed_materials"`
+	Id                      uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId               uuid.UUID  `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId               uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	Status                  string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
+	Progress                float64    `gorm:"default:0" json:"progress"`
+	TotalCompletedMaterials uint       `gorm:"default:0" json:"total_completed_materials"`
 	CompletedAt             *time.Time `json:"completed_at"`
 }
 
 func (AcademyProgress) TableName() string { return "academy_progress" }
 
 type AcademyMaterialProgress struct {
-	Id                     uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	AccountId              uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
-	AcademyId              uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
-	MaterialId             uuid.UUID `gorm:"type:uuid;index" json:"material_id,omitempty"`
-	Progress               float64   `gorm:"default:0" json:"progress,omitempty"`
-	TotalCompletedContents uint      `gorm:"default:0" json:"total_completed_contents,omitempty"`
-	Status                 string    `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
+	Id                     uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId              uuid.UUID  `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId              uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	MaterialId             uuid.UUID  `gorm:"type:uuid;index" json:"material_id,omitempty"`
+	Progress               float64    `gorm:"default:0" json:"progress,omitempty"`
+	TotalCompletedContents uint       `gorm:"default:0" json:"total_completed_contents,omitempty"`
+	Status                 string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
 	CompletedAt            *time.Time `json:"completed_at"`
 }
 
 func (AcademyMaterialProgress) TableName() string { return "academy_material_progress" }
 
 type AcademyContentProgress struct {
-	Id          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	AccountId   uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
-	AcademyId   uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
-	MaterialId  uuid.UUID `gorm:"type:uuid;index" json:"material_id,omitempty"`
-	ContentId   uuid.UUID `gorm:"type:uuid;index" json:"content_id,omitempty"`
-	Status      string    `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
+	Id          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId   uuid.UUID  `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId   uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	MaterialId  uuid.UUID  `gorm:"type:uuid;index" json:"material_id,omitempty"`
+	ContentId   uuid.UUID  `gorm:"type:uuid;index" json:"content_id,omitempty"`
+	Status      string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
 	CompletedAt *time.Time `json:"completed_at"`
 }
 
 func (AcademyContentProgress) TableName() string { return "academy_content_progress" }
 
 type File struct {
-    Id           uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-    OriginalName string    `json:"original_name,omitempty"`
-    StoredName   string    `json:"stored_name,omitempty"`
-    MimeType     string    `json:"mime_type,omitempty"`
-    Size         int64     `json:"size,omitempty"`
-    Path         string    `json:"path,omitempty"`
-    Context      string    `json:"context,omitempty"`
-    AccountId    uuid.UUID `json:"account_id,omitempty"`
-    CreatedAt    time.Time `json:"created_at,omitempty"`
-    Account      *Account  `gorm:"foreignKey:AccountId" json:"account,omitempty"`
+	Id           uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	OriginalName string    `json:"original_name,omitempty"`
+	StoredName   string    `json:"stored_name,omitempty"`
+	MimeType     string    `json:"mime_type,omitempty"`
+	Size         int64     `json:"size,omitempty"`
+	Path         string    `json:"path,omitempty"`
+	Context      string    `json:"context,omitempty"`
+	AccountId    uuid.UUID `json:"account_id,omitempty"`
+	CreatedAt    time.Time `json:"created_at,omitempty"`
+	Account      *Account  `gorm:"foreignKey:AccountId" json:"account,omitempty"`
 }
 
 func (File) TableName() string { return "files" }

@@ -1,7 +1,6 @@
 package provider
 
 import (
-    // Pastikan path ini sesuai dengan go.mod kamu (misal: quzuu-backend-v2/services)
     "abdanhafidz.com/go-boilerplate/services" 
 )
 
@@ -17,8 +16,6 @@ type ServicesProvider interface {
     ProvideForgotPasswordService() services.ForgotPasswordService
     ProvideEmailVerificationService() services.EmailVerificationService
     ProvideExternalAuthService() services.ExternalAuthService
-    
-    // UPDATE: Mengembalikan pointer karena UploadService adalah struct, bukan interface
     ProvideUploadService() *services.UploadService 
 }
 
@@ -34,15 +31,13 @@ type servicesProvider struct {
     forgotPasswordService    services.ForgotPasswordService
     emailVerificationService services.EmailVerificationService
     externalAuthService      services.ExternalAuthService
-    
-    // Field untuk menyimpan instance UploadService
     uploadService            *services.UploadService 
 }
 
 func NewServicesProvider(
     repoProvider RepositoriesProvider, 
     configProvider ConfigProvider, 
-    storageProvider services.StorageProvider, // Didapat dari main/wire
+    storageProvider services.StorageProvider, 
 ) ServicesProvider {
 
     // Inisialisasi service lain...
