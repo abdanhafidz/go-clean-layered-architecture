@@ -45,13 +45,12 @@ type repositoriesProvider struct {
 	questionsRepository            repositories.QuestionsRepository
 	regionRepository               repositories.RegionRepository
 	resultRepository               repositories.ResultRepository
-	fileRepository                 repositories.FileRepository // Added field
+	fileRepository                 repositories.FileRepository 
 }
 
 func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	dbConfig := cfg.ProvideDatabaseConfig()
 	db := dbConfig.GetInstance()
-
 	academyRepository := repositories.NewAcademyRepository(db)
 	accountDetailRepository := repositories.NewAccountDetailRepository(db)
 	accountRepository := repositories.NewAccountRepository(db)

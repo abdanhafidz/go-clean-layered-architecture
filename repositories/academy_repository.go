@@ -488,7 +488,6 @@ func (r *academyRepository) BatchRecalculateAcademyProgress(ctx context.Context,
 	`, totalMaterials, totalMaterials, totalMaterials, academyId).Error
 }
 
-// GetMaterialProgressBatch loads multiple material progress records in a single query
 func (r *academyRepository) GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error) {
 	var progresses []entity.AcademyMaterialProgress
 	result := r.db.WithContext(ctx).Where("account_id = ? AND academy_id = ? AND material_id IN ?", accountId, academyId, materialIds).Find(&progresses)
@@ -501,7 +500,6 @@ func (r *academyRepository) GetMaterialProgressBatch(ctx context.Context, accoun
 	return progressMap, result.Error
 }
 
-// GetContentProgressBatch loads multiple content progress records in a single query
 func (r *academyRepository) GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error) {
 	var progresses []entity.AcademyContentProgress
 	result := r.db.WithContext(ctx).Where("account_id = ? AND academy_id = ? AND content_id IN ?", accountId, academyId, contentIds).Find(&progresses)
