@@ -1,0 +1,38 @@
+name: Uptime Check Backend API
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # setiap 5 menit
+  workflow_dispatch:        # bisa dijalankan manual
+
+jobs:
+  check-uptime:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Dev API Uptime
+        run: |
+          echo "🔍 Checking Development API..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://lifedebugger-quzuu-api-dev.hf.space/api/v1)
+          
+          echo "Development API HTTP Status: $RESPONSE"
+          
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "❌ Development API DOWN! Expected 200 but got $RESPONSE"
+            exit 1
+          fi
+
+      - name: Check Test API Uptime
+        run: |
+          echo "🔍 Checking Test API..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://lifedebugger-quzuu-api-test.hf.space/api/v1)
+          
+          echo "Test API HTTP Status: $RESPONSE"
+          
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "❌ Test API DOWN! Expected 200 but got $RESPONSE"
+            exit 1
+          fi
+
+      - name: Success Message
+        run: echo "✔ All API endpoints are UP!"
