@@ -1,10 +1,9 @@
 name: Uptime Check Backend API
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"   # setiap 5 menit
-  workflow_dispatch:        # bisa dijalankan manual
-
+  push:
+    branches:
+      - tests
 jobs:
   check-uptime:
     runs-on: ubuntu-latest
