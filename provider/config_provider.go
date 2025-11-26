@@ -1,6 +1,6 @@
 package provider
 
-import "abdanhafidz.com/go-clean-layered-architecture/config"
+import "abdanhafidz.com/go-boilerplate/config"
 
 type ConfigProvider interface {
 	ProvideJWTConfig() config.JWTConfig
@@ -37,3 +37,4 @@ func (c *configProvider) ProvideEnvConfig() config.EnvConfig {
 func (c *configProvider) ProvideDatabaseConfig() config.DatabaseConfig {
 	return c.databaseConfig
 }
+
