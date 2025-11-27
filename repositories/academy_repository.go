@@ -61,7 +61,6 @@ type AcademyRepository interface {
 	BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error
 	BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error
 
-	// Batch loading methods for optimization
 	GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error)
 	GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error)
 }
@@ -213,7 +212,6 @@ func (r *academyRepository) ListMaterials(ctx context.Context, academyId uuid.UU
 	return list, r.db.WithContext(ctx).Where("academy_id = ?", academyId).Order("\"order\" ASC").Find(&list).Error
 }
 
-// GetMaterialsWithContents retrieves all materials for an academy with their contents preloaded
 func (r *academyRepository) GetMaterialsWithContents(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyMaterial, error) {
 	var materials []entity.AcademyMaterial
 	return materials, r.db.WithContext(ctx).

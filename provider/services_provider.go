@@ -17,6 +17,7 @@ type ServicesProvider interface {
     ProvideEmailVerificationService() services.EmailVerificationService
     ProvideExternalAuthService() services.ExternalAuthService
     ProvideUploadService() *services.UploadService 
+    ProvideAcademyExamService() services.AcademyExamService
 }
 
 type servicesProvider struct {
@@ -32,6 +33,7 @@ type servicesProvider struct {
     emailVerificationService services.EmailVerificationService
     externalAuthService      services.ExternalAuthService
     uploadService            *services.UploadService 
+    academyExamService       services.AcademyExamService
 }
 
 func NewServicesProvider(
@@ -40,7 +42,6 @@ func NewServicesProvider(
     storageProvider services.StorageProvider, 
 ) ServicesProvider {
 
-    // Inisialisasi service lain...
     eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
     academyService := services.NewAcademyService(repoProvider.ProvideAcademyRepository())
     problemSetService := services.NewProblemSetService(repoProvider.ProvideProblemSetRepository(), repoProvider.ProvideQuestionsRepository(), repoProvider.ProvideProblemSetExamAssignRepository())
@@ -52,7 +53,15 @@ func NewServicesProvider(
     forgotPasswordService := services.NewForgotPasswordService(jWTService, repoProvider.ProvideAccountRepository(), repoProvider.ProvideForgotPasswordRepository())
     emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
     externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
-
+    academyExamService := services.NewAcademyExamService(
+        academyService,
+        problemSetService,
+        repoProvider.ProvideExamRepository(),
+        repoProvider.ProvideExamAcademyAttemptRepository(),
+        repoProvider.ProvideExamAcademyAssignRepository(),
+        repoProvider.ProvideExamAcademyAnswerRepository(),
+        repoProvider.ProvideAcademyResultRepository(),
+    )
 
     uploadService := services.NewUploadService(
         storageProvider, 
@@ -72,10 +81,9 @@ func NewServicesProvider(
         emailVerificationService: emailVerificationService,
         externalAuthService:      externalAuthService,
         uploadService:            uploadService, 
+        academyExamService:       academyExamService,
     }
 }
-
-// ... (Getter method lainnya tetap sama) ...
 
 func (s *servicesProvider) ProvideEventService() services.EventService {
     return s.eventService
@@ -114,3 +122,5 @@ func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthSer
 func (s *servicesProvider) ProvideUploadService() *services.UploadService {
     return s.uploadService
 }
+
+func (s *servicesProvider) ProvideAcademyExamService() services.AcademyExamService { return s.academyExamService }

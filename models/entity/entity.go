@@ -350,3 +350,54 @@ type File struct {
 }
 
 func (File) TableName() string { return "files" }
+
+type ExamAcademyAssign struct {
+    Id        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_exam_academy_assign"`
+    AcademyId uuid.UUID `json:"id_academy,omitempty"`
+    ExamId    uuid.UUID `json:"id_exam,omitempty"`
+    Exam      *Exam     `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
+    Academy   *Academy  `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
+}
+
+func (ExamAcademyAssign) TableName() string { return "exam_academy_assign" }
+
+type ExamAcademyAnswer struct {
+    Id                 uuid.UUID           `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+    AttemptId          uuid.UUID           `json:"id_attempt,omitempty" gorm:"index"`
+    QuestionId         uuid.UUID           `json:"id_question,omitempty" gorm:"index"`
+    Answers            pq.StringArray      `gorm:"type:text[]" json:"answer,omitempty"`
+    Score              float32             `json:"score"`
+    ExamAcademyAttempt *ExamAcademyAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
+    CreatedAt          time.Time           `json:"created_at,omitempty"`
+    UpdatedAt          time.Time           `json:"updated_at,omitempty"`
+}
+
+func (ExamAcademyAnswer) TableName() string { return "exam_academy_answer" }
+
+type ExamAcademyAttempt struct {
+    Id        uuid.UUID            `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_attempt"`
+    AccountId uuid.UUID            `json:"id_account,omitempty"`
+    AcademyId uuid.UUID            `json:"id_academy,omitempty"`
+    ExamId    uuid.UUID            `json:"id_exam,omitempty"`
+    Questions []Questions          `gorm:"-" json:"questions,omitempty"`
+    Answers   []ExamAcademyAnswer  `gorm:"foreignKey:AttemptId;references:Id" json:"answers,omitempty"`
+    Account   *Account             `gorm:"foreignKey:AccountId" json:"account,omitempty"`
+    Academy   *Academy             `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
+    Exam      *Exam                `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
+    RemTime   int                  `json:"remaining_time,omitempty"`
+    Mark      float32              `json:"mark,omitempty"`
+    CreatedAt time.Time            `json:"created_at,omitempty"`
+    DueAt     time.Time            `json:"due_at,omitempty"`
+    Submitted bool                 `json:"submitted,omitempty"`
+}
+
+func (ExamAcademyAttempt) TableName() string { return "exam_academy_attempt" }
+
+type AcademyExamResult struct {
+    Id                  uuid.UUID           `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_result"`
+    AttemptId           uuid.UUID           `json:"id_attempt,omitempty"`
+    FinalScore          float32             `json:"final_score"`
+    ExamAcademyAttempt  *ExamAcademyAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
+}
+
+func (AcademyExamResult) TableName() string { return "academy_exam_result" }

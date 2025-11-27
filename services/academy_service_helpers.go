@@ -59,7 +59,6 @@ func (s *academyService) upsertContentProgressSimplified(
 	return acp
 }
 
-// calculateMaterialProgress komputes material progress dengan status
 func (s *academyService) calculateMaterialProgress(
 	ctx context.Context,
 	txRepo repositories.AcademyRepository,
@@ -89,7 +88,7 @@ func (s *academyService) calculateMaterialProgress(
 	}
 }
 
-// calculateAcademyProgress computes academy progress from accumulated values
+
 func (s *academyService) calculateAcademyProgress(
 	ctx context.Context,
 	txRepo repositories.AcademyRepository,
@@ -125,7 +124,6 @@ func (s *academyService) calculateAcademyProgress(
 	}
 }
 
-// updateAcademyMaterialCount updates academy's material count
 func (s *academyService) updateAcademyMaterialCount(ctx context.Context, txRepo repositories.AcademyRepository, academyId uuid.UUID) error {
 	count, err := txRepo.CountMaterialsByAcademyID(ctx, academyId)
 	if err != nil {
@@ -137,7 +135,7 @@ func (s *academyService) updateAcademyMaterialCount(ctx context.Context, txRepo 
 	return err
 }
 
-// updateMaterialContentCount updates material's content count
+
 func (s *academyService) updateMaterialContentCount(ctx context.Context, txRepo repositories.AcademyRepository, materialId uuid.UUID) error {
 	count, err := txRepo.CountContentsByMaterialID(ctx, materialId)
 	if err != nil {
@@ -157,7 +155,7 @@ func formatTime(t *time.Time) *string {
 	return &formatted
 }
 
-// buildAcademyProgressResponse converts entity to DTO
+
 func buildAcademyProgressResponse(ap entity.AcademyProgress) *dto.AcademyProgressResponse {
 	if ap.Id == uuid.Nil {
 		return nil
@@ -173,7 +171,6 @@ func buildAcademyProgressResponse(ap entity.AcademyProgress) *dto.AcademyProgres
 	}
 }
 
-// buildAcademyContentResponse converts entity to DTO
 func buildAcademyContentResponse(content entity.AcademyContent, progress entity.AcademyContentProgress) dto.AcademyContentResponse {
 	status := entity.StatusNotStarted
 	if progress.Id != uuid.Nil {
@@ -187,7 +184,7 @@ func buildAcademyContentResponse(content entity.AcademyContent, progress entity.
 	}
 }
 
-// buildAcademyMaterialResponse converts entity with contents to DTO
+
 func buildAcademyMaterialResponse(
 	material entity.AcademyMaterial,
 	contents []entity.AcademyContent,
@@ -218,7 +215,6 @@ func buildAcademyMaterialResponse(
 	}
 }
 
-// buildAcademyDetailResponse builds complete academy response with all materials
 func buildAcademyDetailResponse(
 	academy entity.Academy,
 	materials []entity.AcademyMaterial,
@@ -228,7 +224,6 @@ func buildAcademyDetailResponse(
 ) *dto.AcademyDetailResponse {
 	materialDTOs := make([]dto.AcademyMaterialResponse, 0)
 
-	// Collect all material IDs and content IDs for batch loading
 	materialIds := make([]uuid.UUID, 0)
 	contentIds := make([]uuid.UUID, 0)
 
@@ -239,11 +234,9 @@ func buildAcademyDetailResponse(
 		}
 	}
 
-	// Batch load all progress data in two queries instead of N+M queries
 	materialProgressMap, _ := repo.GetMaterialProgressBatch(ctx, academyProgress.AccountId, academyProgress.AcademyId, materialIds)
 	contentProgressMap, _ := repo.GetContentProgressBatch(ctx, academyProgress.AccountId, academyProgress.AcademyId, contentIds)
 
-	// Build DTOs using cached progress data
 	for _, material := range materials {
 		materialProgress := materialProgressMap[material.Id]
 		contentDTOs := make([]dto.AcademyContentResponse, 0)
@@ -278,7 +271,6 @@ func buildAcademyDetailResponse(
 	}
 }
 
-// getContentStatus returns status from progress or default
 func getContentStatus(progress entity.AcademyMaterialProgress) string {
 	if progress.Id != uuid.Nil {
 		return progress.Status
@@ -286,7 +278,6 @@ func getContentStatus(progress entity.AcademyMaterialProgress) string {
 	return entity.StatusNotStarted
 }
 
-// buildMaterialProgressResponse converts entity to DTO
 func buildMaterialProgressResponse(mp entity.AcademyMaterialProgress) *dto.MaterialProgressResponse {
 	if mp.Id == uuid.Nil {
 		return nil
@@ -303,7 +294,6 @@ func buildMaterialProgressResponse(mp entity.AcademyMaterialProgress) *dto.Mater
 	}
 }
 
-// buildContentDetailResponse converts entity to DTO
 func buildContentDetailResponse(content entity.AcademyContent, progress entity.AcademyContentProgress) dto.ContentDetailResponse {
 	status := entity.StatusNotStarted
 	if progress.Id != uuid.Nil {
@@ -318,7 +308,7 @@ func buildContentDetailResponse(content entity.AcademyContent, progress entity.A
 	}
 }
 
-// buildMaterialDetailResponse builds complete material response with all contents
+
 func buildMaterialDetailResponse(
 	material entity.AcademyMaterial,
 	contents []entity.AcademyContent,
@@ -329,17 +319,13 @@ func buildMaterialDetailResponse(
 	academySlug, materialSlug string,
 ) *dto.MaterialDetailResponse {
 	contentDTOs := make([]dto.ContentDetailResponse, 0)
-
-	// Collect content IDs for batch loading
 	contentIds := make([]uuid.UUID, len(contents))
 	for i, c := range contents {
 		contentIds[i] = c.Id
 	}
 
-	// Batch load all content progress in one query
 	contentProgressMap, _ := repo.GetContentProgressBatch(ctx, accountId, academyId, contentIds)
 
-	// Build DTOs using cached progress data
 	for _, content := range contents {
 		contentProgress := contentProgressMap[content.Id]
 		contentDTOs = append(contentDTOs, buildContentDetailResponse(content, contentProgress))

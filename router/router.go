@@ -13,7 +13,8 @@ func RunRouter(appProvider provider.AppProvider) {
 	EventRouter(router, middleware, controller)
 	OptionsRouter(router, controller)
 	AcademyRouter(router, middleware, controller)
-	ExamEventRouter(router, middleware, controller)
-	UploadRouter(router,middleware, controller)
-	router.Run(config.ProvideEnvConfig().GetTCPAddress())
+    ExamEventRouter(router, middleware, controller)
+    AcademyExamRouter(router, middleware, controller)
+    UploadRouter(router,middleware, controller)
+    router.Run(config.ProvideEnvConfig().GetTCPAddress())
 }

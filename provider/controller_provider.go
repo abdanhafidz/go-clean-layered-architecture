@@ -11,10 +11,9 @@ type ControllerProvider interface {
 	ProvideExamController() controllers.ExamController
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
-	ProvideRegionController() controllers.RegionController
-	
-	// UPDATE: Menggunakan Pointer (*)
-	ProvideUploadController() *controllers.UploadController 
+    ProvideRegionController() controllers.RegionController
+    ProvideUploadController() *controllers.UploadController 
+    ProvideAcademyExamController() controllers.AcademyExamController
 }
 
 type controllerProvider struct {
@@ -27,9 +26,8 @@ type controllerProvider struct {
 	forgotPasswordController    controllers.ForgotPasswordController
 	optionController            controllers.OptionController
 	regionController            controllers.RegionController
-	
-	// UPDATE: Menggunakan Pointer (*)
-	uploadController            *controllers.UploadController 
+    uploadController            *controllers.UploadController 
+    academyExamController       controllers.AcademyExamController
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
@@ -43,10 +41,8 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
 	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
 	regionController := controllers.NewRegionController(servicesProvider.ProvideRegionService())
-
-	// UPDATE: Inisialisasi Upload Controller
-	// servicesProvider.ProvideUploadService() sekarang sudah return Pointer (*), jadi aman.
-	uploadController := controllers.NewUploadController(servicesProvider.ProvideUploadService())
+    uploadController := controllers.NewUploadController(servicesProvider.ProvideUploadService())
+    academyExamController := controllers.NewAcademyExamController(servicesProvider.ProvideAcademyExamService())
 
 	return &controllerProvider{
 		academyController:           academyController,
@@ -58,11 +54,11 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 		forgotPasswordController:    forgotPasswordController,
 		optionController:            optionController,
 		regionController:            regionController,
-		uploadController:            uploadController, // Pointer assign ke Pointer
-	}
+        uploadController:            uploadController, 
+        academyExamController:       academyExamController,
+    }
 }
 
-// --- Getter Methods ---
 
 func (c *controllerProvider) ProvideAcademyController() controllers.AcademyController {
 	return c.academyController
@@ -100,7 +96,8 @@ func (c *controllerProvider) ProvideRegionController() controllers.RegionControl
 	return c.regionController
 }
 
-// UPDATE: Return Pointer (*)
 func (c *controllerProvider) ProvideUploadController() *controllers.UploadController {
-	return c.uploadController
+    return c.uploadController
 }
+
+func (c *controllerProvider) ProvideAcademyExamController() controllers.AcademyExamController { return c.academyExamController }

@@ -4,9 +4,15 @@ import (
 	"context"
 	"fmt"
 	"io"
-	storage_go "github.com/supabase-community/storage-go" 
+	"mime/multipart"
+	storage_go "github.com/supabase-community/storage-go"
 )
 
+type StorageProvider interface {
+	UploadFile(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error)
+	GetFileURL(path string) (string, error)
+	DeleteFile(path string) error
+}
 
 type SupabaseStorage struct {
 	client     *storage_go.Client
