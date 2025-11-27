@@ -26,7 +26,6 @@ type CreateMaterialRequest struct {
 type CreateContentRequest struct {
 	MaterialId uuid.UUID `json:"material_id" binding:"required"`
 	Title      string    `json:"title" binding:"required"`
-	Slug       string    `json:"slug"`
 	Contents   string    `json:"contents"`
 }
 

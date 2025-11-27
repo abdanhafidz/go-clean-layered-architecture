@@ -2,7 +2,6 @@ package config
 
 import models "abdanhafidz.com/go-boilerplate/models/entity"
 
-
 type UploadRule struct {
     MaxBytes    int64
     AllowedExts map[string]bool

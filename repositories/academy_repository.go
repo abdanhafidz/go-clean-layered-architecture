@@ -3,8 +3,11 @@ package repositories
 import (
 	"context"
 	"errors"
+	"math"
+	"time"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -59,7 +62,14 @@ type AcademyRepository interface {
 	GetAccumulatedMaterialProgress(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (float64, error)
 
 	GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error)
+	GetBatchMaterialProgress(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error)
 	GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error)
+
+	ListAccountsByMaterialId(ctx context.Context, materialId uuid.UUID) ([]uuid.UUID, error)
+	ListAccountsByContentMaterialId(ctx context.Context, materialId uuid.UUID) ([]uuid.UUID, error)
+
+	BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error
+	BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error
 }
 
 type academyRepository struct{ db *gorm.DB }
@@ -405,6 +415,18 @@ func (r *academyRepository) GetMaterialProgressBatch(ctx context.Context, accoun
 	return progressMap, result.Error
 }
 
+func (r *academyRepository) GetBatchMaterialProgress(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error) {
+	var progresses []entity.AcademyMaterialProgress
+	result := r.db.WithContext(ctx).Where("account_id = ? AND academy_id = ?", accountId, academyId).Find(&progresses)
+
+	progressMap := make(map[uuid.UUID]entity.AcademyMaterialProgress)
+	for _, p := range progresses {
+		progressMap[p.MaterialId] = p
+	}
+
+	return progressMap, result.Error
+}
+
 func (r *academyRepository) GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error) {
 	var progresses []entity.AcademyContentProgress
 	result := r.db.WithContext(ctx).Where("account_id = ? AND academy_id = ? AND content_id IN ?", accountId, academyId, contentIds).Find(&progresses)
@@ -415,4 +437,157 @@ func (r *academyRepository) GetContentProgressBatch(ctx context.Context, account
 	}
 
 	return progressMap, result.Error
+}
+
+func (r *academyRepository) ListAccountsByMaterialId(ctx context.Context, materialId uuid.UUID) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+	err := r.db.WithContext(ctx).
+		Model(&entity.AcademyMaterialProgress{}).
+		Where("material_id = ?", materialId).
+		Distinct().
+		Pluck("account_id", &ids).Error
+	return ids, err
+}
+
+func (r *academyRepository) ListAccountsByContentMaterialId(ctx context.Context, materialId uuid.UUID) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+	err := r.db.WithContext(ctx).
+		Model(&entity.AcademyContentProgress{}).
+		Where("material_id = ?", materialId).
+		Distinct().
+		Pluck("account_id", &ids).Error
+	return ids, err
+}
+
+func (r *academyRepository) BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error {
+	var m entity.AcademyMaterial
+	if err := r.db.WithContext(ctx).Select("id, contents_count").First(&m, "id = ?", materialId).Error; err != nil {
+		return err
+	}
+
+	type aggResult struct {
+		AccountId uuid.UUID
+		Count     int64
+	}
+	var aggResults []aggResult
+	
+	// FIX: Gunakan Model() bukan Table() string hardcode
+	if err := r.db.WithContext(ctx).Model(&entity.AcademyContentProgress{}).
+		Select("account_id, count(*) as count").
+		Where("material_id = ? AND status = ?", materialId, entity.StatusCompleted).
+		Group("account_id").
+		Scan(&aggResults).Error; err != nil {
+		return err
+	}
+
+	completedMap := make(map[uuid.UUID]int64)
+	for _, res := range aggResults {
+		completedMap[res.AccountId] = res.Count
+	}
+
+	var progresses []entity.AcademyMaterialProgress
+	if err := r.db.WithContext(ctx).Where("material_id = ?", materialId).Find(&progresses).Error; err != nil {
+		return err
+	}
+
+	for i, p := range progresses {
+		completed := completedMap[p.AccountId]
+		pct := 0.0
+		status := entity.StatusInProgress
+		var completedAt *time.Time
+
+		if m.ContentsCount > 0 {
+			pct = (float64(completed) / float64(m.ContentsCount)) * 100
+			pct = math.Round(pct*100) / 100
+			if pct >= 100 {
+				pct = 100
+				status = entity.StatusCompleted
+				completedAt = utils.Ptr(time.Now())
+			} else if pct <= 0 {
+				status = entity.StatusNotStarted
+			}
+		} else {
+			pct = 100
+			status = entity.StatusCompleted
+			completedAt = utils.Ptr(time.Now())
+		}
+
+		progresses[i].TotalCompletedContents = uint(completed)
+		progresses[i].Progress = pct
+		progresses[i].Status = status
+		progresses[i].CompletedAt = completedAt
+	}
+
+	if len(progresses) > 0 {
+		return r.db.WithContext(ctx).Save(&progresses).Error
+	}
+	return nil
+}
+
+func (r *academyRepository) BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error {
+	var a entity.Academy
+	if err := r.db.WithContext(ctx).Select("id, materials_count").First(&a, "id = ?", academyId).Error; err != nil {
+		return err
+	}
+
+	type aggResult struct {
+		AccountId     uuid.UUID
+		TotalProgress float64
+		CompletedMats int64
+	}
+	var aggResults []aggResult
+	
+	// FIX: Gunakan Model() bukan Table() string hardcode
+	if err := r.db.WithContext(ctx).Model(&entity.AcademyMaterialProgress{}).
+		Select("account_id, COALESCE(SUM(progress), 0) as total_progress, COUNT(CASE WHEN status = ? THEN 1 END) as completed_mats", entity.StatusCompleted).
+		Where("academy_id = ?", academyId).
+		Group("account_id").
+		Scan(&aggResults).Error; err != nil {
+		return err
+	}
+
+	dataMap := make(map[uuid.UUID]aggResult)
+	for _, res := range aggResults {
+		dataMap[res.AccountId] = res
+	}
+
+	var progresses []entity.AcademyProgress
+	if err := r.db.WithContext(ctx).Where("academy_id = ?", academyId).Find(&progresses).Error; err != nil {
+		return err
+	}
+
+	for i, p := range progresses {
+		data := dataMap[p.AccountId]
+		
+		pct := 0.0
+		status := entity.StatusInProgress
+		var completedAt *time.Time
+
+		if a.MaterialsCount > 0 {
+			pct = data.TotalProgress / float64(a.MaterialsCount)
+			pct = math.Round(pct*100) / 100
+
+			if pct >= 100 {
+				pct = 100
+				status = entity.StatusCompleted
+				completedAt = utils.Ptr(time.Now())
+			} else if pct <= 0 {
+				status = entity.StatusNotStarted
+			}
+		} else {
+			pct = 100
+			status = entity.StatusCompleted
+			completedAt = utils.Ptr(time.Now())
+		}
+
+		progresses[i].TotalCompletedMaterials = uint(data.CompletedMats)
+		progresses[i].Progress = pct
+		progresses[i].Status = status
+		progresses[i].CompletedAt = completedAt
+	}
+
+	if len(progresses) > 0 {
+		return r.db.WithContext(ctx).Save(&progresses).Error
+	}
+	return nil
 }
