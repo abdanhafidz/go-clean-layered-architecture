@@ -50,7 +50,6 @@ func (c *academyController) GetAcademy(ctx *gin.Context) {
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
-		// [FIX] Tambahkan [any, any] agar compiler tau tipenya
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
@@ -62,7 +61,6 @@ func (c *academyController) GetAcademy(ctx *gin.Context) {
 func (c *academyController) GetAcademyDetail(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
 		return
 	}
@@ -75,7 +73,6 @@ func (c *academyController) ListAcademies(ctx *gin.Context) {
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
@@ -94,7 +91,6 @@ func (c *academyController) CreateAcademy(ctx *gin.Context) {
 func (c *academyController) UpdateAcademy(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
 		return
 	}
@@ -107,7 +103,6 @@ func (c *academyController) UpdateAcademy(ctx *gin.Context) {
 func (c *academyController) DeleteAcademy(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
 		return
 	}
@@ -125,7 +120,6 @@ func (c *academyController) GetMaterial(ctx *gin.Context) {
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
@@ -143,7 +137,6 @@ func (c *academyController) CreateMaterial(ctx *gin.Context) {
 func (c *academyController) DeleteMaterial(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
 		return
 	}
@@ -158,7 +151,6 @@ func (c *academyController) GetContent(ctx *gin.Context) {
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
@@ -186,7 +178,6 @@ func (c *academyController) CreateContent(ctx *gin.Context) {
 func (c *academyController) DeleteContent(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
 		return
 	}
@@ -201,7 +192,6 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
-		// [FIX] Tambahkan [any, any]
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}

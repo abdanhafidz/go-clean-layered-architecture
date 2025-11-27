@@ -1,20 +1,20 @@
 package services
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"io"
-	"mime/multipart"
-	"path/filepath"
-	"regexp"
-	"strings"
-	"time"
+    "context"
+    "errors"
+    "fmt"
+    "io"
+    "mime/multipart"
+    "path/filepath"
+    "regexp"
+    "strings"
+    "time"
 
-	"github.com/google/uuid"
+    "github.com/google/uuid"
 
-	entity "abdanhafidz.com/go-boilerplate/models/entity"
-	http_error "abdanhafidz.com/go-boilerplate/models/error"
+    entity "abdanhafidz.com/go-boilerplate/models/entity"
+    http_error "abdanhafidz.com/go-boilerplate/models/error"
 )
 
 const MB = 1024 * 1024
@@ -35,7 +35,6 @@ type FileRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.File, error)
 }
 
-
 type UploadService struct {
 	storageProvider StorageProvider
 	fileRepo        FileRepository
@@ -51,21 +50,22 @@ func NewUploadService(storage StorageProvider, repo FileRepository) *UploadServi
 func (s *UploadService) UploadFiles(ctx context.Context, files []*multipart.FileHeader, uploadContext string, accountID uuid.UUID) ([]entity.File, error) {
 	config, err := s.getUploadConfig(uploadContext)
 	if err != nil {
-		return nil, http_error.BAD_REQUEST_ERROR
+		return nil, err
 	}
 
 	if len(files) > config.MaxCount {
-		return nil, http_error.BAD_REQUEST_ERROR
+		return nil, http_error.INVALID_DATA_PAYLOAD
 	}
 
 	var uploadedFiles []entity.File
 	var failedCount int
+	var lastErr error
 
-	// 2. Process Files
 	for _, fileHeader := range files {
 		fileEntity, err := s.processSingleFile(ctx, fileHeader, config, uploadContext, accountID)
 		if err != nil {
 			failedCount++
+			lastErr = err
 			continue
 		}
 		uploadedFiles = append(uploadedFiles, *fileEntity)
@@ -75,7 +75,7 @@ func (s *UploadService) UploadFiles(ctx context.Context, files []*multipart.File
 		if len(uploadedFiles) > 0 {
 			return uploadedFiles, http_error.PARTIAL_UPLOAD_FAILURE
 		}
-		return nil, http_error.INVALID_FILE_TYPE 
+		return nil, lastErr
 	}
 
 	return uploadedFiles, nil
@@ -97,33 +97,29 @@ func (s *UploadService) GetFileByID(ctx context.Context, fileID uuid.UUID, accou
 	return file, nil
 }
 
-
 func (s *UploadService) processSingleFile(ctx context.Context, fileHeader *multipart.FileHeader, config uploadConfig, uploadContext string, accountID uuid.UUID) (*entity.File, error) {
-	// Validation
-	if !s.validateFile(fileHeader, config) {
-		return nil, errors.New("validation failed")
+	if err := s.validateFile(fileHeader, config); err != nil {
+		return nil, err
 	}
 
-
-	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	ext := strings.ToLower(strings.TrimSpace(filepath.Ext(fileHeader.Filename)))
 	storedFilename := s.generateStoredFilename(fileHeader.Filename, ext)
 	storagePath := s.generateStoragePath(config.PathPrefix, uploadContext, storedFilename, accountID)
 
 	src, err := fileHeader.Open()
 	if err != nil {
-		return nil, err
+		return nil, http_error.INTERNAL_SERVER_ERROR
 	}
 	defer src.Close()
 
 	contentType := fileHeader.Header.Get("Content-Type")
 	publicURL, err := s.storageProvider.UploadFile(ctx, src, storagePath, contentType)
 	if err != nil {
-		return nil, err
+		return nil, http_error.UPLOAD_FAILED
 	}
 
-	// Create Entity
 	fileEntity := &entity.File{
-		Id:           uuid.New(), 
+		Id:           uuid.New(),
 		OriginalName: fileHeader.Filename,
 		StoredName:   storedFilename,
 		MimeType:     contentType,
@@ -134,31 +130,29 @@ func (s *UploadService) processSingleFile(ctx context.Context, fileHeader *multi
 		CreatedAt:    time.Now(),
 	}
 
-	// Save to DB
 	if err := s.fileRepo.Create(ctx, fileEntity); err != nil {
-		return nil, err
+		return nil, http_error.INTERNAL_SERVER_ERROR
 	}
 
 	return fileEntity, nil
 }
 
-func (s *UploadService) validateFile(file *multipart.FileHeader, config uploadConfig) bool {
+func (s *UploadService) validateFile(file *multipart.FileHeader, config uploadConfig) error {
 	if file.Size == 0 || file.Size > config.MaxBytes {
-		return false
+		return http_error.FILE_TOO_LARGE
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
+	ext := strings.ToLower(strings.TrimSpace(filepath.Ext(file.Filename)))
 	if !config.AllowedExts[ext] {
-		return false
+		return http_error.INVALID_FILE_TYPE
 	}
 
-	// Block dangerous extensions hardcoded as a safety net
 	blockedExts := map[string]bool{".exe": true, ".sh": true, ".bat": true, ".php": true}
 	if blockedExts[ext] {
-		return false
+		return http_error.INVALID_FILE_TYPE
 	}
 
-	return true
+	return nil
 }
 
 func (s *UploadService) generateStoredFilename(originalName string, ext string) string {
@@ -179,27 +173,32 @@ func (s *UploadService) generateStoragePath(prefix, contextType, filename string
 	case "material":
 		return fmt.Sprintf("%s/%s/%s", prefix, accountID.String(), filename)
 	default:
-		// avatar, general, etc
 		return fmt.Sprintf("%s/%s", prefix, filename)
 	}
 }
 
 func (s *UploadService) getUploadConfig(contextType string) (uploadConfig, error) {
 	codeExts := map[string]bool{".cpp": true, ".c": true, ".py": true, ".java": true, ".go": true, ".js": true, ".txt": true}
-	imgExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
-	docExts := map[string]bool{".pdf": true}
+	imgExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true, ".gif": true}
+	docExts := map[string]bool{".pdf": true, ".doc": true, ".docx": true}
 
 	allExts := make(map[string]bool)
-	for k, v := range codeExts { allExts[k] = v }
-	for k, v := range imgExts { allExts[k] = v }
-	for k, v := range docExts { allExts[k] = v }
+	for k, v := range codeExts {
+		allExts[k] = v
+	}
+	for k, v := range imgExts {
+		allExts[k] = v
+	}
+	for k, v := range docExts {
+		allExts[k] = v
+	}
 
 	switch contextType {
-	case "avatar":
+	case "image":
 		return uploadConfig{
-			MaxBytes:    5 * MB,
+			MaxBytes:    10 * MB,
 			AllowedExts: imgExts,
-			PathPrefix:  "avatars",
+			PathPrefix:  "images",
 			MaxCount:    5,
 		}, nil
 	case "material":
@@ -224,6 +223,52 @@ func (s *UploadService) getUploadConfig(contextType string) (uploadConfig, error
 			MaxCount:    5,
 		}, nil
 	default:
-		return uploadConfig{}, fmt.Errorf("invalid context")
+		return uploadConfig{}, http_error.INVALID_DATA_PAYLOAD
 	}
+}
+
+func (s *UploadService) UploadRawFile(ctx context.Context, reader io.Reader, originalName string, contentType string, uploadContext string, accountID uuid.UUID) (*entity.File, error) {
+    config, err := s.getUploadConfig(uploadContext)
+    if err != nil {
+        return nil, http_error.BAD_REQUEST_ERROR
+    }
+
+    ext := strings.ToLower(strings.TrimSpace(filepath.Ext(originalName)))
+    if ext == "" {
+        if strings.Contains(contentType, "pdf") {
+            ext = ".pdf"
+        } else if strings.Contains(contentType, "png") {
+            ext = ".png"
+        } else if strings.Contains(contentType, "jpeg") || strings.Contains(contentType, "jpg") {
+            ext = ".jpg"
+        } else {
+            ext = ".bin"
+        }
+    }
+
+    storedFilename := s.generateStoredFilename(originalName, ext)
+    storagePath := s.generateStoragePath(config.PathPrefix, uploadContext, storedFilename, accountID)
+
+    publicURL, err := s.storageProvider.UploadFile(ctx, reader, storagePath, contentType)
+    if err != nil {
+        return nil, err
+    }
+
+    fileEntity := &entity.File{
+        Id:           uuid.New(),
+        OriginalName: originalName,
+        StoredName:   storedFilename,
+        MimeType:     contentType,
+        Size:         0,
+        Path:         publicURL,
+        Context:      uploadContext,
+        AccountId:    accountID,
+        CreatedAt:    time.Now(),
+    }
+
+    if err := s.fileRepo.Create(ctx, fileEntity); err != nil {
+        return nil, err
+    }
+
+    return fileEntity, nil
 }

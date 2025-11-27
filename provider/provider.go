@@ -2,6 +2,7 @@ package provider
 
 import (
     "log"
+    "strings"
     entity "abdanhafidz.com/go-boilerplate/models/entity"
     "github.com/gin-gonic/gin"
 )
@@ -29,6 +30,15 @@ func NewAppProvider() AppProvider {
     configProvider := NewConfigProvider()
     repositoriesProvider := NewRepositoriesProvider(configProvider)
     supabaseCfg := configProvider.ProvideSupabaseConfig()
+    if supabaseCfg.URL == "" || supabaseCfg.ServiceKey == "" || supabaseCfg.BucketName == "" {
+        log.Fatalf("Supabase configuration is invalid: URL, ServiceKey, or BucketName is empty")
+    }
+    if !strings.HasPrefix(supabaseCfg.URL, "https://") || !strings.Contains(supabaseCfg.URL, ".supabase.co") {
+        log.Fatalf("Supabase URL is invalid")
+    }
+    if strings.Count(supabaseCfg.ServiceKey, ".") != 2 {
+        log.Fatalf("Supabase service key is not a valid compact JWS")
+    }
     storageDriver := NewSupabaseStorage(supabaseCfg.URL, supabaseCfg.ServiceKey, supabaseCfg.BucketName)
     servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
     controllerProvider := NewControllerProvider(servicesProvider)
@@ -68,6 +78,10 @@ func NewAppProvider() AppProvider {
         &entity.AcademyMaterialProgress{},
         &entity.AcademyContentProgress{},
         &entity.AcademyProgress{},
+        &entity.ExamAcademyAssign{},
+        &entity.ExamAcademyAnswer{},
+        &entity.ExamAcademyAttempt{},
+        &entity.AcademyExamResult{},
 
         // Options & Regions
         &entity.OptionCategory{},

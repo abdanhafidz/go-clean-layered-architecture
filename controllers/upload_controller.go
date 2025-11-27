@@ -1,17 +1,20 @@
 package controllers
 
 import (
-	"errors"
-	"net/http"
-	"path/filepath"
-	"strings"
+    "compress/gzip"
+    "errors"
+    "io"
+    "net/http"
+    "path/filepath"
+    "strings"
+    "fmt"
 
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+    "github.com/gin-gonic/gin"
+    "github.com/google/uuid"
 
-	"abdanhafidz.com/go-boilerplate/models/dto"
-	http_error "abdanhafidz.com/go-boilerplate/models/error"
-	"abdanhafidz.com/go-boilerplate/services"
+    "abdanhafidz.com/go-boilerplate/models/dto"
+    http_error "abdanhafidz.com/go-boilerplate/models/error"
+    "abdanhafidz.com/go-boilerplate/services"
 )
 
 type UploadController struct {
@@ -23,22 +26,45 @@ func NewUploadController(s *services.UploadService) *UploadController {
 }
 
 func (c *UploadController) Upload(ctx *gin.Context) {
-	// 1. Parse Multipart Form (Limit 32MB)
-	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
-		if strings.Contains(err.Error(), "http: request body too large") {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"status":  "error",
-				"message": "File size exceeds the allowed limit of 32MB",
-			})
-			return
-		}
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"code":    "INVALID_FORM",
-			"message": "Failed to parse form data",
-		})
-		return
-	}
+    fmt.Println("👉 Content-Type:", ctx.GetHeader("Content-Type"))
+
+    if !strings.Contains(ctx.GetHeader("Content-Type"), "multipart/form-data") {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status":  "error",
+            "code":    "INVALID_FORM",
+            "message": "Content-Type must be multipart/form-data",
+        })
+        return
+    }
+
+    if strings.EqualFold(ctx.GetHeader("Content-Encoding"), "gzip") {
+        gz, err := gzip.NewReader(ctx.Request.Body)
+        if err != nil {
+            ctx.JSON(http.StatusBadRequest, gin.H{
+                "status":  "error",
+                "code":    "INVALID_FORM",
+                "message": "Failed to decode gzip request body",
+            })
+            return
+        }
+        ctx.Request.Body = io.NopCloser(gz)
+    }
+
+    // Gunakan limit 32MB
+    if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
+        
+        // 🔴 DEBUG: Print error ASLI ke terminal
+        fmt.Println("❌ ERROR ParseMultipartForm:", err.Error())
+
+        // Respon sementara dengan error asli agar terlihat di Postman
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status":      "error",
+            "code":        "INVALID_FORM",
+            "message":     "Failed to parse form data",
+            "debug_error": err.Error(), // <--- Kita butuh baca ini
+        })
+        return
+    }
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -59,15 +85,12 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 		return
 	}
 
-	// 2. Determine Upload Context
 	uploadContext := ctx.PostForm("context")
 	if uploadContext == "" {
-		// Auto-infer context based on first file extension if not provided
 		ext := strings.ToLower(filepath.Ext(files[0].Filename))
 		uploadContext = c.inferContextFromExt(ext)
 	}
 
-	// 3. Get Account ID from Context (Middleware)
 	accountIDStr := ctx.GetString("account_id")
 	if accountIDStr == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -86,13 +109,19 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 		return
 	}
 
-	// 4. Call Service
 	uploadedFiles, err := c.uploadService.UploadFiles(ctx, files, uploadContext, accountID)
 	if err != nil {
-		// Map Service Errors to HTTP Status
+		if strings.Contains(err.Error(), "Invalid Compact JWS") {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "error",
+				"message": "Storage misconfiguration: invalid Supabase service key",
+			})
+			return
+		}
 		if errors.Is(err, http_error.FILE_TOO_LARGE) ||
 			errors.Is(err, http_error.INVALID_FILE_TYPE) ||
-			errors.Is(err, http_error.BAD_REQUEST_ERROR) {
+			errors.Is(err, http_error.BAD_REQUEST_ERROR) ||
+			errors.Is(err, http_error.INVALID_DATA_PAYLOAD) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"status":  "error",
 				"message": err.Error(),
@@ -104,7 +133,7 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
 				"status":  "error",
 				"message": err.Error(),
-				// Opsional: Anda bisa mengembalikan file yang berhasil di sini jika perlu
+				"data":    uploadedFiles,
 			})
 			return
 		}
@@ -116,7 +145,6 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 		return
 	}
 
-	// 5. Prepare Response DTO
 	var fileResponses []dto.FileResponse
 	for _, f := range uploadedFiles {
 		fileResponses = append(fileResponses, dto.FileResponse{
@@ -137,7 +165,6 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 }
 
 func (c *UploadController) GetFileByID(ctx *gin.Context) {
-	// 1. Validate Param ID
 	fileIDStr := ctx.Param("id")
 	fileID, err := uuid.Parse(fileIDStr)
 	if err != nil {
@@ -148,7 +175,6 @@ func (c *UploadController) GetFileByID(ctx *gin.Context) {
 		return
 	}
 
-	// 2. Validate Account ID
 	accountIDStr := ctx.GetString("account_id")
 	if accountIDStr == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -167,7 +193,6 @@ func (c *UploadController) GetFileByID(ctx *gin.Context) {
 		return
 	}
 
-	// 3. Call Service
 	fileData, err := c.uploadService.GetFileByID(ctx, fileID, accountID)
 	if err != nil {
 		if errors.Is(err, http_error.NOT_FOUND_ERROR) {
@@ -185,7 +210,6 @@ func (c *UploadController) GetFileByID(ctx *gin.Context) {
 		return
 	}
 
-	// 4. Response
 	response := dto.FileResponse{
 		Id:           fileData.Id,
 		OriginalName: fileData.OriginalName,
@@ -202,8 +226,10 @@ func (c *UploadController) GetFileByID(ctx *gin.Context) {
 	})
 }
 
-// Helper untuk logika inferensi context (clean code)
 func (c *UploadController) inferContextFromExt(ext string) string {
+	images := map[string]bool{
+		".jpg": true, ".jpeg": true, ".png": true, ".webp": true,
+	}
 	isSourceCode := map[string]bool{
 		".cpp": true, ".c": true, ".py": true, ".java": true,
 		".go": true, ".js": true, ".txt": true,
@@ -212,11 +238,14 @@ func (c *UploadController) inferContextFromExt(ext string) string {
 		".pdf": true,
 	}
 
+	if images[ext] {
+		return "image"
+	}
 	if isSourceCode[ext] {
 		return "submission"
 	}
 	if isDocument[ext] {
 		return "material"
 	}
-	return "general"
+	return ""
 }
