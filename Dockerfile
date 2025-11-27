@@ -1,5 +1,5 @@
 # Gunakan image dasar Golang versi 1.24.1
-FROM golang:1.24.5
+FROM golang:1.25.4
 
 # Tambahkan user non-root untuk keamanan (optional tapi best practice)
 RUN useradd -m -u 1001 appuser
