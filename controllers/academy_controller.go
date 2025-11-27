@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -77,7 +76,6 @@ func (c *academyController) ListAcademies(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("Account ID in ListAcademies:", accountId)
 	res, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId)
 	ResponseJSON(ctx, gin.H{}, res, err)
 }

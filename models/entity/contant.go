@@ -5,3 +5,5 @@ const (
 	StatusInProgress = "IN_PROGRESS"
 	StatusCompleted  = "COMPLETED"
 )
+
+const MB = 1024 * 1024

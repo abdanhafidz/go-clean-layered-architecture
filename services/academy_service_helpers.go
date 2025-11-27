@@ -39,11 +39,15 @@ func (s *academyService) getProgressStatus(progress float64, completed, total in
 }
 
 func (s *academyService) upsertContentProgressSimplified(
-	ctx context.Context,
-	txRepo repositories.AcademyRepository,
-	accountId, academyId, materialId, contentId uuid.UUID,
-) entity.AcademyContentProgress {
-	existing, _ := txRepo.GetContentProgress(ctx, accountId, academyId, materialId, contentId)
+    ctx context.Context,
+    txRepo repositories.AcademyRepository,
+    accountId, academyId, materialId, contentId uuid.UUID,
+) (entity.AcademyContentProgress, error) {
+    existing, err := txRepo.GetContentProgress(ctx, accountId, academyId, materialId, contentId)
+    if err != nil {
+        // propagate non-not-found errors
+        return entity.AcademyContentProgress{}, err
+    }
 
 	acp := entity.AcademyContentProgress{
 		Id:          s.getOrCreateID(existing.Id),
@@ -55,8 +59,10 @@ func (s *academyService) upsertContentProgressSimplified(
 		CompletedAt: utils.Ptr(time.Now()),
 	}
 
-	txRepo.UpsertContentProgress(ctx, acp)
-	return acp
+    if _, err := txRepo.UpsertContentProgress(ctx, acp); err != nil {
+        return entity.AcademyContentProgress{}, err
+    }
+    return acp, nil
 }
 
 func (s *academyService) calculateMaterialProgress(
@@ -125,26 +131,24 @@ func (s *academyService) calculateAcademyProgress(
 }
 
 func (s *academyService) updateAcademyMaterialCount(ctx context.Context, txRepo repositories.AcademyRepository, academyId uuid.UUID) error {
-	count, err := txRepo.CountMaterialsByAcademyID(ctx, academyId)
-	if err != nil {
-		return err
-	}
-	academy, _ := txRepo.GetAcademyByID(ctx, academyId)
-	academy.MaterialsCount = count
-	_, err = txRepo.UpdateAcademy(ctx, academy)
-	return err
+    count, err := txRepo.CountMaterialsByAcademyID(ctx, academyId)
+    if err != nil { return err }
+    academy, err := txRepo.GetAcademyByID(ctx, academyId)
+    if err != nil { return err }
+    academy.MaterialsCount = count
+    _, err = txRepo.UpdateAcademy(ctx, academy)
+    return err
 }
 
 
 func (s *academyService) updateMaterialContentCount(ctx context.Context, txRepo repositories.AcademyRepository, materialId uuid.UUID) error {
-	count, err := txRepo.CountContentsByMaterialID(ctx, materialId)
-	if err != nil {
-		return err
-	}
-	material, _ := txRepo.GetMaterialByID(ctx, materialId)
-	material.ContentsCount = count
-	_, err = txRepo.UpdateMaterial(ctx, material)
-	return err
+    count, err := txRepo.CountContentsByMaterialID(ctx, materialId)
+    if err != nil { return err }
+    material, err := txRepo.GetMaterialByID(ctx, materialId)
+    if err != nil { return err }
+    material.ContentsCount = count
+    _, err = txRepo.UpdateMaterial(ctx, material)
+    return err
 }
 
 func formatTime(t *time.Time) *string {

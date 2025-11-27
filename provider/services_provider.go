@@ -1,7 +1,8 @@
 package provider
 
 import (
-    "abdanhafidz.com/go-boilerplate/services" 
+    "abdanhafidz.com/go-boilerplate/config"
+    "abdanhafidz.com/go-boilerplate/services"
 )
 
 type ServicesProvider interface {
@@ -16,7 +17,7 @@ type ServicesProvider interface {
     ProvideForgotPasswordService() services.ForgotPasswordService
     ProvideEmailVerificationService() services.EmailVerificationService
     ProvideExternalAuthService() services.ExternalAuthService
-    ProvideUploadService() *services.UploadService 
+    ProvideUploadService() services.UploadService 
     ProvideAcademyExamService() services.AcademyExamService
 }
 
@@ -32,14 +33,14 @@ type servicesProvider struct {
     forgotPasswordService    services.ForgotPasswordService
     emailVerificationService services.EmailVerificationService
     externalAuthService      services.ExternalAuthService
-    uploadService            *services.UploadService 
+    uploadService            services.UploadService 
     academyExamService       services.AcademyExamService
 }
 
 func NewServicesProvider(
     repoProvider RepositoriesProvider, 
     configProvider ConfigProvider, 
-    storageProvider services.StorageProvider, 
+    storageProvider StorageProvider, 
 ) ServicesProvider {
 
     eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
@@ -66,6 +67,7 @@ func NewServicesProvider(
     uploadService := services.NewUploadService(
         storageProvider, 
         repoProvider.ProvideFileRepository(), 
+        config.NewUploadConfig(),
     )
 
     return &servicesProvider{
@@ -119,7 +121,7 @@ func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthSer
     return s.externalAuthService
 }
 
-func (s *servicesProvider) ProvideUploadService() *services.UploadService {
+func (s *servicesProvider) ProvideUploadService() services.UploadService {
     return s.uploadService
 }
 

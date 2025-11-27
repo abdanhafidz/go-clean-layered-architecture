@@ -5,6 +5,7 @@ import (
     "strings"
     entity "abdanhafidz.com/go-boilerplate/models/entity"
     "github.com/gin-gonic/gin"
+    "abdanhafidz.com/go-boilerplate/services"
 )
 
 type AppProvider interface {
@@ -30,16 +31,16 @@ func NewAppProvider() AppProvider {
     configProvider := NewConfigProvider()
     repositoriesProvider := NewRepositoriesProvider(configProvider)
     supabaseCfg := configProvider.ProvideSupabaseConfig()
-    if supabaseCfg.URL == "" || supabaseCfg.ServiceKey == "" || supabaseCfg.BucketName == "" {
+    if supabaseCfg.GetURL() == "" || supabaseCfg.GetServiceKey() == "" || supabaseCfg.GetBucketName() == "" {
         log.Fatalf("Supabase configuration is invalid: URL, ServiceKey, or BucketName is empty")
     }
-    if !strings.HasPrefix(supabaseCfg.URL, "https://") || !strings.Contains(supabaseCfg.URL, ".supabase.co") {
+    if !strings.HasPrefix(supabaseCfg.GetURL(), "https://") || !strings.Contains(supabaseCfg.GetURL(), ".supabase.co") {
         log.Fatalf("Supabase URL is invalid")
     }
-    if strings.Count(supabaseCfg.ServiceKey, ".") != 2 {
+    if strings.Count(supabaseCfg.GetServiceKey(), ".") != 2 {
         log.Fatalf("Supabase service key is not a valid compact JWS")
     }
-    storageDriver := NewSupabaseStorage(supabaseCfg.URL, supabaseCfg.ServiceKey, supabaseCfg.BucketName)
+    storageDriver := services.NewSupabaseStorageService(supabaseCfg.GetURL(), supabaseCfg.GetServiceKey(), supabaseCfg.GetBucketName())
     servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
     controllerProvider := NewControllerProvider(servicesProvider)
     middlewareProvider := NewMiddlewareProvider(servicesProvider)

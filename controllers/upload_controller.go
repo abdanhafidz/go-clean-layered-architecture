@@ -18,12 +18,10 @@ import (
 )
 
 type UploadController struct {
-	uploadService *services.UploadService
+    uploadService services.UploadService
 }
 
-func NewUploadController(s *services.UploadService) *UploadController {
-	return &UploadController{uploadService: s}
-}
+func NewUploadController(s services.UploadService) *UploadController { return &UploadController{ uploadService: s } }
 
 func (c *UploadController) Upload(ctx *gin.Context) {
     fmt.Println("👉 Content-Type:", ctx.GetHeader("Content-Type"))

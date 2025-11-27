@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -37,7 +38,6 @@ func NewAccountService(jwtService JWTService, accountRepo repositories.AccountRe
 		jwtService:        jwtService,
 		accountRepo:       accountRepo,
 		accountDetailRepo: accountDetailRepo,
-		
 	}
 }
 
@@ -68,7 +68,9 @@ func (s *accountService) Create(ctx context.Context, name string, email string, 
 		return entity.Account{}, err
 	}
 
-	_, _ = s.CreateEmptyDetail(ctx, created.Id)
+	if _, err := s.CreateEmptyDetail(ctx, created.Id); err != nil {
+		return entity.Account{}, fmt.Errorf("create empty detail: %w", err)
+	}
 
 	return created, nil
 

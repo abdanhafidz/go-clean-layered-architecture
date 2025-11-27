@@ -172,9 +172,7 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 			return err
 		}
 
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, req.AcademyId); err != nil {
-			return err
-		}
+		// progress recalculation handled on get
 
 		return nil
 	})
@@ -223,9 +221,7 @@ func (s *academyService) DeleteMaterial(ctx context.Context, id uuid.UUID) error
 			return err
 		}
 
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, m.AcademyId); err != nil {
-			return err
-		}
+		// progress recalculation handled on get
 
 		return nil
 	})
@@ -268,12 +264,7 @@ func (s *academyService) CreateContent(ctx context.Context, req dto.CreateConten
 			return err
 		}
 
-		if err := txRepo.BatchRecalculateMaterialProgress(ctx, req.MaterialId); err != nil {
-			return err
-		}
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, m.AcademyId); err != nil {
-			return err
-		}
+		// progress recalculation handled on get
 
 		return nil
 	})
@@ -315,20 +306,13 @@ func (s *academyService) DeleteContent(ctx context.Context, id uuid.UUID) error 
 		if _, err := txRepo.UpdateMaterial(ctx, material); err != nil {
 			return err
 		}
-		if err := txRepo.BatchRecalculateMaterialProgress(ctx, c.MaterialId); err != nil {
-			return err
-		}
-
-		// Update Academy juga
-		if err := txRepo.BatchRecalculateAcademyProgress(ctx, material.AcademyId); err != nil {
-			return err
-		}
+		// progress recalculation handled on get
 
 		return nil
 	})
 }
 
-// ================= UPDATE PROGRESS =================	
+// ================= UPDATE PROGRESS =================
 
 func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContentProgress, entity.AcademyMaterialProgress, entity.AcademyProgress, error) {
 	academy, err := s.academyRepo.GetAcademyBySlug(ctx, academySlug)
@@ -383,7 +367,7 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			if totalContentsCompleted >= m.ContentsCount {
 				matStatus = entity.StatusCompleted
 				matCompletedAt = utils.Ptr(time.Now())
-				progressPct = 100 
+				progressPct = 100
 			}
 		} else {
 			matStatus = entity.StatusCompleted
@@ -411,7 +395,7 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 		}
 
 		accumulatedProgress, _ := txRepo.GetAccumulatedMaterialProgress(ctx, accountId, academy.Id)
-		a, _ := txRepo.GetAcademyByID(ctx, academy.Id) 
+		a, _ := txRepo.GetAcademyByID(ctx, academy.Id)
 
 		acadStatus := entity.StatusNotStarted
 		var acadCompletedAt *time.Time
@@ -467,7 +451,11 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 	if err != nil {
 		return nil, http_error.ACADEMY_NOT_FOUND
 	}
-	academyProgress, _ := s.academyRepo.GetAcademyProgress(ctx, accountId, academy.Id)
+	accumulatedProgress, _ := s.academyRepo.GetAccumulatedMaterialProgress(ctx, accountId, academy.Id)
+	academyProgress := s.calculateAcademyProgress(ctx, s.academyRepo, accountId, academy.Id, accumulatedProgress, academy.MaterialsCount)
+	if _, err := s.academyRepo.UpsertAcademyProgress(ctx, academyProgress); err != nil {
+		return nil, err
+	}
 	materials, err := s.academyRepo.GetMaterialsWithContents(ctx, academy.Id)
 	if err != nil {
 		materials = []entity.AcademyMaterial{}
@@ -489,7 +477,16 @@ func (s *academyService) GetMaterialResponse(ctx context.Context, accountId uuid
 	if err != nil {
 		return nil, http_error.MATERIAL_NOT_FOUND
 	}
-	materialProgress, _ := s.academyRepo.GetMaterialProgress(ctx, accountId, academy.Id, material.Id)
+	totalCompleted, _ := s.academyRepo.CountCompletedContentsByMaterialAndAccount(ctx, accountId, material.Id)
+	materialProgress := s.calculateMaterialProgress(ctx, s.academyRepo, accountId, academy.Id, material.Id, totalCompleted, material.ContentsCount)
+	if _, err := s.academyRepo.UpsertMaterialProgress(ctx, materialProgress); err != nil {
+		return nil, err
+	}
+	accumulatedProgress, _ := s.academyRepo.GetAccumulatedMaterialProgress(ctx, accountId, academy.Id)
+	academyProgress := s.calculateAcademyProgress(ctx, s.academyRepo, accountId, academy.Id, accumulatedProgress, academy.MaterialsCount)
+	if _, err := s.academyRepo.UpsertAcademyProgress(ctx, academyProgress); err != nil {
+		return nil, err
+	}
 	_, contents, err := s.academyRepo.GetMaterialWithContents(ctx, material.Id)
 	if err != nil {
 		contents = []entity.AcademyContent{}

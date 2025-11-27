@@ -58,9 +58,6 @@ type AcademyRepository interface {
 	DecrementContentOrdersGreaterThan(ctx context.Context, materialId uuid.UUID, order uint) error
 	GetAccumulatedMaterialProgress(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (float64, error)
 
-	BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error
-	BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error
-
 	GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error)
 	GetContentProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, contentIds []uuid.UUID) (map[uuid.UUID]entity.AcademyContentProgress, error)
 }
@@ -107,7 +104,7 @@ func (r *academyRepository) GetAcademyWithProgress(ctx context.Context, accountI
 	if err != nil {
 		return a, err
 	}
-	a.AcademyProgresss = ap
+	a.AcademyProgress = ap
 	return a, nil
 }
 
@@ -152,9 +149,9 @@ func (r *academyRepository) ListAcademy(ctx context.Context, accountId uuid.UUID
 
 	for i := range list {
 		if p, exists := progressMap[list[i].Id]; exists {
-			list[i].AcademyProgresss = p
+			list[i].AcademyProgress = p
 		} else {
-			list[i].AcademyProgresss = entity.AcademyProgress{
+			list[i].AcademyProgress = entity.AcademyProgress{
 				AccountId: accountId,
 				AcademyId: list[i].Id,
 				Status:    entity.StatusNotStarted,
@@ -289,7 +286,7 @@ func (r *academyRepository) GetAcademyProgress(ctx context.Context, accountId uu
 
 func (r *academyRepository) UpsertAcademyProgress(ctx context.Context, p entity.AcademyProgress) (entity.AcademyProgress, error) {
 	return p, r.db.WithContext(ctx).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
+		Columns:   []clause.Column{{Name: "account_id"}, {Name: "academy_id"}},
 		UpdateAll: true,
 	}).Save(&p).Error
 }
@@ -311,7 +308,7 @@ func (r *academyRepository) GetMaterialProgress(ctx context.Context, accountId u
 
 func (r *academyRepository) UpsertMaterialProgress(ctx context.Context, p entity.AcademyMaterialProgress) (entity.AcademyMaterialProgress, error) {
 	return p, r.db.WithContext(ctx).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
+		Columns:   []clause.Column{{Name: "account_id"}, {Name: "material_id"}},
 		UpdateAll: true,
 	}).Save(&p).Error
 }
@@ -334,7 +331,7 @@ func (r *academyRepository) GetContentProgress(ctx context.Context, accountId uu
 
 func (r *academyRepository) UpsertContentProgress(ctx context.Context, p entity.AcademyContentProgress) (entity.AcademyContentProgress, error) {
 	return p, r.db.WithContext(ctx).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
+		Columns:   []clause.Column{{Name: "account_id"}, {Name: "content_id"}},
 		UpdateAll: true,
 	}).Save(&p).Error
 }
@@ -394,96 +391,6 @@ func (r *academyRepository) GetAccumulatedMaterialProgress(ctx context.Context, 
 		Select("COALESCE(SUM(progress), 0)").
 		Scan(&total).Error
 	return total, err
-}
-
-func (r *academyRepository) BatchRecalculateMaterialProgress(ctx context.Context, materialId uuid.UUID) error {
-	totalContents, err := r.CountContentsByMaterialID(ctx, materialId)
-	if err != nil {
-		return err
-	}
-
-	if totalContents == 0 {
-		return r.db.WithContext(ctx).Model(&entity.AcademyMaterialProgress{}).
-			Where("material_id = ?", materialId).
-			Updates(map[string]interface{}{
-				"progress":                 100,
-				"status":                   entity.StatusCompleted,
-				"total_completed_contents": 0,
-			}).Error
-	}
-
-	return r.db.WithContext(ctx).Exec(`
-		UPDATE academy_material_progresses amp
-		SET 
-			total_completed_contents = (
-				SELECT COUNT(id) FROM academy_content_progresses acp 
-				WHERE acp.material_id = amp.material_id AND acp.account_id = amp.account_id AND acp.status = 'COMPLETED'
-			),
-			progress = (
-				SELECT COUNT(id) FROM academy_content_progresses acp 
-				WHERE acp.material_id = amp.material_id AND acp.account_id = amp.account_id AND acp.status = 'COMPLETED'
-			)::float / ? * 100,
-			status = CASE 
-				WHEN (
-					SELECT COUNT(id) FROM academy_content_progresses acp 
-					WHERE acp.material_id = amp.material_id AND acp.account_id = amp.account_id AND acp.status = 'COMPLETED'
-				) >= ? THEN 'COMPLETED' 
-				ELSE 'IN_PROGRESS' 
-			END,
-			completed_at = CASE 
-				WHEN (
-					SELECT COUNT(id) FROM academy_content_progresses acp 
-					WHERE acp.material_id = amp.material_id AND acp.account_id = amp.account_id AND acp.status = 'COMPLETED'
-				) >= ? THEN NOW() 
-				ELSE NULL 
-			END
-		WHERE amp.material_id = ?
-	`, totalContents, totalContents, totalContents, materialId).Error
-}
-
-func (r *academyRepository) BatchRecalculateAcademyProgress(ctx context.Context, academyId uuid.UUID) error {
-	totalMaterials, err := r.CountMaterialsByAcademyID(ctx, academyId)
-	if err != nil {
-		return err
-	}
-
-	if totalMaterials == 0 {
-		return r.db.WithContext(ctx).Model(&entity.AcademyProgress{}).
-			Where("academy_id = ?", academyId).
-			Updates(map[string]interface{}{
-				"progress":                  100,
-				"status":                    entity.StatusCompleted,
-				"total_completed_materials": 0,
-			}).Error
-	}
-
-	return r.db.WithContext(ctx).Exec(`
-		UPDATE academy_progress ap
-		SET 
-			progress = (
-				SELECT COALESCE(SUM(amp.progress), 0) FROM academy_material_progresses amp
-				WHERE amp.academy_id = ap.academy_id AND amp.account_id = ap.account_id
-			)::float / ?,
-			total_completed_materials = (
-				SELECT COUNT(id) FROM academy_material_progresses amp
-				WHERE amp.academy_id = ap.academy_id AND amp.account_id = ap.account_id AND amp.status = 'COMPLETED'
-			),
-			status = CASE 
-				WHEN (
-					SELECT COUNT(id) FROM academy_material_progresses amp
-					WHERE amp.academy_id = ap.academy_id AND amp.account_id = ap.account_id AND amp.status = 'COMPLETED'
-				) >= ? THEN 'COMPLETED' 
-				ELSE 'IN_PROGRESS' 
-			END,
-			completed_at = CASE 
-				WHEN (
-					SELECT COUNT(id) FROM academy_material_progresses amp
-					WHERE amp.academy_id = ap.academy_id AND amp.account_id = ap.account_id AND amp.status = 'COMPLETED'
-				) >= ? THEN NOW() 
-				ELSE NULL 
-			END
-		WHERE ap.academy_id = ?
-	`, totalMaterials, totalMaterials, totalMaterials, academyId).Error
 }
 
 func (r *academyRepository) GetMaterialProgressBatch(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID, materialIds []uuid.UUID) (map[uuid.UUID]entity.AcademyMaterialProgress, error) {
