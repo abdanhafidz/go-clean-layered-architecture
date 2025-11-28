@@ -37,21 +37,12 @@ type AcademyService interface {
 	GetAcademyResponse(ctx context.Context, accountId uuid.UUID, slug string) (*dto.AcademyDetailResponse, error)
 	GetMaterialResponse(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (*dto.MaterialDetailResponse, error)
 }
-
 type academyService struct {
 	academyRepo repositories.AcademyRepository
 }
 
 func NewAcademyService(academyRepo repositories.AcademyRepository) AcademyService {
 	return &academyService{academyRepo: academyRepo}
-}
-
-func timePtrToString(t *time.Time) *string {
-	if t == nil {
-		return nil
-	}
-	s := t.Format(time.RFC3339)
-	return &s
 }
 
 func (s *academyService) GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error) {
@@ -64,25 +55,42 @@ func (s *academyService) GetAcademyDetail(ctx context.Context, id uuid.UUID) (en
 }
 
 func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error) {
-	if strings.TrimSpace(req.Title) == "" {
-		return entity.Academy{}, http_error.TITLE_REQUIRED
-	}
-	slugVal := req.Slug
-	if slugVal == "" {
-		slugVal = slug.Make(req.Title)
-	}
-	if _, err := s.academyRepo.GetAcademyBySlug(ctx, slugVal); err == nil {
-		return entity.Academy{}, http_error.DUPLICATE_DATA
-	}
-	a := entity.Academy{
-		Id:             uuid.New(),
-		Title:          req.Title,
-		Slug:           slugVal,
-		Description:    req.Description,
-		ImageUrl:       req.ImageUrl,
-		MaterialsCount: 0,
-	}
-	return s.academyRepo.CreateAcademy(ctx, a)
+    if strings.TrimSpace(req.Title) == "" {
+        return entity.Academy{}, http_error.TITLE_REQUIRED
+    }
+
+    if strings.TrimSpace(req.Code) == "" {
+        return entity.Academy{}, http_error.CODE_REQUIRED 
+    }
+
+    if strings.TrimSpace(req.Description) == "" {
+        return entity.Academy{}, http_error.DESCRIPTION_REQUIRED
+    }
+
+    if strings.TrimSpace(req.ImageUrl) == "" {
+        return entity.Academy{}, http_error.IMAGE_REQUIRED
+    }
+
+    slugVal := req.Slug
+    if slugVal == "" {
+        slugVal = slug.Make(req.Title)
+    }
+
+    if _, err := s.academyRepo.GetAcademyBySlug(ctx, slugVal); err == nil {
+        return entity.Academy{}, http_error.DUPLICATE_DATA
+    }
+
+    a := entity.Academy{
+        Id:             uuid.New(),
+        Title:          req.Title,
+        Slug:           slugVal,
+        Code:           req.Code,
+        Description:    req.Description,
+        ImageUrl:       req.ImageUrl,
+        MaterialsCount: 0,
+    }
+
+    return s.academyRepo.CreateAcademy(ctx, a)
 }
 
 func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error) {
@@ -490,6 +498,7 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 		Id:             academy.Id,
 		Title:          academy.Title,
 		Slug:           academy.Slug,
+		Code:           academy.Code,
 		Description:    academy.Description,
 		ImageUrl:       academy.ImageUrl,
 		MaterialsCount: academy.MaterialsCount,
@@ -500,7 +509,7 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 			Status:                  academyProgress.Status,
 			Progress:                academyProgress.Progress,
 			TotalCompletedMaterials: academyProgress.TotalCompletedMaterials,
-			CompletedAt:             timePtrToString(academyProgress.CompletedAt),
+			CompletedAt:             utils.TimePtrToString(academyProgress.CompletedAt),
 		},
 	}
 
@@ -594,7 +603,7 @@ func (s *academyService) GetMaterialResponse(ctx context.Context, accountId uuid
 			Progress:               materialProgress.Progress,
 			TotalCompletedContents: materialProgress.TotalCompletedContents,
 			Status:                 materialProgress.Status,
-			CompletedAt:            timePtrToString(materialProgress.CompletedAt),
+			CompletedAt:            utils.TimePtrToString(materialProgress.CompletedAt),
 		},
 	}
 

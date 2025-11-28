@@ -17,13 +17,16 @@ import (
     "abdanhafidz.com/go-boilerplate/services"
 )
 
-type UploadController struct {
-    uploadService services.UploadService
+type UploadController interface{
+	Upload(ctx *gin.Context)
+	GetFileByID(ctx *gin.Context)
 }
 
-func NewUploadController(s services.UploadService) *UploadController { return &UploadController{ uploadService: s } }
+type uploadController struct{uploadService services.UploadService}
 
-func (c *UploadController) Upload(ctx *gin.Context) {
+func NewUploadController(uploadService services.UploadService) UploadController { return &uploadController{ uploadService: uploadService } }
+
+func (c *uploadController) Upload(ctx *gin.Context) {
     fmt.Println("👉 Content-Type:", ctx.GetHeader("Content-Type"))
 
     if !strings.Contains(ctx.GetHeader("Content-Type"), "multipart/form-data") {
@@ -162,7 +165,7 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 	})
 }
 
-func (c *UploadController) GetFileByID(ctx *gin.Context) {
+func (c *uploadController) GetFileByID(ctx *gin.Context) {
 	fileIDStr := ctx.Param("id")
 	fileID, err := uuid.Parse(fileIDStr)
 	if err != nil {
@@ -224,7 +227,7 @@ func (c *UploadController) GetFileByID(ctx *gin.Context) {
 	})
 }
 
-func (c *UploadController) inferContextFromExt(ext string) string {
+func (c *uploadController) inferContextFromExt(ext string) string {
 	images := map[string]bool{
 		".jpg": true, ".jpeg": true, ".png": true, ".webp": true,
 	}
