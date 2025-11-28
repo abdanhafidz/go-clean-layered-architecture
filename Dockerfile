@@ -21,6 +21,8 @@ RUN --mount=type=secret,id=DB_PASSWORD,mode=0444,required=false \
     echo "DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com" >> .env && \
     echo "DB_USER=postgres.vsozcjtygglvggyfjzfw" >> .env && \
     echo "DB_PASSWORD=$(cat /run/secrets/DB_PASSWORD 2>/dev/null)" >> .env && \
+    echo "SUPABASE_URL=$(cat /run/secrets/SUPABASE_URL 2>/dev/null)" >> .env && \
+    echo "SUPABASE_SERVICE_KEYL=$(cat /run/secrets/SUPABASE_SERVICE_KEY 2>/dev/null)" >> .env && \
     echo "DB_PORT=5432" >> .env && \
     echo "DB_NAME=postgres" >> .env && \
     echo "SALT=NZNZtY7dNPz8l0dWINJZLKafWaJrql1s" >> .env && \
