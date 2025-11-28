@@ -8,6 +8,7 @@ type SignInRequest struct {
 }
 
 type SignUpRequest struct {
+	Name 	 string `json:"name"`
 	Email    string `json:"email" binding:"required,email"`
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
