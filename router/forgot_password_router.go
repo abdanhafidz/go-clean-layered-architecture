@@ -6,9 +6,10 @@ import (
 )
 
 func ForgotPasswordRouter(router *gin.Engine, controller provider.ControllerProvider) {
-	routerGroup := router.Group("/api/v1/forgot-password")
+	routerGroup := router.Group("/api/v1/authentication/forgot-password")
 	forgotPasswordController := controller.ProvideForgotPasswordController()
 	{
 		routerGroup.POST("/", forgotPasswordController.Request)
 	}
 }
+
