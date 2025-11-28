@@ -38,9 +38,9 @@ type servicesProvider struct {
 }
 
 func NewServicesProvider(
-    repoProvider RepositoriesProvider, 
-    configProvider ConfigProvider, 
-    storageProvider StorageProvider, 
+    repoProvider RepositoriesProvider,
+    configProvider ConfigProvider,
+    storage services.StorageService,
 ) ServicesProvider {
 
     eventService := services.NewEventService(repoProvider.ProvideEventsRepository(), repoProvider.ProvideEventAssignRepository())
@@ -65,8 +65,8 @@ func NewServicesProvider(
     )
 
     uploadService := services.NewUploadService(
-        storageProvider, 
-        repoProvider.ProvideFileRepository(), 
+        storage,
+        repoProvider.ProvideFileRepository(),
         config.NewUploadConfig(),
     )
 
