@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -89,7 +90,8 @@ func (s *uploadService) GetFileByID(ctx context.Context, fileID uuid.UUID, accou
 }
 
 func (s *uploadService) processSingleFile(ctx context.Context, fileHeader *multipart.FileHeader, config config.UploadRule, uploadContext string, accountID uuid.UUID) (*entity.File, error) {
-	if err := s.validateFile(fileHeader, config); err != nil {
+	detectedMimeType, err := s.validateFile(fileHeader, config)
+	if err != nil {
 		return nil, err
 	}
 
@@ -103,8 +105,7 @@ func (s *uploadService) processSingleFile(ctx context.Context, fileHeader *multi
 	}
 	defer src.Close()
 
-	contentType := fileHeader.Header.Get("Content-Type")
-	publicURL, err := s.storageProvider.UploadFile(ctx, src, storagePath, contentType)
+	publicURL, err := s.storageProvider.UploadFile(ctx, src, storagePath, detectedMimeType)
 	if err != nil {
 		return nil, http_error.UPLOAD_FAILED
 	}
@@ -113,7 +114,7 @@ func (s *uploadService) processSingleFile(ctx context.Context, fileHeader *multi
 		Id:           uuid.New(),
 		OriginalName: fileHeader.Filename,
 		StoredName:   storedFilename,
-		MimeType:     contentType,
+		MimeType:     detectedMimeType,
 		Size:         fileHeader.Size,
 		Path:         publicURL,
 		Context:      uploadContext,
@@ -128,22 +129,70 @@ func (s *uploadService) processSingleFile(ctx context.Context, fileHeader *multi
 	return fileEntity, nil
 }
 
-func (s *uploadService) validateFile(file *multipart.FileHeader, config config.UploadRule) error {
+func (s *uploadService) validateFile(file *multipart.FileHeader, config config.UploadRule) (string, error) {
 	if file.Size == 0 || file.Size > config.MaxBytes {
-		return http_error.FILE_TOO_LARGE
+		return "", http_error.FILE_TOO_LARGE
 	}
+
+	src, err := file.Open()
+	if err != nil {
+		return "", http_error.INTERNAL_SERVER_ERROR
+	}
+	defer src.Close()
+
+	buffer := make([]byte, 512)
+	_, err = src.Read(buffer)
+	if err != nil && err != io.EOF {
+		return "", http_error.INTERNAL_SERVER_ERROR
+	}
+
+	detectedMimeType := http.DetectContentType(buffer)
 
 	ext := strings.ToLower(strings.TrimSpace(filepath.Ext(file.Filename)))
 	if !config.AllowedExts[ext] {
-		return http_error.INVALID_FILE_TYPE
+		return "", http_error.INVALID_FILE_TYPE
+	}
+
+	if !isValidMimeForExt(ext, detectedMimeType) {
+		return "", http_error.INVALID_FILE_TYPE
 	}
 
 	blockedExts := map[string]bool{".exe": true, ".sh": true, ".bat": true, ".php": true}
 	if blockedExts[ext] {
-		return http_error.INVALID_FILE_TYPE
+		return "", http_error.INVALID_FILE_TYPE
 	}
 
-	return nil
+	return detectedMimeType, nil
+}
+
+func isValidMimeForExt(ext string, mimeType string) bool {
+	baseMime := strings.Split(mimeType, ";")[0]
+	baseMime = strings.TrimSpace(baseMime)
+
+	switch ext {
+	case ".jpg", ".jpeg":
+		return baseMime == "image/jpeg"
+	case ".png":
+		return baseMime == "image/png"
+	case ".gif":
+		return baseMime == "image/gif"
+	case ".pdf":
+		return baseMime == "application/pdf"
+	case ".txt":
+		return baseMime == "text/plain"
+	case ".c", ".cpp":
+		return baseMime == "submissions/x-c++src"
+	case ".py":
+		return baseMime == "submissions/x-python3src"
+	case ".java":
+		return baseMime == "submissions/x-java8src"
+	case ".cs":
+		return baseMime == "submissions/x-csharp8src"
+	case ".js":
+		return baseMime == "submissions/x-javascriptsrc"
+	default:
+		return false
+	}
 }
 
 func (s *uploadService) generateStoredFilename(originalName string, ext string) string {

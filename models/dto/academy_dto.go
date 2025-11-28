@@ -5,6 +5,7 @@ import "github.com/google/uuid"
 type CreateAcademyRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Slug        string `json:"slug"`
+	Code        string `json:"code"`
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
 }
@@ -65,6 +66,7 @@ type AcademyDetailResponse struct {
 	Id             uuid.UUID                 `json:"id"`
 	Title          string                    `json:"title"`
 	Slug           string                    `json:"slug"`
+	Code           string                    `json:"code"`
 	Description    string                    `json:"description"`
 	ImageUrl       string                    `json:"image_url"`
 	MaterialsCount int64                     `json:"materials_count"`

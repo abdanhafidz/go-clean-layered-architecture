@@ -35,3 +35,11 @@ func CalculateRemainingTime(startTime, dueTime time.Time) int {
 func Ptr[T any](v T) *T {
 	return &v
 }
+
+func TimePtrToString(t *time.Time) *string {
+	if t == nil {
+		return nil
+	}
+	s := t.Format(time.RFC3339)
+	return &s
+}

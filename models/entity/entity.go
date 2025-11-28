@@ -263,6 +263,7 @@ type Academy struct {
 	Id               uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
 	Title            string            `json:"title,omitempty"`
 	Slug             string            `gorm:"unique" json:"slug,omitempty"`
+	Code             string            `gorm:"unique" json:"code,omitempty"`
 	Description      string            `json:"description,omitempty"`
 	ImageUrl         string            `json:"image_url,omitempty"`
 	MaterialsCount   int64             `json:"materials_count,omitempty"`

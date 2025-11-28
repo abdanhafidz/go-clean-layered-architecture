@@ -12,7 +12,7 @@ type ControllerProvider interface {
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
     ProvideRegionController() controllers.RegionController
-    ProvideUploadController() *controllers.UploadController 
+    ProvideUploadController() controllers.UploadController 
     ProvideAcademyExamController() controllers.AcademyExamController
 }
 
@@ -26,7 +26,7 @@ type controllerProvider struct {
 	forgotPasswordController    controllers.ForgotPasswordController
 	optionController            controllers.OptionController
 	regionController            controllers.RegionController
-    uploadController            *controllers.UploadController 
+    uploadController            controllers.UploadController 
     academyExamController       controllers.AcademyExamController
 }
 
@@ -96,7 +96,7 @@ func (c *controllerProvider) ProvideRegionController() controllers.RegionControl
 	return c.regionController
 }
 
-func (c *controllerProvider) ProvideUploadController() *controllers.UploadController {
+func (c *controllerProvider) ProvideUploadController() controllers.UploadController {
     return c.uploadController
 }
 
