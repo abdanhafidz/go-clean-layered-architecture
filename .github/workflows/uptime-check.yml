@@ -3,7 +3,7 @@ name: Uptime Check Backend API
 on:
   push:
     branches:
-      - test
+      - tests
 
 jobs:
   check-uptime:
