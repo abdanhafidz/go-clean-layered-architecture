@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Wait 5 Minutes Before Checking Uptime
+        run: |
+          echo "⏳ Waiting 5 minutes before running uptime checks..."
+          sleep 300
+
       - name: Check Dev API Uptime
         run: |
           echo "🔍 Checking Development API..."
