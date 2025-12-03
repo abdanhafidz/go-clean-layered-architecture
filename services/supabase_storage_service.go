@@ -13,7 +13,7 @@ type StorageService interface {
 	UploadFile(ctx context.Context, file io.Reader, destinationPath string, contentType string) (string, error)
 }
 
-type SupabaseStorageService struct {
+type supabaseStorageService struct {
 	client     *storage_go.Client
 	bucketName string
 	url        string
@@ -31,10 +31,10 @@ func NewSupabaseStorageService(url string, key string, bucketName string) (Stora
 	}
 
 	client := storage_go.NewClient(url+"/storage/v1", key, nil)
-	return &SupabaseStorageService{client: client, bucketName: bucketName, url: url}, nil
+	return &supabaseStorageService{client: client, bucketName: bucketName, url: url}, nil
 }
 
-func (s *SupabaseStorageService) UploadFile(ctx context.Context, file io.Reader, destinationPath string, contentType string) (string, error) {
+func (s *supabaseStorageService) UploadFile(ctx context.Context, file io.Reader, destinationPath string, contentType string) (string, error) {
 	_, err := s.client.UploadFile(s.bucketName, destinationPath, file, storage_go.FileOptions{ContentType: &contentType, Upsert: new(bool)})
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", http_error.UPLOAD_FAILED, err)
