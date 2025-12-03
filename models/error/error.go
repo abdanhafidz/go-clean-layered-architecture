@@ -35,10 +35,11 @@ var (
 	CODE_REQUIRED               = errors.New("Code is required")
 
 	// ================= FILE UPLOAD =================
-	FILE_TOO_LARGE         = errors.New("File size exceeds the maximum limit")
-	INVALID_FILE_TYPE      = errors.New("File type is not permitted for the selected context")
-	UPLOAD_FAILED          = errors.New("Failed to upload file to storage provider")
-	PARTIAL_UPLOAD_FAILURE = errors.New("Some files failed validation or upload")
+	FILE_TOO_LARGE               = errors.New("File size exceeds the maximum limit")
+	INVALID_FILE_TYPE            = errors.New("File type is not permitted for the selected context")
+	UPLOAD_FAILED                = errors.New("Failed to upload file to storage provider")
+	PARTIAL_UPLOAD_FAILURE       = errors.New("Some files failed validation or upload")
+	INVALID_UPLOAD_CONTEXT_ERROR = errors.New("Invalid upload context")
 
 	// ================= ACADEMY =================
 	TITLE_REQUIRED       = errors.New("Title cannot be empty")
