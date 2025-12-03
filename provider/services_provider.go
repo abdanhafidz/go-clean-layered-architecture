@@ -67,6 +67,7 @@ func NewServicesProvider(
     uploadService := services.NewUploadService(
         storage,
         repoProvider.ProvideFileRepository(),
+        repoProvider.ProvideAccountRepository(),
         config.NewUploadConfig(),
     )
 
@@ -136,3 +137,4 @@ func (s *servicesProvider) ProvideUploadService() services.UploadService {
 }
 
 func (s *servicesProvider) ProvideAcademyExamService() services.AcademyExamService { return s.academyExamService }
+

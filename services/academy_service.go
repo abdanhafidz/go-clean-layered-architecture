@@ -2,33 +2,32 @@ package services
 
 import (
 	"context"
-	"errors"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/repositories"
 	"abdanhafidz.com/go-boilerplate/utils"
-	"github.com/google/uuid"
-	"github.com/gosimple/slug"
 )
 
 type AcademyService interface {
-	// Academy
-	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
-	GetAcademy(ctx context.Context, id uuid.UUID) (entity.Academy, error)
-	ListAcademies(ctx context.Context) ([]entity.Academy, error)
+	GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error)
 	GetAcademyDetail(ctx context.Context, id uuid.UUID) (entity.Academy, error)
+	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
+	ListAcademies(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error)
 
-	// Material
 	CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error)
+	GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error)
+	DeleteMaterial(ctx context.Context, id uuid.UUID) error
 
-	// Content
 	CreateContent(ctx context.Context, req dto.CreateContentRequest) (entity.AcademyContent, error)
 	GetContent(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string, order uint) (entity.AcademyContent, error)
 	DeleteContent(ctx context.Context, id uuid.UUID) error
@@ -39,11 +38,11 @@ type AcademyService interface {
 	GetMaterialResponse(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (*dto.MaterialDetailResponse, error)
 }
 type academyService struct {
-	repo repositories.AcademyRepository
+	academyRepo repositories.AcademyRepository
 }
 
-func NewAcademyService(repo repositories.AcademyRepository) AcademyService {
-	return &academyService{repo: repo}
+func NewAcademyService(academyRepo repositories.AcademyRepository) AcademyService {
+	return &academyService{academyRepo: academyRepo}
 }
 
 func (s *academyService) GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error) {
@@ -95,22 +94,18 @@ func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcadem
 }
 
 func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error) {
-	existing, err := s.repo.GetAcademyByID(ctx, id)
+	existing, err := s.academyRepo.GetAcademyByID(ctx, id)
 	if err != nil {
-		return entity.Academy{}, errors.New("academy not found")
+		return entity.Academy{}, http_error.ACADEMY_NOT_FOUND
 	}
-
 	if req.Title != "" {
 		existing.Title = req.Title
 	}
 	if req.Description != "" {
 		existing.Description = req.Description
 	}
-
 	if req.Slug != "" {
 		existing.Slug = req.Slug
-	} else {
-		existing.Slug = slug.Make(existing.Title)
 	}
 	if req.ImageUrl != "" {
 		existing.ImageUrl = req.ImageUrl
@@ -119,9 +114,9 @@ func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dt
 }
 
 func (s *academyService) DeleteAcademy(ctx context.Context, id uuid.UUID) error {
-	_, mats, err := s.repo.GetAcademyWithMaterials(ctx, id)
+	_, mats, err := s.academyRepo.GetAcademyWithMaterials(ctx, id)
 	if err != nil {
-		return errors.New("academy not found")
+		return http_error.ACADEMY_NOT_FOUND
 	}
 	if len(mats) > 0 {
 		return http_error.ACADEMY_HAS_MATERIALS
@@ -146,10 +141,7 @@ func (s *academyService) GetMaterial(ctx context.Context, accountId uuid.UUID, a
 
 func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error) {
 	if req.AcademyId == uuid.Nil {
-		return entity.AcademyMaterial{}, errors.New("academy_id required")
-	}
-	if _, err := s.repo.GetAcademyByID(ctx, req.AcademyId); err != nil {
-		return entity.AcademyMaterial{}, errors.New("academy not found")
+		return entity.AcademyMaterial{}, http_error.ACADEMY_ID_REQUIRED
 	}
 
 	slugVal := req.Slug
@@ -527,7 +519,7 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 		if p, ok := materialProgressMap[m.Id]; ok {
 			matProg = p
 		} else {
-			matProg = entity.AcademyMaterialProgress{Status: entity.StatusNotStarted}
+			matProg = entity.AcademyMaterialProgress{Status: entity.StatusNotStarted, Progress: 0, TotalCompletedContents: 0}
 		}
 
 		dtContents := make([]dto.AcademyContentResponse, len(m.Contents))

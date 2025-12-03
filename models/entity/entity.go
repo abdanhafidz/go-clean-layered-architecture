@@ -2,9 +2,6 @@ package models
 
 import (
 	"time"
-
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -288,11 +285,12 @@ type AcademyMaterial struct {
 func (AcademyMaterial) TableName() string { return "academy_materials" }
 
 type AcademyContent struct {
-	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
-	Title             string    `json:"title,omitempty"`
-	Order             uint      `json:"order,omitempty"`
-	AcademyMaterialId uuid.UUID `json:"academy_material_id,omitempty"`
-	Contents          string    `json:"contents,omitempty"`
+	Id                     uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
+	MaterialId             uuid.UUID              `json:"material_id,omitempty"`
+	Title                  string                 `json:"title,omitempty"`
+	Order                  uint                   `json:"order,omitempty"`
+	Contents               string                 `json:"contents,omitempty"`
+	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progresses,omitempty"`
 }
 
 func (AcademyContent) TableName() string { return "academy_contents" }
@@ -322,7 +320,7 @@ type AcademyMaterialProgress struct {
 	CompletedAt            *time.Time `json:"completed_at"`
 }
 
-func (AcademyMaterialProgress) TableName() string { return "academy_materials_progress" }
+func (AcademyMaterialProgress) TableName() string { return "academy_material_progress" }
 
 type AcademyContentProgress struct {
     Id          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`

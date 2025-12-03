@@ -67,7 +67,6 @@ func (s *accountService) Create(ctx context.Context, name string, email string, 
 	if err != nil {
 		return entity.Account{}, err
 	}
-
 	if _, err := s.CreateEmptyDetail(ctx, created.Id); err != nil {
 		return entity.Account{}, fmt.Errorf("create empty detail: %w", err)
 	}

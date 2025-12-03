@@ -3,9 +3,10 @@ package provider
 import "abdanhafidz.com/go-boilerplate/config"
 
 type ConfigProvider interface {
-	ProvideJWTConfig() config.JWTConfig
-	ProvideEnvConfig() config.EnvConfig
-	ProvideDatabaseConfig() config.DatabaseConfig
+    ProvideJWTConfig() config.JWTConfig
+    ProvideEnvConfig() config.EnvConfig
+    ProvideDatabaseConfig() config.DatabaseConfig
+    ProvideSupabaseConfig() config.SupabaseConfig
 }
 
 type configProvider struct {
@@ -35,6 +36,11 @@ func (c *configProvider) ProvideEnvConfig() config.EnvConfig {
 }
 
 func (c *configProvider) ProvideDatabaseConfig() config.DatabaseConfig {
-	return c.databaseConfig
+    return c.databaseConfig
+}
+
+func (c *configProvider) ProvideSupabaseConfig() config.SupabaseConfig {
+    env := c.envConfig
+    return config.NewSupabaseConfig(env.GetSupabaseURL(), env.GetSupabaseKey(), env.GetSupabaseBucket())
 }
 

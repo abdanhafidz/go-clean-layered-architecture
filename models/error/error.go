@@ -24,7 +24,6 @@ var (
 
 	// ================= EVENT & EXAM =================
 	ALREADY_REGISTERED_TO_EVENT = errors.New("Account already registered to this event")
-	EMAIL_ALREADY_EXISTS        = errors.New("Email already registered")
 	NOT_REGISTERED_TO_EVENT     = errors.New("Account is not registered to this event")
 	ERR_PROBLEM_SET_NOT_FOUND   = errors.New("Problem set not found")
 	ERR_QUESTION_NOT_FOUND      = errors.New("Question not found")

@@ -1,10 +1,11 @@
 package config
 
 import (
-    "os"
-    "strconv"
-    "strings"
-    "github.com/joho/godotenv"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type EnvConfig interface {
@@ -19,6 +20,9 @@ type EnvConfig interface {
 	GetDatabasePassword() string
 	GetDatabaseName() string
 	GetSalt() string
+	GetSupabaseURL() string
+	GetSupabaseKey() string
+	GetSupabaseBucket() string
 }
 
 type envConfig struct {
@@ -86,13 +90,13 @@ func (e *envConfig) GetSalt() string {
 }
 
 func (e *envConfig) GetSupabaseURL() string {
-    return strings.TrimSpace(os.Getenv("SUPABASE_URL"))
+	return strings.TrimSpace(os.Getenv("SUPABASE_URL"))
 }
 
 func (e *envConfig) GetSupabaseKey() string {
-    return strings.TrimSpace(os.Getenv("SUPABASE_SERVICE_KEY"))
+	return strings.TrimSpace(os.Getenv("SUPABASE_SERVICE_KEY"))
 }
 
 func (e *envConfig) GetSupabaseBucket() string {
-    return strings.TrimSpace(os.Getenv("SUPABASE_BUCKET_NAME"))
+	return strings.TrimSpace(os.Getenv("SUPABASE_BUCKET_NAME"))
 }

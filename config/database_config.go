@@ -18,8 +18,7 @@ type databaseConfig struct {
 
 func NewDatabaseConfig(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT string) DatabaseConfig {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Asia/Jakarta "+
-			"prefer_simple_protocol=true",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta ",
 		DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT,
 	)
 
