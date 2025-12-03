@@ -1,6 +1,9 @@
 package config
 
-import models "abdanhafidz.com/go-boilerplate/models/entity"
+import (
+	models "abdanhafidz.com/go-boilerplate/models/entity"
+	http_error "abdanhafidz.com/go-boilerplate/models/error"
+)
 
 type UploadRule struct {
     MaxBytes    int64
@@ -37,12 +40,7 @@ func (c *uploadConfig) Get(contextType string) (UploadRule, error) {
     case "general":
         return UploadRule{ MaxBytes: 5 * models.MB, AllowedExts: allExts, PathPrefix: "temp", MaxCount: 5 }, nil
     default:
-        return UploadRule{}, ErrInvalidUploadContext
+        return UploadRule{}, http_error.INVALID_UPLOAD_CONTEXT_ERROR
     }
 }
 
-var ErrInvalidUploadContext = errInvalidUploadContext{}
-
-type errInvalidUploadContext struct{}
-
-func (e errInvalidUploadContext) Error() string { return "invalid upload context" }
