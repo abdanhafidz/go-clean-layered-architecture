@@ -116,7 +116,7 @@ func (s *accountService) ChangePassword(ctx context.Context, accountId uuid.UUID
 	}
 
 	if err := s.jwtService.VerifyPassword(ctx, acc.Password, oldPassword); err != nil {
-		return dto.AuthenticatedUser{}, errors.New("incorrect old password")
+		return dto.AuthenticatedUser{}, errors.New("incorrect old password!")
 	}
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(newPassword), 14)

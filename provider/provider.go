@@ -15,9 +15,20 @@ type AppProvider interface {
 	ProvideServices() ServicesProvider
 	ProvideControllers() ControllerProvider
 	ProvideMiddlewares() MiddlewareProvider
+	ProvideRouter() *gin.Engine
+	ProvideConfig() ConfigProvider
+	ProvideRepositories() RepositoriesProvider
+	ProvideServices() ServicesProvider
+	ProvideControllers() ControllerProvider
+	ProvideMiddlewares() MiddlewareProvider
 }
-
 type appProvider struct {
+	ginRouter            *gin.Engine
+	configProvider       ConfigProvider
+	repositoriesProvider RepositoriesProvider
+	servicesProvider     ServicesProvider
+	controllerProvider   ControllerProvider
+	middlewareProvider   MiddlewareProvider
 	ginRouter            *gin.Engine
 	configProvider       ConfigProvider
 	repositoriesProvider RepositoriesProvider
@@ -53,6 +64,10 @@ func NewAppProvider() AppProvider {
 		&entity.Events{},
 		&entity.EventAssign{},
 		&entity.Announcement{},
+		// Events
+		&entity.Events{},
+		&entity.EventAssign{},
+		&entity.Announcement{},
 
 		// Problemset & Exam
 		&entity.ProblemSet{},
@@ -60,7 +75,17 @@ func NewAppProvider() AppProvider {
 		&entity.Exam{},
 		&entity.ProblemSetExamAssign{},
 		&entity.ExamEventAssign{},
+		// Problemset & Exam
+		&entity.ProblemSet{},
+		&entity.Questions{},
+		&entity.Exam{},
+		&entity.ProblemSetExamAssign{},
+		&entity.ExamEventAssign{},
 
+		// Exam Attempt & Result
+		&entity.ExamEventAnswer{},
+		&entity.ExamEventAttempt{},
+		&entity.Result{},
 		// Exam Attempt & Result
 		&entity.ExamEventAnswer{},
 		&entity.ExamEventAttempt{},
@@ -100,12 +125,18 @@ func NewAppProvider() AppProvider {
 		controllerProvider:   controllerProvider,
 		middlewareProvider:   middlewareProvider,
 	}
+	return &appProvider{
+		ginRouter:            ginRouter,
+		configProvider:       configProvider,
+		repositoriesProvider: repositoriesProvider,
+		servicesProvider:     servicesProvider,
+		controllerProvider:   controllerProvider,
+		middlewareProvider:   middlewareProvider,
+	}
 }
-
 func (a *appProvider) ProvideRouter() *gin.Engine {
 	return a.ginRouter
 }
-
 func (a *appProvider) ProvideConfig() ConfigProvider {
 	return a.configProvider
 }
@@ -125,3 +156,4 @@ func (a *appProvider) ProvideControllers() ControllerProvider {
 func (a *appProvider) ProvideMiddlewares() MiddlewareProvider {
 	return a.middlewareProvider
 }
+

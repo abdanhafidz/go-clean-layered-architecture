@@ -7,12 +7,12 @@ import (
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type AcademyController interface {
-	// Academy
 	CreateAcademy(ctx *gin.Context)
 	GetAcademy(ctx *gin.Context)
 	GetAcademyDetail(ctx *gin.Context)
@@ -20,18 +20,8 @@ type AcademyController interface {
 	UpdateAcademy(ctx *gin.Context)
 	DeleteAcademy(ctx *gin.Context)
 
-	// Material
-	GetMaterial(ctx *gin.Context)
 	CreateMaterial(ctx *gin.Context)
-	DeleteMaterial(ctx *gin.Context)
-
-	// Content
 	CreateContent(ctx *gin.Context)
-	GetContent(ctx *gin.Context)
-	DeleteContent(ctx *gin.Context)
-
-	// Progress
-	UpdateContentProgress(ctx *gin.Context)
 }
 
 type academyController struct {
@@ -42,7 +32,11 @@ func NewAcademyController(academyService services.AcademyService) AcademyControl
 	return &academyController{academyService}
 }
 
-// ================= ACADEMY =================
+func (c *academyController) CreateAcademy(ctx *gin.Context) {
+	req := RequestJSON[dto.CreateAcademyRequest](ctx)
+	res, err := c.academyService.CreateAcademy(ctx.Request.Context(), req)
+	ResponseJSON(ctx, req, res, err)
+}
 
 func (c *academyController) GetAcademy(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
@@ -78,12 +72,6 @@ func (c *academyController) ListAcademies(ctx *gin.Context) {
 
 	res, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId)
 	ResponseJSON(ctx, gin.H{}, res, err)
-}
-
-func (c *academyController) CreateAcademy(ctx *gin.Context) {
-	req := RequestJSON[dto.CreateAcademyRequest](ctx)
-	res, err := c.academyService.CreateAcademy(ctx.Request.Context(), req)
-	ResponseJSON(ctx, req, res, err)
 }
 
 func (c *academyController) UpdateAcademy(ctx *gin.Context) {
@@ -128,6 +116,7 @@ func (c *academyController) GetMaterial(ctx *gin.Context) {
 
 func (c *academyController) CreateMaterial(ctx *gin.Context) {
 	req := RequestJSON[dto.CreateMaterialRequest](ctx)
+
 	res, err := c.academyService.CreateMaterial(ctx.Request.Context(), req)
 	ResponseJSON(ctx, req, res, err)
 }
@@ -169,6 +158,7 @@ func (c *academyController) GetContent(ctx *gin.Context) {
 
 func (c *academyController) CreateContent(ctx *gin.Context) {
 	req := RequestJSON[dto.CreateContentRequest](ctx)
+
 	res, err := c.academyService.CreateContent(ctx.Request.Context(), req)
 	ResponseJSON(ctx, req, res, err)
 }

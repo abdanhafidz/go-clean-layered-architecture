@@ -28,11 +28,12 @@ type UploadService interface {
 type uploadService struct {
 	storageProvider storageUploader
 	fileRepo        repositories.FileRepository
+	accountRepo     repositories.AccountRepository
 	cfg             config.UploadConfig
 }
 
-func NewUploadService(storage storageUploader, repo repositories.FileRepository, cfg config.UploadConfig) UploadService {
-	return &uploadService{storageProvider: storage, fileRepo: repo, cfg: cfg}
+func NewUploadService(storage storageUploader, repo repositories.FileRepository, accountRepo repositories.AccountRepository, cfg config.UploadConfig) UploadService {
+	return &uploadService{storageProvider: storage, fileRepo: repo, accountRepo: accountRepo, cfg: cfg}
 }
 
 type storageUploader interface {
@@ -90,6 +91,9 @@ func (s *uploadService) GetFileByID(ctx context.Context, fileID uuid.UUID, accou
 }
 
 func (s *uploadService) processSingleFile(ctx context.Context, fileHeader *multipart.FileHeader, config config.UploadRule, uploadContext string, accountID uuid.UUID) (*entity.File, error) {
+	if _, err := s.accountRepo.GetAccountById(ctx, accountID); err != nil {
+		return nil, http_error.UNAUTHORIZED
+	}
 	detectedMimeType, err := s.validateFile(fileHeader, config)
 	if err != nil {
 		return nil, err

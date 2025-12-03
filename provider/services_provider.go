@@ -88,37 +88,47 @@ func NewServicesProvider(
 }
 
 func (s *servicesProvider) ProvideEventService() services.EventService {
-    return s.eventService
+	return s.eventService
 }
+
 func (s *servicesProvider) ProvideAcademyService() services.AcademyService {
-    return s.academyService
+	return s.academyService
 }
+
 func (s *servicesProvider) ProvideProblemSetService() services.ProblemSetService {
-    return s.problemSetService
+	return s.problemSetService
 }
+
 func (s *servicesProvider) ProvideJWTService() services.JWTService {
-    return s.jWTService
+	return s.jWTService
 }
+
 func (s *servicesProvider) ProvideRegionService() services.RegionService {
-    return s.regionService
+	return s.regionService
 }
+
 func (s *servicesProvider) ProvideOptionService() services.OptionService {
-    return s.optionService
+	return s.optionService
 }
+
 func (s *servicesProvider) ProvideExamService() services.ExamService {
-    return s.examService
+	return s.examService
 }
+
 func (s *servicesProvider) ProvideAccountService() services.AccountService {
-    return s.accountService
+	return s.accountService
 }
+
 func (s *servicesProvider) ProvideForgotPasswordService() services.ForgotPasswordService {
-    return s.forgotPasswordService
+	return s.forgotPasswordService
 }
+
 func (s *servicesProvider) ProvideEmailVerificationService() services.EmailVerificationService {
-    return s.emailVerificationService
+	return s.emailVerificationService
 }
+
 func (s *servicesProvider) ProvideExternalAuthService() services.ExternalAuthService {
-    return s.externalAuthService
+	return s.externalAuthService
 }
 
 func (s *servicesProvider) ProvideUploadService() services.UploadService {

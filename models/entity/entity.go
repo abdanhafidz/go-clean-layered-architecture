@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -82,7 +84,7 @@ type Events struct {
 	StartEvent time.Time `json:"start_event,omitempty"`
 	EndEvent   time.Time `json:"end_event,omitempty"`
 	Overview   string    `json:"overview,omitempty"`
-	ImgBanner  string    `json:"img_banner,omitempty"`
+	ImgBanner string `json:"img_banner,omitempty"`
 	EventCode  string    `json:"event_code,omitempty"`
 	IsPublic   bool      `json:"is_public,omitempty"`
 }
@@ -257,8 +259,6 @@ type Result struct {
 
 func (Result) TableName() string { return "result" }
 
-// ACADEMY ENTITY
-
 type Academy struct {
 	Id               uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
 	Title            string            `json:"title,omitempty"`
@@ -288,12 +288,11 @@ type AcademyMaterial struct {
 func (AcademyMaterial) TableName() string { return "academy_materials" }
 
 type AcademyContent struct {
-	Id                     uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
-	MaterialId             uuid.UUID              `json:"material_id,omitempty"`
-	Title                  string                 `json:"title,omitempty"`
-	Order                  uint                   `json:"order,omitempty"`
-	Contents               string                 `json:"contents,omitempty"`
-	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progresses,omitempty"`
+	Id                uuid.UUID `gorm:"primaryKey" json:"id"`
+	Title             string    `json:"title,omitempty"`
+	Order             uint      `json:"order,omitempty"`
+	AcademyMaterialId uuid.UUID `json:"academy_material_id,omitempty"`
+	Contents          string    `json:"contents,omitempty"`
 }
 
 func (AcademyContent) TableName() string { return "academy_contents" }
@@ -323,7 +322,7 @@ type AcademyMaterialProgress struct {
 	CompletedAt            *time.Time `json:"completed_at"`
 }
 
-func (AcademyMaterialProgress) TableName() string { return "academy_material_progress" }
+func (AcademyMaterialProgress) TableName() string { return "academy_materials_progress" }
 
 type AcademyContentProgress struct {
     Id          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`

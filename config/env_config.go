@@ -19,9 +19,6 @@ type EnvConfig interface {
 	GetDatabasePassword() string
 	GetDatabaseName() string
 	GetSalt() string
-	GetSupabaseURL() string
-	GetSupabaseKey() string
-	GetSupabaseBucket() string
 }
 
 type envConfig struct {
@@ -83,7 +80,7 @@ func (e *envConfig) GetDatabaseName() string {
 func (e *envConfig) GetSalt() string {
 	salt := os.Getenv("SALT")
 	if salt == "" {
-		return "Def4u|7" 
+		return "Def4u|7" // Default salt value
 	}
 	return salt
 }
