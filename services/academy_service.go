@@ -22,7 +22,7 @@ type AcademyService interface {
 	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
-	ListAcademies(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error)
+	ListAcademies(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error)
 
 	CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error)
 	GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error)
@@ -36,6 +36,11 @@ type AcademyService interface {
 
 	GetAcademyResponse(ctx context.Context, accountId uuid.UUID, slug string) (*dto.AcademyDetailResponse, error)
 	GetMaterialResponse(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (*dto.MaterialDetailResponse, error)
+	AuthorizeUserToAcademy(ctx context.Context, accountId uuid.UUID, academySlug string) error
+
+	AssignAccountToAcademy(ctx context.Context, academyId uuid.UUID, accountId uuid.UUID) (entity.AcademyAssign, error)
+	UnassignAccountFromAcademy(ctx context.Context, id uuid.UUID) error
+	ListAssignmentsByAcademy(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyAssign, error)
 }
 type academyService struct {
 	academyRepo repositories.AcademyRepository
@@ -46,6 +51,9 @@ func NewAcademyService(academyRepo repositories.AcademyRepository) AcademyServic
 }
 
 func (s *academyService) GetAcademy(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error) {
+	if err := s.AuthorizeUserToAcademy(ctx, accountId, slug); err != nil {
+		return entity.Academy{}, err
+	}
 	return s.academyRepo.GetAcademyWithProgress(ctx, accountId, slug)
 }
 
@@ -55,42 +63,43 @@ func (s *academyService) GetAcademyDetail(ctx context.Context, id uuid.UUID) (en
 }
 
 func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error) {
-    if strings.TrimSpace(req.Title) == "" {
-        return entity.Academy{}, http_error.TITLE_REQUIRED
-    }
+	if strings.TrimSpace(req.Title) == "" {
+		return entity.Academy{}, http_error.TITLE_REQUIRED
+	}
 
-    if strings.TrimSpace(req.Code) == "" {
-        return entity.Academy{}, http_error.CODE_REQUIRED 
-    }
+	if strings.TrimSpace(req.Code) == "" {
+		return entity.Academy{}, http_error.CODE_REQUIRED
+	}
 
-    if strings.TrimSpace(req.Description) == "" {
-        return entity.Academy{}, http_error.DESCRIPTION_REQUIRED
-    }
+	if strings.TrimSpace(req.Description) == "" {
+		return entity.Academy{}, http_error.DESCRIPTION_REQUIRED
+	}
 
-    if strings.TrimSpace(req.ImageUrl) == "" {
-        return entity.Academy{}, http_error.IMAGE_REQUIRED
-    }
+	if strings.TrimSpace(req.ImageUrl) == "" {
+		return entity.Academy{}, http_error.IMAGE_REQUIRED
+	}
 
-    slugVal := req.Slug
-    if slugVal == "" {
-        slugVal = slug.Make(req.Title)
-    }
+	slugVal := req.Slug
+	if slugVal == "" {
+		slugVal = slug.Make(req.Title)
+	}
 
-    if _, err := s.academyRepo.GetAcademyBySlug(ctx, slugVal); err == nil {
-        return entity.Academy{}, http_error.DUPLICATE_DATA
-    }
+	if _, err := s.academyRepo.GetAcademyBySlug(ctx, slugVal); err == nil {
+		return entity.Academy{}, http_error.DUPLICATE_DATA
+	}
 
-    a := entity.Academy{
-        Id:             uuid.New(),
-        Title:          req.Title,
-        Slug:           slugVal,
-        Code:           req.Code,
-        Description:    req.Description,
-        ImageUrl:       req.ImageUrl,
-        MaterialsCount: 0,
-    }
+	a := entity.Academy{
+		Id:             uuid.New(),
+		Title:          req.Title,
+		Slug:           slugVal,
+		Code:           req.Code,
+		IsPublic:       req.IsPublic,
+		Description:    req.Description,
+		ImageUrl:       req.ImageUrl,
+		MaterialsCount: 0,
+	}
 
-    return s.academyRepo.CreateAcademy(ctx, a)
+	return s.academyRepo.CreateAcademy(ctx, a)
 }
 
 func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error) {
@@ -110,6 +119,9 @@ func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dt
 	if req.ImageUrl != "" {
 		existing.ImageUrl = req.ImageUrl
 	}
+	if req.IsPublic != nil {
+		existing.IsPublic = *req.IsPublic
+	}
 	return s.academyRepo.UpdateAcademy(ctx, existing)
 }
 
@@ -124,8 +136,9 @@ func (s *academyService) DeleteAcademy(ctx context.Context, id uuid.UUID) error 
 	return s.academyRepo.DeleteAcademy(ctx, id)
 }
 
-func (s *academyService) ListAcademies(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error) {
-	return s.academyRepo.ListAcademy(ctx, accountId)
+func (s *academyService) ListAcademies(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error) {
+    list, total, err := s.academyRepo.ListVisibleAcademy(ctx, accountId, &p)
+    return list, total, err
 }
 
 func (s *academyService) GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error) {
@@ -135,6 +148,15 @@ func (s *academyService) GetMaterial(ctx context.Context, accountId uuid.UUID, a
 	academy, err := s.academyRepo.GetAcademyBySlug(ctx, academySlug)
 	if err != nil {
 		return entity.AcademyMaterial{}, http_error.ACADEMY_NOT_FOUND
+	}
+	if !academy.IsPublic {
+		assigned, errAssign := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, academy.Id)
+		if errAssign != nil {
+			return entity.AcademyMaterial{}, errAssign
+		}
+		if !assigned {
+			return entity.AcademyMaterial{}, http_error.UNAUTHORIZED
+		}
 	}
 	return s.academyRepo.GetMaterialWithProgress(ctx, accountId, academy.Id, materialSlug)
 }
@@ -169,7 +191,7 @@ func (s *academyService) CreateMaterial(ctx context.Context, req dto.CreateMater
 			return err
 		}
 		createdMaterial = res
-		
+
 		realCount, err := txRepo.CountMaterialsByAcademyID(ctx, req.AcademyId)
 		if err != nil {
 			return err
@@ -262,7 +284,7 @@ func (s *academyService) CreateContent(ctx context.Context, req dto.CreateConten
 			return err
 		}
 		createdContent = res
-		
+
 		realCount, err := txRepo.CountContentsByMaterialID(ctx, req.MaterialId)
 		if err != nil {
 			return err
@@ -337,6 +359,15 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 	academy, err := s.academyRepo.GetAcademyBySlug(ctx, academySlug)
 	if err != nil {
 		return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, http_error.ACADEMY_NOT_FOUND
+	}
+	if !academy.IsPublic {
+		assigned, errAssign := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, academy.Id)
+		if errAssign != nil {
+			return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, errAssign
+		}
+		if !assigned {
+			return entity.AcademyContentProgress{}, entity.AcademyMaterialProgress{}, entity.AcademyProgress{}, http_error.UNAUTHORIZED
+		}
 	}
 	material, err := s.academyRepo.GetMaterialBySlug(ctx, academy.Id, materialSlug)
 	if err != nil {
@@ -462,10 +493,19 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 	if strings.TrimSpace(slug) == "" {
 		return nil, http_error.SLUG_REQUIRED
 	}
-	
+
 	academy, err := s.academyRepo.GetAcademyBySlug(ctx, slug)
 	if err != nil {
 		return nil, http_error.ACADEMY_NOT_FOUND
+	}
+	if !academy.IsPublic {
+		assigned, errAssign := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, academy.Id)
+		if errAssign != nil {
+			return nil, errAssign
+		}
+		if !assigned {
+			return nil, http_error.UNAUTHORIZED
+		}
 	}
 
 	academyProgress, err := s.academyRepo.GetAcademyProgress(ctx, accountId, academy.Id)
@@ -519,7 +559,7 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 		if p, ok := materialProgressMap[m.Id]; ok {
 			matProg = p
 		} else {
-			matProg = entity.AcademyMaterialProgress{Status: entity.StatusNotStarted}
+			matProg = entity.AcademyMaterialProgress{Status: entity.StatusNotStarted, Progress: 0, TotalCompletedContents: 0}
 		}
 
 		dtContents := make([]dto.AcademyContentResponse, len(m.Contents))
@@ -561,6 +601,15 @@ func (s *academyService) GetMaterialResponse(ctx context.Context, accountId uuid
 	academy, err := s.academyRepo.GetAcademyBySlug(ctx, academySlug)
 	if err != nil {
 		return nil, http_error.ACADEMY_NOT_FOUND
+	}
+	if !academy.IsPublic {
+		assigned, errAssign := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, academy.Id)
+		if errAssign != nil {
+			return nil, errAssign
+		}
+		if !assigned {
+			return nil, http_error.UNAUTHORIZED
+		}
 	}
 	material, err := s.academyRepo.GetMaterialBySlug(ctx, academy.Id, materialSlug)
 	if err != nil {
@@ -624,4 +673,57 @@ func (s *academyService) GetMaterialResponse(ctx context.Context, accountId uuid
 	resp.Contents = dtContents
 
 	return resp, nil
+}
+func (s *academyService) AuthorizeUserToAcademy(ctx context.Context, accountId uuid.UUID, academySlug string) error {
+	academy, err := s.academyRepo.GetAcademyBySlug(ctx, academySlug)
+	if err != nil {
+		return http_error.ACADEMY_NOT_FOUND
+	}
+	if !academy.IsPublic {
+		assigned, errAssign := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, academy.Id)
+		if errAssign != nil {
+			return errAssign
+		}
+		if !assigned {
+			return http_error.UNAUTHORIZED
+		}
+	}
+	return nil
+}
+func (s *academyService) AssignAccountToAcademy(ctx context.Context, academyId uuid.UUID, accountId uuid.UUID) (entity.AcademyAssign, error) {
+	if academyId == uuid.Nil || accountId == uuid.Nil {
+		return entity.AcademyAssign{}, http_error.BAD_REQUEST_ERROR
+	}
+	_, err := s.academyRepo.GetAcademyByID(ctx, academyId)
+	if err != nil {
+		return entity.AcademyAssign{}, http_error.ACADEMY_NOT_FOUND
+	}
+	assigned, err := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, academyId)
+	if err != nil {
+		return entity.AcademyAssign{}, err
+	}
+	if assigned {
+		return entity.AcademyAssign{}, http_error.DUPLICATE_DATA
+	}
+	assign := entity.AcademyAssign{
+		Id:        uuid.New(),
+		AccountId: accountId,
+		AcademyId: academyId,
+		CreatedAt: time.Now(),
+	}
+	return s.academyRepo.AssignAccountToAcademy(ctx, assign)
+}
+
+func (s *academyService) UnassignAccountFromAcademy(ctx context.Context, id uuid.UUID) error {
+	if id == uuid.Nil {
+		return http_error.BAD_REQUEST_ERROR
+	}
+	return s.academyRepo.RemoveAssignment(ctx, id)
+}
+
+func (s *academyService) ListAssignmentsByAcademy(ctx context.Context, academyId uuid.UUID) ([]entity.AcademyAssign, error) {
+	if academyId == uuid.Nil {
+		return nil, http_error.BAD_REQUEST_ERROR
+	}
+	return s.academyRepo.ListAssignmentsByAcademy(ctx, academyId)
 }

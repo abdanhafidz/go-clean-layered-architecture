@@ -6,6 +6,7 @@ type CreateAcademyRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Slug        string `json:"slug"`
 	Code        string `json:"code"`
+	IsPublic    bool   `json:"is_public"`
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
 }
@@ -15,6 +16,7 @@ type UpdateAcademyRequest struct {
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
+	IsPublic    *bool  `json:"is_public"`
 }
 
 type CreateMaterialRequest struct {
@@ -103,4 +105,9 @@ type MaterialDetailResponse struct {
 	Progress      *MaterialProgressResponse `json:"progress"`
 	Contents      []ContentDetailResponse   `json:"contents"`
 	Meta          map[string]string         `json:"meta"`
+}
+
+type AssignRequest struct {
+	AcademyId string `json:"academy_id"`
+	AccountId string `json:"account_id"`
 }
