@@ -13,33 +13,27 @@ func AcademyRouter(router *gin.Engine, middleware provider.MiddlewareProvider, c
 
 	routerGroup.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	{
-		// ================= ADMIN SECTION =================
-		adminGroup := routerGroup.Group("/admin", authenticationMiddleware.VerifyAccount)
-		{
-			// CRUD for Academies
-			adminGroup.POST("/", academyController.CreateAcademy)
-			adminGroup.GET("/id/:id/detail", academyController.GetAcademyDetail)
-			adminGroup.PUT("/id/:id", academyController.UpdateAcademy)
-			adminGroup.DELETE("/id/:id", academyController.DeleteAcademy)
+	adminGroup := routerGroup.Group("/admin", authenticationMiddleware.VerifyAccount)
 
-			// Materials
-			adminGroup.POST("/materials", academyController.CreateMaterial)
-			adminGroup.DELETE("/materials/:id", academyController.DeleteMaterial)
+	adminGroup.POST("/", academyController.CreateAcademy)
+	adminGroup.GET("/id/:id/detail", academyController.GetAcademyDetail)
+	adminGroup.PUT("/id/:id", academyController.UpdateAcademy)
+	adminGroup.DELETE("/id/:id", academyController.DeleteAcademy)
 
-			// Contents
-			adminGroup.POST("/contents", academyController.CreateContent)
-			adminGroup.DELETE("/contents/:id", academyController.DeleteContent)
-		}
+	adminGroup.POST("/materials", academyController.CreateMaterial)
+	adminGroup.DELETE("/materials/:id", academyController.DeleteMaterial)
 
-		// ================= USER SECTION =================
-		// Public/Student endpoints (Authenticated)
-		routerGroup.GET("/", authenticationMiddleware.VerifyAccount, academyController.ListAcademies) 
-		routerGroup.GET("/:academy_slug", authenticationMiddleware.VerifyAccount, academyController.GetAcademy)
-		routerGroup.GET("/:academy_slug/:material_slug", authenticationMiddleware.VerifyAccount, academyController.GetMaterial)
-		routerGroup.GET("/:academy_slug/:material_slug/:order", authenticationMiddleware.VerifyAccount, academyController.GetContent)
-		
-		// Update Progress
-		routerGroup.POST("/:academy_slug/:material_slug/:order", authenticationMiddleware.VerifyAccount, academyController.UpdateContentProgress)
-	}
+	adminGroup.POST("/contents", academyController.CreateContent)
+	adminGroup.DELETE("/contents/:id", academyController.DeleteContent)
+
+	adminGroup.POST("/assign", academyController.AssignAccountToAcademy)
+	adminGroup.DELETE("/assign/:id", academyController.UnassignAccountFromAcademy)
+	adminGroup.GET("/assign/:academy_id", academyController.ListAssignmentsByAcademy)
+
+	routerGroup.GET("/", authenticationMiddleware.VerifyAccount, academyController.ListAcademies)
+	routerGroup.GET("/:academy_slug", authenticationMiddleware.VerifyAccount, academyController.GetAcademy)
+	routerGroup.GET("/:academy_slug/:material_slug", authenticationMiddleware.VerifyAccount, academyController.GetMaterial)
+	routerGroup.GET("/:academy_slug/:material_slug/:order", authenticationMiddleware.VerifyAccount, academyController.GetContent)
+
+	routerGroup.POST("/:academy_slug/:material_slug/:order", authenticationMiddleware.VerifyAccount, academyController.UpdateContentProgress)
 }

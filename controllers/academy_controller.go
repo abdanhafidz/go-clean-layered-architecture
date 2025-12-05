@@ -6,6 +6,7 @@ import (
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
+	"abdanhafidz.com/go-boilerplate/repositories"
 	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -32,6 +33,10 @@ type AcademyController interface {
 
 	// Progress
 	UpdateContentProgress(ctx *gin.Context)
+
+	AssignAccountToAcademy(ctx *gin.Context)
+	UnassignAccountFromAcademy(ctx *gin.Context)
+	ListAssignmentsByAcademy(ctx *gin.Context)
 }
 
 type academyController struct {
@@ -75,9 +80,18 @@ func (c *academyController) ListAcademies(ctx *gin.Context) {
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
-
-	res, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId)
-	ResponseJSON(ctx, gin.H{}, res, err)
+    limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+    page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+    if page < 1 { page = 1 }
+    offset := (page - 1) * limit
+    p := repositories.Pagination{Limit: limit, Offset: offset}
+    list, total, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId, p)
+    meta := gin.H{
+        "total_records": total,
+        "page_size":     limit,
+        "current_page":  page,
+    }
+    ResponseJSON(ctx, meta, list, err)
 }
 
 func (c *academyController) CreateAcademy(ctx *gin.Context) {
@@ -213,4 +227,36 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 	}
 
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_order": order}, res, err)
+}
+
+func (c *academyController) AssignAccountToAcademy(ctx *gin.Context) {
+	req := RequestJSON[dto.AssignRequest](ctx)
+	academyId, errA := uuid.Parse(req.AcademyId)
+	accountId, errB := uuid.Parse(req.AccountId)
+	if errA != nil || errB != nil {
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+	res, err := c.academyService.AssignAccountToAcademy(ctx.Request.Context(), academyId, accountId)
+	ResponseJSON(ctx, req, res, err)
+}
+
+func (c *academyController) UnassignAccountFromAcademy(ctx *gin.Context) {
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+	err = c.academyService.UnassignAccountFromAcademy(ctx.Request.Context(), id)
+	ResponseJSON(ctx, gin.H{"id": id}, gin.H{"deleted": true}, err)
+}
+
+func (c *academyController) ListAssignmentsByAcademy(ctx *gin.Context) {
+	academyId, err := uuid.Parse(ctx.Param("academy_id"))
+	if err != nil {
+		ResponseJSON[any, any](ctx, nil, nil, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+	res, err := c.academyService.ListAssignmentsByAcademy(ctx.Request.Context(), academyId)
+	ResponseJSON(ctx, gin.H{"academy_id": academyId}, res, err)
 }

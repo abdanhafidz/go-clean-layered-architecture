@@ -7,7 +7,7 @@ import (
 )
 
 type Account struct {
-	Id                uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id                uuid.UUID  `gorm:"type:uuid;primary_key;" json:"id"`
 	Username          string     `gorm:"uniqueIndex" json:"username,omitempty"`
 	Email             string     `gorm:"uniqueIndex" json:"email,omitempty"`
 	Role              string     `json:"role,omitempty"`
@@ -21,7 +21,7 @@ type Account struct {
 func (Account) TableName() string { return "account" }
 
 type AccountDetail struct {
-	Id          uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id          uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	AccountId   uuid.UUID `json:"account_id,omitempty"`
 	FullName    *string   `json:"full_name,omitempty"`
 	SchoolName  *string   `json:"school_name,omitempty"`
@@ -35,7 +35,7 @@ type AccountDetail struct {
 func (AccountDetail) TableName() string { return "account_details" }
 
 type EmailVerification struct {
-	Id        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id        uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	Token     uint      `json:"token,omitempty"`
 	AccountId uuid.UUID `json:"account_id,omitempty"`
 	IsExpired bool      `json:"is_expired,omitempty"`
@@ -47,7 +47,7 @@ type EmailVerification struct {
 func (EmailVerification) TableName() string { return "email_verification" }
 
 type ExternalAuth struct {
-	Id            uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id            uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	OauthID       string    `json:"oauth_id,omitempty"`
 	AccountId     uuid.UUID `json:"account_id,omitempty"`
 	OauthProvider string    `json:"oauth_provider,omitempty"`
@@ -56,7 +56,7 @@ type ExternalAuth struct {
 func (ExternalAuth) TableName() string { return "external_auth" }
 
 type FCM struct {
-	Id        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id        uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	AccountId uuid.UUID `json:"account_id,omitempty"`
 	FCMToken  string    `json:"fcm_token,omitempty"`
 }
@@ -64,7 +64,7 @@ type FCM struct {
 func (FCM) TableName() string { return "fcm" }
 
 type ForgotPassword struct {
-	Id        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id        uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	Token     uint      `json:"token,omitempty"`
 	AccountId uuid.UUID `json:"account_id,omitempty"`
 	IsExpired bool      `json:"is_expired,omitempty"`
@@ -75,7 +75,7 @@ type ForgotPassword struct {
 func (ForgotPassword) TableName() string { return "forgot_password" }
 
 type Events struct {
-	Id         uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_event"`
+	Id         uuid.UUID `gorm:"type:uuid;primary_key;" json:"id_event"`
 	Title      string    `json:"title,omitempty"`
 	Slug       string    `json:"slug,omitempty"`
 	StartEvent time.Time `json:"start_event,omitempty"`
@@ -89,7 +89,7 @@ type Events struct {
 func (Events) TableName() string { return "events" }
 
 type Announcement struct {
-	Id        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_announcement"`
+	Id        uuid.UUID `gorm:"type:uuid;primary_key;" json:"id_announcement"`
 	Title     string    `json:"title,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	Message   string    `json:"message,omitempty"`
@@ -100,7 +100,7 @@ type Announcement struct {
 func (Announcement) TableName() string { return "announcement" }
 
 type ProblemSet struct {
-	Id          uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_problem_set"`
+	Id          uuid.UUID `gorm:"type:uuid;primary_key;" json:"id_problem_set"`
 	Title       string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
 }
@@ -108,7 +108,7 @@ type ProblemSet struct {
 func (ProblemSet) TableName() string { return "problem_set" }
 
 type Exam struct {
-	Id          uuid.UUID     `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_exam"`
+	Id          uuid.UUID     `gorm:"type:uuid;primary_key;" json:"id_exam"`
 	Slug        string        `json:"slug,omitempty"`
 	Title       string        `json:"title,omitempty"`
 	Description string        `json:"description,omitempty"`
@@ -161,7 +161,7 @@ type Options struct {
 func (Options) TableName() string { return "options" }
 
 type EventAssign struct {
-	Id         uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_assign"`
+	Id         uuid.UUID `gorm:"type:uuid;primary_key;" json:"id_assign"`
 	AccountId  uuid.UUID `json:"id_account,omitempty"`
 	EventId    uuid.UUID `json:"id_event,omitempty"`
 	AssignedAt time.Time `json:"assigned_at,omitempty"`
@@ -173,7 +173,7 @@ type EventAssign struct {
 func (EventAssign) TableName() string { return "event_assign" }
 
 type Questions struct {
-	Id           uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_question"`
+	Id           uuid.UUID      `gorm:"type:uuid;primary_key;" json:"id_question"`
 	Type         string         `json:"type,omitempty"`
 	Question     string         `json:"question,omitempty"`
 	Options      pq.StringArray `gorm:"type:text[]" json:"options,omitempty"`
@@ -189,7 +189,7 @@ type Questions struct {
 func (Questions) TableName() string { return "questions" }
 
 type ProblemSetExamAssign struct {
-	Id           uuid.UUID   `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_problem_set_exam_assign"`
+	Id           uuid.UUID   `gorm:"type:uuid;primary_key;" json:"id_problem_set_exam_assign"`
 	ExamId       uuid.UUID   `json:"id_exam,omitempty"`
 	ProblemSetId uuid.UUID   `json:"id_problem_set,omitempty"`
 	Exam         *Exam       `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
@@ -199,7 +199,7 @@ type ProblemSetExamAssign struct {
 func (ProblemSetExamAssign) TableName() string { return "problem_set_exam_assign" }
 
 type ExamEventAssign struct {
-	Id      uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_exam_event_assign"`
+	Id      uuid.UUID `gorm:"type:uuid;primary_key;" json:"id_exam_event_assign"`
 	EventId uuid.UUID `json:"id_event,omitempty"`
 	ExamId  uuid.UUID `json:"id_exam,omitempty"`
 	Exam    *Exam     `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
@@ -216,7 +216,7 @@ type CPQuestionVerdict struct {
 }
 
 type ExamEventAnswer struct {
-	Id               uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id               uuid.UUID         `gorm:"type:uuid;primary_key;" json:"id"`
 	AttemptId        uuid.UUID         `json:"id_attempt,omitempty" gorm:"index"`
 	QuestionId       uuid.UUID         `json:"id_question,omitempty" gorm:"index"`
 	Answers          pq.StringArray    `gorm:"type:text[]" json:"answer,omitempty"`
@@ -229,7 +229,7 @@ type ExamEventAnswer struct {
 func (ExamEventAnswer) TableName() string { return "exam_event_answer" }
 
 type ExamEventAttempt struct {
-	Id        uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_attempt"`
+	Id        uuid.UUID         `gorm:"type:uuid;primary_key;" json:"id_attempt"`
 	AccountId uuid.UUID         `json:"id_account,omitempty"`
 	EventId   uuid.UUID         `json:"id_event,omitempty"`
 	ExamId    uuid.UUID         `json:"id_exam,omitempty"`
@@ -248,7 +248,7 @@ type ExamEventAttempt struct {
 func (ExamEventAttempt) TableName() string { return "exam_event_attempt" }
 
 type Result struct {
-	Id               uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_result"`
+	Id               uuid.UUID         `gorm:"type:uuid;primary_key;" json:"id_result"`
 	AttemptId        uuid.UUID         `json:"id_attempt,omitempty"`
 	FinalScore       float32           `json:"final_score"`
 	ExamEventAttempt *ExamEventAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
@@ -257,14 +257,15 @@ type Result struct {
 func (Result) TableName() string { return "result" }
 
 type Academy struct {
-	Id               uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
-	Title            string            `json:"title,omitempty"`
-	Slug             string            `gorm:"unique" json:"slug,omitempty"`
-	Code             string            `gorm:"unique" json:"code,omitempty"`
-	Description      string            `json:"description,omitempty"`
-	ImageUrl         string            `json:"image_url,omitempty"`
-	MaterialsCount   int64             `json:"materials_count,omitempty"`
-	Materials        []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
+	Id              uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
+	Title           string            `json:"title,omitempty"`
+	Slug            string            `gorm:"unique" json:"slug,omitempty"`
+	Code            string            `gorm:"unique" json:"code,omitempty"`
+	IsPublic        bool              `json:"is_public,omitempty"`
+	Description     string            `json:"description,omitempty"`
+	ImageUrl        string            `json:"image_url,omitempty"`
+	MaterialsCount  int64             `json:"materials_count,omitempty"`
+	Materials       []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
 	AcademyProgress AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progresses,omitempty"`
 }
 
@@ -298,9 +299,9 @@ func (AcademyContent) TableName() string { return "academy_contents" }
 // Progress
 
 type AcademyProgress struct {
-    Id                      uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
-    AccountId               uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_academy" json:"account_id,omitempty"`
-    AcademyId               uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_academy" json:"academy_id,omitempty"`
+	Id                      uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId               uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_academy" json:"account_id,omitempty"`
+	AcademyId               uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_academy" json:"academy_id,omitempty"`
 	Status                  string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
 	Progress                float64    `gorm:"default:0" json:"progress"`
 	TotalCompletedMaterials uint       `gorm:"default:0" json:"total_completed_materials"`
@@ -310,10 +311,10 @@ type AcademyProgress struct {
 func (AcademyProgress) TableName() string { return "academy_progress" }
 
 type AcademyMaterialProgress struct {
-    Id                     uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
-    AccountId              uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_material" json:"account_id,omitempty"`
-    AcademyId              uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
-    MaterialId             uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_material" json:"material_id,omitempty"`
+	Id                     uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId              uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_material" json:"account_id,omitempty"`
+	AcademyId              uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	MaterialId             uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_material" json:"material_id,omitempty"`
 	Progress               float64    `gorm:"default:0" json:"progress,omitempty"`
 	TotalCompletedContents uint       `gorm:"default:0" json:"total_completed_contents,omitempty"`
 	Status                 string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
@@ -323,19 +324,30 @@ type AcademyMaterialProgress struct {
 func (AcademyMaterialProgress) TableName() string { return "academy_material_progress" }
 
 type AcademyContentProgress struct {
-    Id          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
-    AccountId   uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_content" json:"account_id,omitempty"`
-    AcademyId   uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
-    MaterialId  uuid.UUID  `gorm:"type:uuid;index" json:"material_id,omitempty"`
-    ContentId   uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_content" json:"content_id,omitempty"`
+	Id          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	AccountId   uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_content" json:"account_id,omitempty"`
+	AcademyId   uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	MaterialId  uuid.UUID  `gorm:"type:uuid;index" json:"material_id,omitempty"`
+	ContentId   uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_content" json:"content_id,omitempty"`
 	Status      string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
 	CompletedAt *time.Time `json:"completed_at"`
 }
 
 func (AcademyContentProgress) TableName() string { return "academy_content_progress" }
 
+type AcademyAssign struct {
+	Id        uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
+	AccountId uuid.UUID `gorm:"type:uuid;index" json:"account_id,omitempty"`
+	AcademyId uuid.UUID `gorm:"type:uuid;index" json:"academy_id,omitempty"`
+	Account   *Account  `gorm:"foreignKey:AccountId" json:"account,omitempty"`
+	Academy   *Academy  `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+}
+
+func (AcademyAssign) TableName() string { return "academy_assign" }
+
 type File struct {
-	Id           uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Id           uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	OriginalName string    `json:"original_name,omitempty"`
 	StoredName   string    `json:"stored_name,omitempty"`
 	MimeType     string    `json:"mime_type,omitempty"`
@@ -350,52 +362,52 @@ type File struct {
 func (File) TableName() string { return "files" }
 
 type ExamAcademyAssign struct {
-    Id        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_exam_academy_assign"`
-    AcademyId uuid.UUID `json:"id_academy,omitempty"`
-    ExamId    uuid.UUID `json:"id_exam,omitempty"`
-    Exam      *Exam     `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
-    Academy   *Academy  `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
+	Id        uuid.UUID `gorm:"type:uuid;primary_key;" json:"id_exam_academy_assign"`
+	AcademyId uuid.UUID `json:"id_academy,omitempty"`
+	ExamId    uuid.UUID `json:"id_exam,omitempty"`
+	Exam      *Exam     `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
+	Academy   *Academy  `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
 }
 
 func (ExamAcademyAssign) TableName() string { return "exam_academy_assign" }
 
 type ExamAcademyAnswer struct {
-    Id                 uuid.UUID           `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-    AttemptId          uuid.UUID           `json:"id_attempt,omitempty" gorm:"index"`
-    QuestionId         uuid.UUID           `json:"id_question,omitempty" gorm:"index"`
-    Answers            pq.StringArray      `gorm:"type:text[]" json:"answer,omitempty"`
-    Score              float32             `json:"score"`
-    ExamAcademyAttempt *ExamAcademyAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
-    CreatedAt          time.Time           `json:"created_at,omitempty"`
-    UpdatedAt          time.Time           `json:"updated_at,omitempty"`
+	Id                 uuid.UUID           `gorm:"type:uuid;primary_key;" json:"id"`
+	AttemptId          uuid.UUID           `json:"id_attempt,omitempty" gorm:"index"`
+	QuestionId         uuid.UUID           `json:"id_question,omitempty" gorm:"index"`
+	Answers            pq.StringArray      `gorm:"type:text[]" json:"answer,omitempty"`
+	Score              float32             `json:"score"`
+	ExamAcademyAttempt *ExamAcademyAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
+	CreatedAt          time.Time           `json:"created_at,omitempty"`
+	UpdatedAt          time.Time           `json:"updated_at,omitempty"`
 }
 
 func (ExamAcademyAnswer) TableName() string { return "exam_academy_answer" }
 
 type ExamAcademyAttempt struct {
-    Id        uuid.UUID            `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_attempt"`
-    AccountId uuid.UUID            `json:"id_account,omitempty"`
-    AcademyId uuid.UUID            `json:"id_academy,omitempty"`
-    ExamId    uuid.UUID            `json:"id_exam,omitempty"`
-    Questions []Questions          `gorm:"-" json:"questions,omitempty"`
-    Answers   []ExamAcademyAnswer  `gorm:"foreignKey:AttemptId;references:Id" json:"answers,omitempty"`
-    Account   *Account             `gorm:"foreignKey:AccountId" json:"account,omitempty"`
-    Academy   *Academy             `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
-    Exam      *Exam                `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
-    RemTime   int                  `json:"remaining_time,omitempty"`
-    Mark      float32              `json:"mark,omitempty"`
-    CreatedAt time.Time            `json:"created_at,omitempty"`
-    DueAt     time.Time            `json:"due_at,omitempty"`
-    Submitted bool                 `json:"submitted,omitempty"`
+	Id        uuid.UUID           `gorm:"type:uuid;primary_key;" json:"id_attempt"`
+	AccountId uuid.UUID           `json:"id_account,omitempty"`
+	AcademyId uuid.UUID           `json:"id_academy,omitempty"`
+	ExamId    uuid.UUID           `json:"id_exam,omitempty"`
+	Questions []Questions         `gorm:"-" json:"questions,omitempty"`
+	Answers   []ExamAcademyAnswer `gorm:"foreignKey:AttemptId;references:Id" json:"answers,omitempty"`
+	Account   *Account            `gorm:"foreignKey:AccountId" json:"account,omitempty"`
+	Academy   *Academy            `gorm:"foreignKey:AcademyId" json:"academy,omitempty"`
+	Exam      *Exam               `gorm:"foreignKey:ExamId" json:"exam,omitempty"`
+	RemTime   int                 `json:"remaining_time,omitempty"`
+	Mark      float32             `json:"mark,omitempty"`
+	CreatedAt time.Time           `json:"created_at,omitempty"`
+	DueAt     time.Time           `json:"due_at,omitempty"`
+	Submitted bool                `json:"submitted,omitempty"`
 }
 
 func (ExamAcademyAttempt) TableName() string { return "exam_academy_attempt" }
 
-type AcademyExamResult struct {
-    Id                  uuid.UUID           `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id_result"`
-    AttemptId           uuid.UUID           `json:"id_attempt,omitempty"`
-    FinalScore          float32             `json:"final_score"`
-    ExamAcademyAttempt  *ExamAcademyAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
+type ExamAcademyResult struct {
+	Id                 uuid.UUID           `gorm:"type:uuid;primary_key;" json:"id_result"`
+	AttemptId          uuid.UUID           `json:"id_attempt,omitempty"`
+	FinalScore         float32             `json:"final_score"`
+	ExamAcademyAttempt *ExamAcademyAttempt `gorm:"foreignKey:AttemptId" json:"exam_attempt,omitempty"`
 }
 
-func (AcademyExamResult) TableName() string { return "academy_exam_result" }
+func (ExamAcademyResult) TableName() string { return "academy_exam_result" }
