@@ -77,6 +77,7 @@ func NewAppProvider() AppProvider {
 		&entity.ExamAcademyAnswer{},
 		&entity.ExamAcademyAttempt{},
 		&entity.ExamAcademyResult{},
+		&entity.AcademyAssign{},
 
 		// Options & Regions
 		&entity.OptionCategory{},

@@ -33,6 +33,7 @@ var (
 	IMAGE_REQUIRED              = errors.New("Image is required")
 	DESCRIPTION_REQUIRED        = errors.New("Description is required")
 	CODE_REQUIRED               = errors.New("Code is required")
+	INVALID_CODE                = errors.New("Code is invalid, it must be 6 characters long and contain only letters or numbers")
 
 	// ================= FILE UPLOAD =================
 	FILE_TOO_LARGE               = errors.New("File size exceeds the maximum limit")
