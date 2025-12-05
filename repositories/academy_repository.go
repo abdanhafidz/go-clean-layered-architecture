@@ -18,14 +18,13 @@ type AcademyRepository interface {
 
 	GetAcademyByID(ctx context.Context, id uuid.UUID) (entity.Academy, error)
 	GetAcademyBySlug(ctx context.Context, slug string) (entity.Academy, error)
+	GetAcademyByCode(ctx context.Context, code string) (entity.Academy, error)
 	GetAcademyWithProgress(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error)
 	CreateAcademy(ctx context.Context, a entity.Academy) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, a entity.Academy) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
-	ListAcademy(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error)
-    ListPublicAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error)
-    ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error)
-    ListAssignmentsByAccount(ctx context.Context, accountId uuid.UUID) ([]entity.AcademyAssign, error)
+	ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error)
+	ListAssignmentsByAccount(ctx context.Context, accountId uuid.UUID) ([]entity.AcademyAssign, error)
 	GetAcademyWithMaterials(ctx context.Context, id uuid.UUID) (entity.Academy, []entity.AcademyMaterial, error)
 	CountMaterialsByAcademyID(ctx context.Context, academyId uuid.UUID) (int64, error)
 
@@ -115,6 +114,11 @@ func (r *academyRepository) GetAcademyBySlug(ctx context.Context, slug string) (
 	return a, r.db.WithContext(ctx).First(&a, "slug = ?", slug).Error
 }
 
+func (r *academyRepository) GetAcademyByCode(ctx context.Context, code string) (entity.Academy, error) {
+	var a entity.Academy
+	return a, r.db.WithContext(ctx).First(&a, "code = ?", code).Error
+}
+
 func (r *academyRepository) GetAcademyWithProgress(ctx context.Context, accountId uuid.UUID, slug string) (entity.Academy, error) {
 	a, err := r.GetAcademyBySlug(ctx, slug)
 	if err != nil {
@@ -140,50 +144,10 @@ func (r *academyRepository) DeleteAcademy(ctx context.Context, id uuid.UUID) err
 	return r.db.WithContext(ctx).Delete(&entity.Academy{}, "id = ?", id).Error
 }
 
-func (r *academyRepository) ListAcademy(ctx context.Context, accountId uuid.UUID) ([]entity.Academy, error) {
+func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error) {
 	var list []entity.Academy
-	if err := r.db.WithContext(ctx).Find(&list).Error; err != nil {
-		return nil, err
-	}
-	if len(list) == 0 {
-		return list, nil
-	}
-
-	academyIDs := make([]uuid.UUID, len(list))
-	for i, ac := range list {
-		academyIDs[i] = ac.Id
-	}
-
-	var progressList []entity.AcademyProgress
-	if err := r.db.WithContext(ctx).
-		Where("account_id = ?", accountId).
-		Where("academy_id IN ?", academyIDs).
-		Find(&progressList).Error; err != nil {
-		return nil, err
-	}
-
-	progressMap := make(map[uuid.UUID]entity.AcademyProgress)
-	for _, p := range progressList {
-		progressMap[p.AcademyId] = p
-	}
-
-	for i := range list {
-		if p, exists := progressMap[list[i].Id]; exists {
-			list[i].AcademyProgress = p
-		} else {
-			list[i].AcademyProgress = entity.AcademyProgress{
-				AccountId: accountId,
-				AcademyId: list[i].Id,
-				Status:    entity.StatusNotStarted,
-			}
-		}
-	}
-	return list, nil
-}
-
-func (r *academyRepository) ListPublicAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error) {
-	var list []entity.Academy
-	q := r.db.WithContext(ctx).Model(&entity.Academy{}).Where("is_public = ?", true)
+	sub := r.db.WithContext(ctx).Model(&entity.AcademyAssign{}).Select("academy_id").Where("account_id = ?", accountId)
+	q := r.db.WithContext(ctx).Model(&entity.Academy{}).Where("is_public = ?", true).Or("id IN (?)", sub)
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -221,6 +185,18 @@ func (r *academyRepository) ListPublicAcademy(ctx context.Context, accountId uui
 		progressMap[p.AcademyId] = p
 	}
 
+	var assigns []entity.AcademyAssign
+	if err := r.db.WithContext(ctx).
+		Where("account_id = ?", accountId).
+		Where("academy_id IN ?", academyIDs).
+		Find(&assigns).Error; err != nil {
+		return nil, 0, err
+	}
+	assignedMap := make(map[uuid.UUID]bool)
+	for _, a := range assigns {
+		assignedMap[a.AcademyId] = true
+	}
+
 	for i := range list {
 		if pr, exists := progressMap[list[i].Id]; exists {
 			list[i].AcademyProgress = pr
@@ -231,63 +207,13 @@ func (r *academyRepository) ListPublicAcademy(ctx context.Context, accountId uui
 				Status:    entity.StatusNotStarted,
 			}
 		}
+		if assignedMap[list[i].Id] {
+			list[i].RegisterStatus = 1
+		} else {
+			list[i].RegisterStatus = 0
+		}
 	}
 	return list, total, nil
-}
-
-func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error) {
-    var list []entity.Academy
-    sub := r.db.WithContext(ctx).Model(&entity.AcademyAssign{}).Select("academy_id").Where("account_id = ?", accountId)
-    q := r.db.WithContext(ctx).Model(&entity.Academy{}).Where("is_public = ?", true).Or("id IN (?)", sub)
-    var total int64
-    if err := q.Count(&total).Error; err != nil {
-        return nil, 0, err
-    }
-    if p != nil {
-        if p.Limit > 0 {
-            q = q.Limit(p.Limit)
-        }
-        if p.Offset > 0 {
-            q = q.Offset(p.Offset)
-        }
-    }
-    if err := q.Find(&list).Error; err != nil {
-        return nil, 0, err
-    }
-    if len(list) == 0 {
-        return list, total, nil
-    }
-
-    academyIDs := make([]uuid.UUID, len(list))
-    for i, ac := range list {
-        academyIDs[i] = ac.Id
-    }
-
-    var progressList []entity.AcademyProgress
-    if err := r.db.WithContext(ctx).
-        Where("account_id = ?", accountId).
-        Where("academy_id IN ?", academyIDs).
-        Find(&progressList).Error; err != nil {
-        return nil, 0, err
-    }
-
-    progressMap := make(map[uuid.UUID]entity.AcademyProgress)
-    for _, p := range progressList {
-        progressMap[p.AcademyId] = p
-    }
-
-    for i := range list {
-        if pr, exists := progressMap[list[i].Id]; exists {
-            list[i].AcademyProgress = pr
-        } else {
-            list[i].AcademyProgress = entity.AcademyProgress{
-                AccountId: accountId,
-                AcademyId: list[i].Id,
-                Status:    entity.StatusNotStarted,
-            }
-        }
-    }
-    return list, total, nil
 }
 
 func (r *academyRepository) ListAssignmentsByAccount(ctx context.Context, accountId uuid.UUID) ([]entity.AcademyAssign, error) {

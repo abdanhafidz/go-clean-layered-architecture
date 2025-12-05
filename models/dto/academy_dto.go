@@ -74,6 +74,19 @@ type AcademyDetailResponse struct {
 	MaterialsCount int64                     `json:"materials_count"`
 	UserProgress   *AcademyProgressResponse  `json:"user_progress"`
 	Materials      []AcademyMaterialResponse `json:"materials"`
+	RegisterStatus int                       `json:"register_status" binding:"required"`
+}
+
+type MaterialPreview struct {
+	Id    uuid.UUID `json:"id"`
+	Title string    `json:"title"`
+	Order uint      `json:"order"`
+}
+
+type AcademyPublicPreviewResponse struct {
+	Id             uuid.UUID         `json:"id"`
+	RegisterStatus int               `json:"register_status" binding:"required"`
+	Materials      []MaterialPreview `json:"materials"`
 }
 
 type MaterialProgressResponse struct {
@@ -110,4 +123,8 @@ type MaterialDetailResponse struct {
 type AssignRequest struct {
 	AcademyId string `json:"academy_id"`
 	AccountId string `json:"account_id"`
+}
+
+type JoinAcademyByCodeRequest struct {
+	Code string `json:"code" binding:"required"`
 }

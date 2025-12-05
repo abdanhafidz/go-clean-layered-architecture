@@ -20,6 +20,10 @@ type AcademyController interface {
 	ListAcademies(ctx *gin.Context)
 	UpdateAcademy(ctx *gin.Context)
 	DeleteAcademy(ctx *gin.Context)
+	JoinAcademyByCode(ctx *gin.Context)
+	AssignAccountToAcademy(ctx *gin.Context)
+	UnassignAccountFromAcademy(ctx *gin.Context)
+	ListAssignmentsByAcademy(ctx *gin.Context)
 
 	// Material
 	GetMaterial(ctx *gin.Context)
@@ -33,10 +37,6 @@ type AcademyController interface {
 
 	// Progress
 	UpdateContentProgress(ctx *gin.Context)
-
-	AssignAccountToAcademy(ctx *gin.Context)
-	UnassignAccountFromAcademy(ctx *gin.Context)
-	ListAssignmentsByAcademy(ctx *gin.Context)
 }
 
 type academyController struct {
@@ -80,18 +80,20 @@ func (c *academyController) ListAcademies(ctx *gin.Context) {
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
-    limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
-    page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-    if page < 1 { page = 1 }
-    offset := (page - 1) * limit
-    p := repositories.Pagination{Limit: limit, Offset: offset}
-    list, total, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId, p)
-    meta := gin.H{
-        "total_records": total,
-        "page_size":     limit,
-        "current_page":  page,
-    }
-    ResponseJSON(ctx, meta, list, err)
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	offset := (page - 1) * limit
+	p := repositories.Pagination{Limit: limit, Offset: offset}
+	list, total, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId, p)
+	meta := gin.H{
+		"total_records": total,
+		"page_size":     limit,
+		"current_page":  page,
+	}
+	ResponseJSON(ctx, meta, list, err)
 }
 
 func (c *academyController) CreateAcademy(ctx *gin.Context) {
@@ -229,6 +231,12 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "material_slug": materialSlug, "content_order": order}, res, err)
 }
 
+func (c *academyController) JoinAcademyByCode(ctx *gin.Context) {
+	req := RequestJSON[dto.JoinAcademyByCodeRequest](ctx)
+	accountId := ParseAccountId(ctx)
+	res, err := c.academyService.JoinByCode(ctx.Request.Context(), accountId, req.Code)
+	ResponseJSON(ctx, req, res, err)
+}
 func (c *academyController) AssignAccountToAcademy(ctx *gin.Context) {
 	req := RequestJSON[dto.AssignRequest](ctx)
 	academyId, errA := uuid.Parse(req.AcademyId)
