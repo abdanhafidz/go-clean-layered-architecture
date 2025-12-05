@@ -2,7 +2,6 @@ package provider
 
 import (
 	"log"
-
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,6 @@ type AppProvider interface {
 	ProvideControllers() ControllerProvider
 	ProvideMiddlewares() MiddlewareProvider
 }
-
 type appProvider struct {
 	ginRouter            *gin.Engine
 	configProvider       ConfigProvider
@@ -91,7 +89,6 @@ func NewAppProvider() AppProvider {
 	if err != nil {
 		log.Fatalf("Database migration failed: %v", err)
 	}
-
 	return &appProvider{
 		ginRouter:            ginRouter,
 		configProvider:       configProvider,
@@ -101,11 +98,9 @@ func NewAppProvider() AppProvider {
 		middlewareProvider:   middlewareProvider,
 	}
 }
-
 func (a *appProvider) ProvideRouter() *gin.Engine {
 	return a.ginRouter
 }
-
 func (a *appProvider) ProvideConfig() ConfigProvider {
 	return a.configProvider
 }

@@ -28,8 +28,8 @@ type ProblemSetService interface {
 
 	AssignProblemSetToExam(ctx context.Context, examId uuid.UUID, problemSetId uuid.UUID) error
 	RemoveAssignedProblemSet(ctx context.Context, assignId uuid.UUID) error
-    GetQuestionById(ctx context.Context, qID uuid.UUID) (entity.Questions, error)
-    ListQuestionsByExam(ctx context.Context, examId uuid.UUID) ([]entity.Questions, error)
+	GetQuestionById(ctx context.Context, qID uuid.UUID) (entity.Questions, error)
+	ListQuestionsByExam(ctx context.Context, examId uuid.UUID) ([]entity.Questions, error)
 }
 
 type problemSetService struct {
@@ -140,17 +140,17 @@ func (s *problemSetService) RemoveAssignedProblemSet(ctx context.Context, assign
 }
 
 func (s *problemSetService) GetQuestionById(ctx context.Context, qID uuid.UUID) (entity.Questions, error) {
-    question, err := s.questionsRepository.Get(ctx, qID)
-    if err != nil {
-        return entity.Questions{}, err
-    }
-    return question, err
+	question, err := s.questionsRepository.Get(ctx, qID)
+	if err != nil {
+		return entity.Questions{}, err
+	}
+	return question, err
 }
 
 func (s *problemSetService) ListQuestionsByExam(ctx context.Context, examId uuid.UUID) ([]entity.Questions, error) {
-    assign, err := s.problemSetExamAssignRepository.GetByExam(ctx, examId)
-    if err != nil {
-        return []entity.Questions{}, err
-    }
-    return s.questionsRepository.ListByProblemSet(ctx, assign.ProblemSetId)
+	assign, err := s.problemSetExamAssignRepository.GetByExam(ctx, examId)
+	if err != nil {
+		return []entity.Questions{}, err
+	}
+	return s.questionsRepository.ListByProblemSet(ctx, assign.ProblemSetId)
 }
