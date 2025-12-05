@@ -1,0 +1,118 @@
+
+attempt:{
+    id_event:
+    id_exam:
+    remaining_time:
+    answered_question:[]str
+    question
+}
+
+question:{
+    id:uuid,
+    question_type:string,
+    content:string,
+    options:[]string,
+    current_answer:[]string,
+}
+
+Answer Soal -> (1) Request ke Backend untuk attempt
+               (2) Rubah UI options
+               (3) Fetch Status -> show Status
+               (4) Set State question.current_answer update
+               (5) Update navigation button soalnya sudah keisi = "hijau", sekarang di nomor berapa = "ungu"
+
+# Isian Singkat, Handle onChange => 
+[kjkajsksaf]
+
+Before:
+def sum(a,b):
+    return {code}
+
+print({code})
+
+After :
+def sum(a,b):
+    return <input type  = "text" name="answer[0]" />
+
+print(<input type  = "text" name="answer[1]" />)
+
+# Puzzle:
+
+
+#Payload ngirim jawaban (by default) -> Endpoint Ngirim Answer
+
+answer: {
+    id_question:uuid,
+    answers:[]str
+}
+
+#mc
+answer: {
+    id_question:uuid,
+    answers:["A"]str
+}
+
+
+#Complexmc T/F
+answer: {
+    id_question:uuid,
+    answers:[1,0,0,1]
+}
++++
+
+
+
+
+++++++++++++
+#code_Puzzle
+
+answer: {
+    id_question:uuid,
+    answers:["a+b","sum(a,b)"]
+}
+
+# short_answer
+answer: {
+    id_question:uuid,
+    answers:["jawaban"]
+}
+
+# upload_file
+upload_file -> Form Data
+answer: {
+    id_question:uuid,
+    answers:["{nama_file}"]
+}
+
+#competitive Programming
+question_type:mock_coding[language]
+upload_file -> Form Data (Generate nama_file)
+answer:{
+    id_questions:uuid,
+    answers:["{nama_file}"]
+}
+
+#response answer
+response:{
+    success_response,
+    meta_data{
+        verdict:  [AC/WA/TLE/RTE]
+        score:
+        time_exec:
+        memory:
+    }
+}
+
+#Submit
+{
+    id_attempt:
+}
+
+Attempt{
+    id_user:
+    id_event:
+    id_exam:
+}
+
+
+# Result / Scoreboard

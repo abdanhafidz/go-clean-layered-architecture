@@ -4,6 +4,7 @@ import (
 	"context"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	"abdanhafidz.com/go-boilerplate/repositories"
 	repo "abdanhafidz.com/go-boilerplate/repositories"
 )
 
@@ -14,7 +15,7 @@ type RegionService interface {
 	ListCitiesByProvince(ctx context.Context, provinceId uint) ([]entity.RegionCity, error)
 }
 
-type regionService struct{ regionRepo repo.RegionRepository }
+type regionService struct{ regionRepo repositories.RegionRepository }
 
 func NewRegionService(regionRepo repo.RegionRepository) RegionService {
 	return &regionService{regionRepo: regionRepo}

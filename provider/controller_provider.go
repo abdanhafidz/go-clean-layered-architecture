@@ -17,9 +17,9 @@ type ControllerProvider interface {
 }
 
 type controllerProvider struct {
-	academyController           controllers.AcademyController
-	accountDetailController     controllers.AccountDetailController
-	authenticationController    controllers.AuthenticationController
+	academyController controllers.AcademyController
+	accountDetailController controllers.AccountDetailController
+	authenticationController controllers.AuthenticationController
 	emailVerificationController controllers.EmailVerificationController
 	eventController             controllers.EventController
 	examController              controllers.ExamController
@@ -45,9 +45,9 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
     academyExamController := controllers.NewAcademyExamController(servicesProvider.ProvideAcademyExamService())
 
 	return &controllerProvider{
-		academyController:           academyController,
-		accountDetailController:     accountDetailController,
-		authenticationController:    authenticationController,
+		academyController: academyController,
+		accountDetailController: accountDetailController,
+		authenticationController: authenticationController,
 		emailVerificationController: emailVerificationController,
 		eventController:             eventController,
 		examController:              examController,

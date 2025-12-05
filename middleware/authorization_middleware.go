@@ -24,12 +24,12 @@ func NewAuthorizationMiddleware(eventService services.EventService) Authorizatio
 func (m *authorizationMiddleware) AuthorizeUserToEvent(c *gin.Context) {
 
 	eventSlug := c.Param("slug")
-	accountId, exists := c.Get("account_id")
-	if !exists {
-		utils.ResponseFAILED(c, eventSlug, http_error.NOT_FOUND_ERROR)
-		c.Abort()
-		return
-	}
+    accountId, exists := c.Get("account_id")
+    if !exists {
+        utils.ResponseFAILED(c, eventSlug, http_error.NOT_FOUND_ERROR)
+        c.Abort()
+        return
+    }
 
 	err := m.eventService.AuthorizeUserToEvent(c.Request.Context(), eventSlug, accountId.(uuid.UUID))
 

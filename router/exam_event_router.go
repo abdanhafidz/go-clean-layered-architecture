@@ -2,7 +2,6 @@ package router
 
 import (
 	"abdanhafidz.com/go-boilerplate/provider"
-	"github.com/gin-contrib/gzip" 
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,7 +9,6 @@ func ExamEventRouter(router *gin.Engine, middleware provider.MiddlewareProvider,
 	examController := controller.ProvideExamController()
 	auth := middleware.ProvideAuthenticationMiddleware()
 	routerGroup := router.Group("api/v1/events")
-	routerGroup.Use(gzip.Gzip(gzip.DefaultCompression))
 	{
 		routerGroup.GET("/:event_slug/exam", auth.VerifyAccount, examController.List)
 		routerGroup.GET("/:event_slug/exam/:exam_slug/attempt", auth.VerifyAccount, examController.Attempt)
