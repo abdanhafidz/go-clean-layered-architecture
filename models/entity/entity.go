@@ -1,9 +1,9 @@
 package models
 
 import (
-	"time"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"time"
 )
 
 type Account struct {
@@ -81,7 +81,7 @@ type Events struct {
 	StartEvent time.Time `json:"start_event,omitempty"`
 	EndEvent   time.Time `json:"end_event,omitempty"`
 	Overview   string    `json:"overview,omitempty"`
-	ImgBanner string `json:"img_banner,omitempty"`
+	ImgBanner  string    `json:"img_banner,omitempty"`
 	EventCode  string    `json:"event_code,omitempty"`
 	IsPublic   bool      `json:"is_public,omitempty"`
 }
@@ -266,7 +266,7 @@ type Academy struct {
 	ImageUrl        string            `json:"image_url,omitempty"`
 	MaterialsCount  int64             `json:"materials_count,omitempty"`
 	Materials       []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
-	AcademyProgress AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progresses,omitempty"`
+	AcademyProgress AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progress,omitempty"`
 	RegisterStatus  int               `gorm:"-" json:"register_status"`
 }
 
@@ -281,7 +281,7 @@ type AcademyMaterial struct {
 	Order                   uint                    `json:"order,omitempty"`
 	ContentsCount           int64                   `json:"contents_count,omitempty"`
 	Contents                []AcademyContent        `gorm:"foreignKey:MaterialId;references:Id" json:"contents,omitempty"`
-	AcademyMaterialProgress AcademyMaterialProgress `gorm:"foreignKey:MaterialId;references:Id" json:"academy_material_progresses,omitempty"`
+	AcademyMaterialProgress AcademyMaterialProgress `gorm:"foreignKey:MaterialId;references:Id" json:"academy_material_progress,omitempty"`
 }
 
 func (AcademyMaterial) TableName() string { return "academy_materials" }
@@ -292,7 +292,7 @@ type AcademyContent struct {
 	Title                  string                 `json:"title,omitempty"`
 	Order                  uint                   `json:"order,omitempty"`
 	Contents               string                 `json:"contents,omitempty"`
-	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progresses,omitempty"`
+	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progress,omitempty"`
 }
 
 func (AcademyContent) TableName() string { return "academy_contents" }

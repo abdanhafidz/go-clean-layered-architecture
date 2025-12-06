@@ -39,7 +39,7 @@ type AcademyProgressResponse struct {
 	AccountId               uuid.UUID `json:"account_id"`
 	AcademyId               uuid.UUID `json:"academy_id"`
 	Status                  string    `json:"status"`
-	Progress                float64   `json:"progress_percentage"`
+	Progress                float64   `json:"progress"`
 	TotalCompletedMaterials uint      `json:"total_completed_materials"`
 	CompletedAt             *string   `json:"completed_at"`
 }
@@ -65,16 +65,16 @@ type AcademyMaterialResponse struct {
 }
 
 type AcademyDetailResponse struct {
-	Id             uuid.UUID                 `json:"id"`
-	Title          string                    `json:"title"`
-	Slug           string                    `json:"slug"`
-	Code           string                    `json:"code"`
-	Description    string                    `json:"description"`
-	ImageUrl       string                    `json:"image_url"`
-	MaterialsCount int64                     `json:"materials_count"`
-	UserProgress   *AcademyProgressResponse  `json:"user_progress"`
-	Materials      []AcademyMaterialResponse `json:"materials"`
-	RegisterStatus int                       `json:"register_status" binding:"required"`
+	Id              uuid.UUID                 `json:"id"`
+	Title           string                    `json:"title"`
+	Slug            string                    `json:"slug"`
+	Code            string                    `json:"code"`
+	Description     string                    `json:"description"`
+	ImageUrl        string                    `json:"image_url"`
+	MaterialsCount  int64                     `json:"materials_count"`
+	AcademyProgress *AcademyProgressResponse  `json:"academy_progress"`
+	Materials       []AcademyMaterialResponse `json:"materials"`
+	RegisterStatus  int                       `json:"register_status" binding:"required"`
 }
 
 type MaterialPreview struct {
@@ -95,7 +95,7 @@ type MaterialProgressResponse struct {
 	AccountId              uuid.UUID `json:"account_id"`
 	AcademyId              uuid.UUID `json:"academy_id"`
 	MaterialId             uuid.UUID `json:"material_id"`
-	Progress               float64   `json:"progress_percentage"`
+	Progress               float64   `json:"progress"`
 	TotalCompletedContents uint      `json:"total_completed_contents"`
 	Status                 string    `json:"status"`
 	CompletedAt            *string   `json:"completed_at"`
