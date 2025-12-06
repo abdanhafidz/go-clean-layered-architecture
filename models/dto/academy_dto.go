@@ -39,7 +39,7 @@ type AcademyProgressResponse struct {
 	AccountId               uuid.UUID `json:"account_id"`
 	AcademyId               uuid.UUID `json:"academy_id"`
 	Status                  string    `json:"status"`
-	Progress                float64   `json:"progress_percentage"`
+	Progress                float64   `json:"progress"`
 	TotalCompletedMaterials uint      `json:"total_completed_materials"`
 	CompletedAt             *string   `json:"completed_at"`
 }
@@ -95,7 +95,7 @@ type MaterialProgressResponse struct {
 	AccountId              uuid.UUID `json:"account_id"`
 	AcademyId              uuid.UUID `json:"academy_id"`
 	MaterialId             uuid.UUID `json:"material_id"`
-	Progress               float64   `json:"progress_percentage"`
+	Progress               float64   `json:"progress"`
 	TotalCompletedContents uint      `json:"total_completed_contents"`
 	Status                 string    `json:"status"`
 	CompletedAt            *string   `json:"completed_at"`
