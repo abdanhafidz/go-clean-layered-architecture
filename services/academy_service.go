@@ -400,7 +400,7 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			AcademyId:   academy.Id,
 			MaterialId:  material.Id,
 			ContentId:   content.Id,
-			Status:      entity.StatusCompleted,
+			Status:      entity.StatusFinished,
 			CompletedAt: utils.Ptr(time.Now()),
 		}
 		if _, err := txRepo.UpsertContentProgress(ctx, acp); err != nil {
@@ -418,12 +418,12 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			progressPct = (float64(totalContentsCompleted) / float64(m.ContentsCount)) * 100
 			progressPct = math.Round(progressPct*100) / 100
 			if totalContentsCompleted >= m.ContentsCount {
-				matStatus = entity.StatusCompleted
+				matStatus = entity.StatusFinished
 				matCompletedAt = utils.Ptr(time.Now())
 				progressPct = 100
 			}
 		} else {
-			matStatus = entity.StatusCompleted
+			matStatus = entity.StatusFinished
 			progressPct = 100
 		}
 
@@ -459,7 +459,7 @@ func (s *academyService) UpdateContentProgress(ctx context.Context, accountId uu
 			acadProgressPct = math.Round(acadProgressPct*100) / 100
 
 			if acadProgressPct >= 100 {
-				acadStatus = entity.StatusCompleted
+				acadStatus = entity.StatusFinished
 				acadCompletedAt = utils.Ptr(time.Now())
 				acadProgressPct = 100
 			} else if acadProgressPct > 0 {
@@ -517,7 +517,7 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 			for i, m := range mats {
 				previews[i] = dto.MaterialPreview{Id: m.Id, Title: m.Title, Order: m.Order}
 			}
-			res := dto.AcademyPublicPreviewResponse{Id: academy.Id, RegisterStatus: 0, Materials: previews}
+			res := dto.AcademyPublicPreviewResponse{Id: academy.Id, Title: academy.Title, RegisterStatus: 0, Materials: previews}
 			return res, nil
 		}
 		return nil, http_error.UNAUTHORIZED

@@ -85,6 +85,7 @@ type MaterialPreview struct {
 
 type AcademyPublicPreviewResponse struct {
 	Id             uuid.UUID         `json:"id"`
+	Title          string            `json:"title"`
 	RegisterStatus int               `json:"register_status" binding:"required"`
 	Materials      []MaterialPreview `json:"materials"`
 }

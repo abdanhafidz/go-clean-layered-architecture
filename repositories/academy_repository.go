@@ -412,7 +412,7 @@ func (r *academyRepository) DeleteMaterialProgressByMaterialID(ctx context.Conte
 func (r *academyRepository) CountCompletedContentsByMaterialAndAccount(ctx context.Context, accountId uuid.UUID, materialId uuid.UUID) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&entity.AcademyContentProgress{}).
-		Where("account_id = ? AND material_id = ? AND status = ?", accountId, materialId, entity.StatusCompleted).
+		Where("account_id = ? AND material_id = ? AND status = ?", accountId, materialId, entity.StatusFinished).
 		Count(&count).Error
 	return count, err
 }
@@ -420,7 +420,7 @@ func (r *academyRepository) CountCompletedContentsByMaterialAndAccount(ctx conte
 func (r *academyRepository) CountCompletedMaterialsByAcademyAndAccount(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&entity.AcademyMaterialProgress{}).
-		Where("account_id = ? AND academy_id = ? AND status = ?", accountId, academyId, entity.StatusCompleted).
+		Where("account_id = ? AND academy_id = ? AND status = ?", accountId, academyId, entity.StatusFinished).
 		Count(&count).Error
 	return count, err
 }
@@ -428,7 +428,7 @@ func (r *academyRepository) CountCompletedMaterialsByAcademyAndAccount(ctx conte
 func (r *academyRepository) CountStartedMaterialsByAcademyAndAccount(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&entity.AcademyMaterialProgress{}).
-		Where("account_id = ? AND academy_id = ? AND status IN ?", accountId, academyId, []string{entity.StatusInProgress, entity.StatusCompleted}).
+		Where("account_id = ? AND academy_id = ? AND status IN ?", accountId, academyId, []string{entity.StatusInProgress, entity.StatusFinished}).
 		Count(&count).Error
 	return count, err
 }
@@ -525,7 +525,7 @@ func (r *academyRepository) BatchRecalculateMaterialProgress(ctx context.Context
 	// FIX: Gunakan Model() bukan Table() string hardcode
 	if err := r.db.WithContext(ctx).Model(&entity.AcademyContentProgress{}).
 		Select("account_id, count(*) as count").
-		Where("material_id = ? AND status = ?", materialId, entity.StatusCompleted).
+		Where("material_id = ? AND status = ?", materialId, entity.StatusFinished).
 		Group("account_id").
 		Scan(&aggResults).Error; err != nil {
 		return err
@@ -552,14 +552,14 @@ func (r *academyRepository) BatchRecalculateMaterialProgress(ctx context.Context
 			pct = math.Round(pct*100) / 100
 			if pct >= 100 {
 				pct = 100
-				status = entity.StatusCompleted
+				status = entity.StatusFinished
 				completedAt = utils.Ptr(time.Now())
 			} else if pct <= 0 {
 				status = entity.StatusNotStarted
 			}
 		} else {
 			pct = 100
-			status = entity.StatusCompleted
+			status = entity.StatusFinished
 			completedAt = utils.Ptr(time.Now())
 		}
 
@@ -590,7 +590,7 @@ func (r *academyRepository) BatchRecalculateAcademyProgress(ctx context.Context,
 
 	// FIX: Gunakan Model() bukan Table() string hardcode
 	if err := r.db.WithContext(ctx).Model(&entity.AcademyMaterialProgress{}).
-		Select("account_id, COALESCE(SUM(progress), 0) as total_progress, COUNT(CASE WHEN status = ? THEN 1 END) as completed_mats", entity.StatusCompleted).
+		Select("account_id, COALESCE(SUM(progress), 0) as total_progress, COUNT(CASE WHEN status = ? THEN 1 END) as completed_mats", entity.StatusFinished).
 		Where("academy_id = ?", academyId).
 		Group("account_id").
 		Scan(&aggResults).Error; err != nil {
@@ -620,14 +620,14 @@ func (r *academyRepository) BatchRecalculateAcademyProgress(ctx context.Context,
 
 			if pct >= 100 {
 				pct = 100
-				status = entity.StatusCompleted
+				status = entity.StatusFinished
 				completedAt = utils.Ptr(time.Now())
 			} else if pct <= 0 {
 				status = entity.StatusNotStarted
 			}
 		} else {
 			pct = 100
-			status = entity.StatusCompleted
+			status = entity.StatusFinished
 			completedAt = utils.Ptr(time.Now())
 		}
 
