@@ -557,7 +557,7 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 		Description:    academy.Description,
 		ImageUrl:       academy.ImageUrl,
 		MaterialsCount: academy.MaterialsCount,
-		UserProgress: &dto.AcademyProgressResponse{
+		AcademyProgress: &dto.AcademyProgressResponse{
 			Id:                      academyProgress.Id,
 			AccountId:               academyProgress.AccountId,
 			AcademyId:               academyProgress.AcademyId,

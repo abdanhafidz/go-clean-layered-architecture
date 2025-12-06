@@ -65,16 +65,16 @@ type AcademyMaterialResponse struct {
 }
 
 type AcademyDetailResponse struct {
-	Id             uuid.UUID                 `json:"id"`
-	Title          string                    `json:"title"`
-	Slug           string                    `json:"slug"`
-	Code           string                    `json:"code"`
-	Description    string                    `json:"description"`
-	ImageUrl       string                    `json:"image_url"`
-	MaterialsCount int64                     `json:"materials_count"`
-	UserProgress   *AcademyProgressResponse  `json:"user_progress"`
-	Materials      []AcademyMaterialResponse `json:"materials"`
-	RegisterStatus int                       `json:"register_status" binding:"required"`
+	Id              uuid.UUID                 `json:"id"`
+	Title           string                    `json:"title"`
+	Slug            string                    `json:"slug"`
+	Code            string                    `json:"code"`
+	Description     string                    `json:"description"`
+	ImageUrl        string                    `json:"image_url"`
+	MaterialsCount  int64                     `json:"materials_count"`
+	AcademyProgress *AcademyProgressResponse  `json:"academy_progress"`
+	Materials       []AcademyMaterialResponse `json:"materials"`
+	RegisterStatus  int                       `json:"register_status" binding:"required"`
 }
 
 type MaterialPreview struct {
