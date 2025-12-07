@@ -813,9 +813,6 @@ func (s *academyService) JoinByCode(ctx context.Context, accountId uuid.UUID, co
 	if err != nil {
 		return entity.AcademyAssign{}, http_error.ACADEMY_NOT_FOUND
 	}
-	if !ac.IsPublic {
-		return entity.AcademyAssign{}, http_error.UNAUTHORIZED
-	}
 	assigned, err := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, ac.Id)
 	if err != nil {
 		return entity.AcademyAssign{}, err
@@ -823,6 +820,11 @@ func (s *academyService) JoinByCode(ctx context.Context, accountId uuid.UUID, co
 	if assigned {
 		return entity.AcademyAssign{}, http_error.DUPLICATE_DATA
 	}
-	assign := entity.AcademyAssign{Id: uuid.New(), AccountId: accountId, AcademyId: ac.Id, CreatedAt: time.Now()}
+	assign := entity.AcademyAssign{
+		Id: uuid.New(), 
+		AccountId: accountId, 
+		AcademyId: ac.Id, 
+		CreatedAt: time.Now(),
+	}
 	return s.academyRepo.AssignAccountToAcademy(ctx, assign)
 }

@@ -22,7 +22,6 @@ func NewAuthorizationMiddleware(eventService services.EventService) Authorizatio
 }
 
 func (m *authorizationMiddleware) AuthorizeUserToEvent(c *gin.Context) {
-
 	eventSlug := c.Param("slug")
     accountId, exists := c.Get("account_id")
     if !exists {
