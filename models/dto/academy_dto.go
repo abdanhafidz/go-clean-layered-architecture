@@ -44,6 +44,17 @@ type AcademyProgressResponse struct {
 	CompletedAt             *string   `json:"completed_at"`
 }
 
+type MaterialProgressResponse struct {
+	Id                     uuid.UUID `json:"id"`
+	AccountId              uuid.UUID `json:"account_id"`
+	AcademyId              uuid.UUID `json:"academy_id"`
+	MaterialId             uuid.UUID `json:"material_id"`
+	Progress               float64   `json:"progress"`
+	TotalCompletedContents uint      `json:"total_completed_contents"`
+	Status                 string    `json:"status"`
+	CompletedAt            *string   `json:"completed_at"`
+}
+
 type AcademyContentResponse struct {
 	Id     uuid.UUID `json:"id"`
 	Order  uint      `json:"order"`
@@ -64,6 +75,26 @@ type AcademyMaterialResponse struct {
 	Contents               []AcademyContentResponse `json:"contents"`
 }
 
+// PREVIEW DTOs
+
+type AcademyPublicPreviewResponse struct {
+	Id             uuid.UUID         `json:"id"`
+	Title          string            `json:"title"`
+	Description    string            `json:"description"`
+	ImageUrl       string            `json:"image_url"`
+	Code           string            `json:"code"`
+	RegisterStatus int               `json:"register_status" binding:"required"`
+	Materials      []MaterialPreview `json:"materials"`
+}
+
+type MaterialPreview struct {
+	Id    uuid.UUID `json:"id"`
+	Title string    `json:"title"`
+	Order uint      `json:"order"`
+}
+
+// Detail Response
+
 type AcademyDetailResponse struct {
 	Id              uuid.UUID                 `json:"id"`
 	Title           string                    `json:"title"`
@@ -77,37 +108,6 @@ type AcademyDetailResponse struct {
 	RegisterStatus  int                       `json:"register_status" binding:"required"`
 }
 
-type MaterialPreview struct {
-	Id    uuid.UUID `json:"id"`
-	Title string    `json:"title"`
-	Order uint      `json:"order"`
-}
-
-type AcademyPublicPreviewResponse struct {
-	Id             uuid.UUID         `json:"id"`
-	Title          string            `json:"title"`
-	RegisterStatus int               `json:"register_status" binding:"required"`
-	Materials      []MaterialPreview `json:"materials"`
-}
-
-type MaterialProgressResponse struct {
-	Id                     uuid.UUID `json:"id"`
-	AccountId              uuid.UUID `json:"account_id"`
-	AcademyId              uuid.UUID `json:"academy_id"`
-	MaterialId             uuid.UUID `json:"material_id"`
-	Progress               float64   `json:"progress"`
-	TotalCompletedContents uint      `json:"total_completed_contents"`
-	Status                 string    `json:"status"`
-	CompletedAt            *string   `json:"completed_at"`
-}
-
-type ContentDetailResponse struct {
-	Id     uuid.UUID `json:"id"`
-	Order  uint      `json:"order"`
-	Title  string    `json:"title"`
-	Status string    `json:"status"`
-}
-
 type MaterialDetailResponse struct {
 	Id            uuid.UUID                 `json:"id"`
 	AcademyId     uuid.UUID                 `json:"academy_id"`
@@ -119,6 +119,13 @@ type MaterialDetailResponse struct {
 	Progress      *MaterialProgressResponse `json:"progress"`
 	Contents      []ContentDetailResponse   `json:"contents"`
 	Meta          map[string]string         `json:"meta"`
+}
+
+type ContentDetailResponse struct {
+	Id     uuid.UUID `json:"id"`
+	Order  uint      `json:"order"`
+	Title  string    `json:"title"`
+	Status string    `json:"status"`
 }
 
 type AssignRequest struct {

@@ -22,7 +22,7 @@ type AcademyService interface {
 	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
-	ListAcademies(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error)
+	ListAcademy(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error)
 
 	CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error)
 	GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error)
@@ -145,7 +145,7 @@ func (s *academyService) DeleteAcademy(ctx context.Context, id uuid.UUID) error 
 	return s.academyRepo.DeleteAcademy(ctx, id)
 }
 
-func (s *academyService) ListAcademies(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error) {
+func (s *academyService) ListAcademy(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error) {
 	list, total, err := s.academyRepo.ListVisibleAcademy(ctx, accountId, &p)
 	return list, total, err
 }
@@ -321,6 +321,55 @@ func (s *academyService) GetContent(ctx context.Context, accountId uuid.UUID, ac
 	if err != nil {
 		return entity.AcademyContent{}, err
 	}
+
+	if err := s.academyRepo.Atomic(ctx, func(txRepo repositories.AcademyRepository) error {
+		existingAMP, _ := txRepo.GetMaterialProgress(ctx, accountId, material.AcademyId, material.Id)
+		ampID := existingAMP.Id
+		if ampID == uuid.Nil {
+			ampID = uuid.New()
+		}
+		matStatus := existingAMP.Status
+		if matStatus != entity.StatusFinished {
+			matStatus = entity.StatusInProgress
+		}
+		if _, err := txRepo.UpsertMaterialProgress(ctx, entity.AcademyMaterialProgress{
+			Id:                     ampID,
+			AccountId:              accountId,
+			AcademyId:              material.AcademyId,
+			MaterialId:             material.Id,
+			Progress:               existingAMP.Progress,
+			TotalCompletedContents: existingAMP.TotalCompletedContents,
+			Status:                 matStatus,
+			CompletedAt:            existingAMP.CompletedAt,
+		}); err != nil {
+			return err
+		}
+
+		existingAP, _ := txRepo.GetAcademyProgress(ctx, accountId, material.AcademyId)
+		apID := existingAP.Id
+		if apID == uuid.Nil {
+			apID = uuid.New()
+		}
+		acadStatus := existingAP.Status
+		if acadStatus != entity.StatusFinished {
+			acadStatus = entity.StatusInProgress
+		}
+		if _, err := txRepo.UpsertAcademyProgress(ctx, entity.AcademyProgress{
+			Id:                      apID,
+			AccountId:               accountId,
+			AcademyId:               material.AcademyId,
+			Progress:                existingAP.Progress,
+			TotalCompletedMaterials: existingAP.TotalCompletedMaterials,
+			Status:                  acadStatus,
+			CompletedAt:             existingAP.CompletedAt,
+		}); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return entity.AcademyContent{}, err
+	}
+
 	return s.academyRepo.GetContentWithProgress(ctx, accountId, material.AcademyId, material.Id, order)
 }
 
@@ -515,9 +564,21 @@ func (s *academyService) GetAcademyResponse(ctx context.Context, accountId uuid.
 			}
 			previews := make([]dto.MaterialPreview, len(mats))
 			for i, m := range mats {
-				previews[i] = dto.MaterialPreview{Id: m.Id, Title: m.Title, Order: m.Order}
+				previews[i] = dto.MaterialPreview{
+					Id:    m.Id,
+					Title: m.Title,
+					Order: m.Order,
+				}
 			}
-			res := dto.AcademyPublicPreviewResponse{Id: academy.Id, Title: academy.Title, RegisterStatus: 0, Materials: previews}
+			res := dto.AcademyPublicPreviewResponse{
+				Id:             academy.Id,
+				Title:          academy.Title,
+				Description:    academy.Description,
+				ImageUrl:       academy.ImageUrl,
+				Code:           academy.Code,
+				RegisterStatus: 0,
+				Materials:      previews,
+			}
 			return res, nil
 		}
 		return nil, http_error.UNAUTHORIZED

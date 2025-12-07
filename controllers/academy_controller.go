@@ -17,7 +17,7 @@ type AcademyController interface {
 	CreateAcademy(ctx *gin.Context)
 	GetAcademy(ctx *gin.Context)
 	GetAcademyDetail(ctx *gin.Context)
-	ListAcademies(ctx *gin.Context)
+	ListAcademy(ctx *gin.Context)
 	UpdateAcademy(ctx *gin.Context)
 	DeleteAcademy(ctx *gin.Context)
 	JoinAcademyByCode(ctx *gin.Context)
@@ -73,26 +73,66 @@ func (c *academyController) GetAcademyDetail(ctx *gin.Context) {
 	ResponseJSON(ctx, gin.H{"id": id}, res, err)
 }
 
-func (c *academyController) ListAcademies(ctx *gin.Context) {
+func (c *academyController) ListAcademy(ctx *gin.Context) {
 	accountIdStr := ctx.GetString("account_id")
 	accountId, err := uuid.Parse(accountIdStr)
 	if err != nil {
 		ResponseJSON[any, any](ctx, nil, nil, http_error.UNAUTHORIZED)
 		return
 	}
+
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	isModified := false
+
+	if limit < 1 {
+		limit = 10
+		isModified = true
+	} else if limit > 50 {
+		limit = 50
+		isModified = true
+	}
+
 	if page < 1 {
 		page = 1
+		isModified = true
 	}
+
 	offset := (page - 1) * limit
 	p := repositories.Pagination{Limit: limit, Offset: offset}
-	list, total, err := c.academyService.ListAcademies(ctx.Request.Context(), accountId, p)
+	list, total, err := c.academyService.ListAcademy(ctx.Request.Context(), accountId, p)
+
+	if err != nil {
+		ResponseJSON[any, any](ctx, nil, nil, err)
+		return
+	}
+
+	var totalPages int
+	if total == 0 {
+		totalPages = 1
+	} else {
+		totalPages = int((total + int64(limit) - 1) / int64(limit))
+	}
+
+	if page > totalPages {
+		page = totalPages
+		offset = (page - 1) * limit
+		p.Offset = offset
+		list, total, err = c.academyService.ListAcademy(ctx.Request.Context(), accountId, p)
+		isModified = true
+	}
+
 	meta := gin.H{
 		"total_records": total,
 		"page_size":     limit,
 		"current_page":  page,
+		"is_modified":   isModified,
 	}
+
+		if isModified {
+			ctx.Status(http.StatusAccepted)
+		}
+
 	ResponseJSON(ctx, meta, list, err)
 }
 
