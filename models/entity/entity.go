@@ -300,7 +300,7 @@ func (AcademyContent) TableName() string { return "academy_contents" }
 // Progress
 
 type AcademyProgress struct {
-	Id                      uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Id                      uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id,omitempty"`
 	AccountId               uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_academy" json:"account_id,omitempty"`
 	AcademyId               uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_academy" json:"academy_id,omitempty"`
 	Status                  string     `gorm:"type:varchar(50);default:'not attempted'" json:"status,omitempty"`
@@ -312,7 +312,7 @@ type AcademyProgress struct {
 func (AcademyProgress) TableName() string { return "academy_progress" }
 
 type AcademyMaterialProgress struct {
-	Id                     uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Id                     uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id,omitempty"`
 	AccountId              uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_material" json:"account_id,omitempty"`
 	AcademyId              uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
 	MaterialId             uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_material" json:"material_id,omitempty"`
@@ -325,7 +325,7 @@ type AcademyMaterialProgress struct {
 func (AcademyMaterialProgress) TableName() string { return "academy_material_progress" }
 
 type AcademyContentProgress struct {
-	Id          uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Id          uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id,omitempty"`
 	AccountId   uuid.UUID  `gorm:"type:uuid;uniqueIndex:idx_account_content" json:"account_id,omitempty"`
 	AcademyId   uuid.UUID  `gorm:"type:uuid;index" json:"academy_id,omitempty"`
 	MaterialId  uuid.UUID  `gorm:"type:uuid;index" json:"material_id,omitempty"`

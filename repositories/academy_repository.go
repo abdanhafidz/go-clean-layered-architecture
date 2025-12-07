@@ -384,7 +384,7 @@ func (r *academyRepository) GetContentProgress(ctx context.Context, accountId uu
 			AcademyId:  academyId,
 			MaterialId: materialId,
 			ContentId:  contentId,
-			Status:     entity.StatusNotStarted,
+			Status:     entity.StatusInProgress,
 		}, nil
 	}
 	return existing, err
