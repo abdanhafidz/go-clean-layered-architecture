@@ -191,20 +191,23 @@ func (s *academyExamService) SubmitExamAcademy(ctx context.Context, attemptId uu
 }
 
 func (s *academyExamService) AnswerExamAcademy(ctx context.Context, academySlug string, attemptId uuid.UUID, questionId uuid.UUID, answer []string) (entity.CPQuestionVerdict, error) {
-	attempt, err := s.examAcademyAttemptRepo.GetById(ctx, attemptId)
-	if err != nil {
-		return entity.CPQuestionVerdict{}, err
-	}
-	if attempt.Submitted {
-		return entity.CPQuestionVerdict{}, http_error.EXAMS_SUBMITTED
-	}
-	question, err := s.problemSetService.GetQuestionById(ctx, questionId)
-	if err != nil {
-		return entity.CPQuestionVerdict{}, err
-	}
-	score, verdict := s.EvaluateAnswer(ctx, question)(answer)
-	err = s.examAcademyAnswerRepo.Update(ctx, &entity.ExamAcademyAnswer{AttemptId: attemptId, QuestionId: questionId, Answers: answer, Score: score})
-	return verdict, err
+    attempt, err := s.examAcademyAttemptRepo.GetById(ctx, attemptId)
+    if err != nil {
+        return entity.CPQuestionVerdict{}, err
+    }
+    if attempt.Submitted {
+        return entity.CPQuestionVerdict{}, http_error.EXAMS_SUBMITTED
+    }
+    if utils.CalculateRemainingTime(attempt.CreatedAt, attempt.DueAt) == 0 || time.Now().After(attempt.DueAt) {
+        return entity.CPQuestionVerdict{}, http_error.EXAMS_TIME_EXCEEDED
+    }
+    question, err := s.problemSetService.GetQuestionById(ctx, questionId)
+    if err != nil {
+        return entity.CPQuestionVerdict{}, err
+    }
+    score, verdict := s.EvaluateAnswer(ctx, question)(answer)
+    err = s.examAcademyAnswerRepo.Update(ctx, &entity.ExamAcademyAnswer{AttemptId: attemptId, QuestionId: questionId, Answers: answer, Score: score})
+    return verdict, err
 }
 
 func (s *academyExamService) EvaluateAnswer(ctx context.Context, question entity.Questions) evaluator {
