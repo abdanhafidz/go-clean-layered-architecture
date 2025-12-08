@@ -30,6 +30,7 @@ var (
 	EVENT_FINISHED              = errors.New("The event has ended, you are disallowed to take the exam")
 	EVENT_NOT_STARTED           = errors.New("Take it easy, event hasn't started yet! You cannot take the exam")
 	EXAMS_SUBMITTED             = errors.New("You have submitted the exam, you are disallowed to answer the question")
+	EXAMS_TIME_EXCEEDED         = errors.New("Time limit exceeded for this attempt")
 	IMAGE_REQUIRED              = errors.New("Image is required")
 	DESCRIPTION_REQUIRED        = errors.New("Description is required")
 	CODE_REQUIRED               = errors.New("Code is required")
