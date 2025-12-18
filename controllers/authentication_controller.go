@@ -2,8 +2,11 @@ package controllers
 
 import (
 	"abdanhafidz.com/go-boilerplate/models/dto"
+	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AuthenticationController interface {
@@ -11,6 +14,7 @@ type AuthenticationController interface {
 	SignIn(ctx *gin.Context)
 	ExternalAuth(ctx *gin.Context)
 	ChangePassword(ctx *gin.Context)
+	UpdateUserRole(ctx *gin.Context)
 }
 
 type authenticationController struct {
@@ -58,5 +62,26 @@ func (c *authenticationController) ExternalAuth(ctx *gin.Context) {
 		return
 	}
 
+	ResponseJSON(ctx, req, res, err)
+}
+
+func (c *authenticationController) UpdateUserRole(ctx *gin.Context) {
+	req := RequestJSON[dto.UpdateUserRoleRequest](ctx)
+	targetAccountId, err := uuid.Parse(ctx.Param("account_id"))
+	if err != nil {
+		ResponseJSON(ctx, req, entity.Account{}, http_error.BAD_REQUEST_ERROR)
+		return
+	}
+
+	acc, err := c.accountService.GetById(ctx.Request.Context(), targetAccountId)
+	if err != nil {
+		ResponseJSON(ctx, req, entity.Account{}, err)
+		return
+	}
+
+	accountToUpdate := acc
+	accountToUpdate.Role = req.Role
+
+	res, err := c.accountService.Update(ctx.Request.Context(), accountToUpdate)
 	ResponseJSON(ctx, req, res, err)
 }

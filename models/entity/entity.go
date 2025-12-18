@@ -1,21 +1,23 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"time"
+	"gorm.io/gorm"
 )
 
 type Account struct {
-	Id                uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	Username          string     `gorm:"uniqueIndex" json:"username,omitempty"`
-	Email             string     `gorm:"uniqueIndex" json:"email,omitempty"`
-	Role              string     `json:"role,omitempty"`
-	Password          string     `json:"-"`
-	IsEmailVerified   bool       `json:"is_email_verified,omitempty"`
-	IsDetailCompleted bool       `json:"is_detail_completed,omitempty"`
-	CreatedAt         time.Time  `json:"created_at,omitempty"`
-	DeletedAt         *time.Time `json:"deleted_at,omitempty" gorm:"default:null"`
+	Id                uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	Username          string         `gorm:"uniqueIndex" json:"username,omitempty"`
+	Email             string         `gorm:"uniqueIndex" json:"email,omitempty"`
+	Role              string         `json:"role,omitempty"`
+	Password          string         `json:"-"`
+	IsEmailVerified   bool           `json:"is_email_verified,omitempty"`
+	IsDetailCompleted bool           `json:"is_detail_completed,omitempty"`
+	CreatedAt         time.Time      `json:"created_at,omitempty"`
+	DeletedAt         gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (Account) TableName() string { return "account" }
@@ -75,15 +77,17 @@ type ForgotPassword struct {
 func (ForgotPassword) TableName() string { return "forgot_password" }
 
 type Events struct {
-	Id         uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id_event"`
-	Title      string    `json:"title,omitempty"`
-	Slug       string    `json:"slug,omitempty"`
-	StartEvent time.Time `json:"start_event,omitempty"`
-	EndEvent   time.Time `json:"end_event,omitempty"`
-	Overview   string    `json:"overview,omitempty"`
-	ImgBanner  string    `json:"img_banner,omitempty"`
-	EventCode  string    `json:"event_code,omitempty"`
-	IsPublic   bool      `json:"is_public,omitempty"`
+	Id             uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id_event"`
+	Title          string         `json:"title,omitempty"`
+	Slug           string         `json:"slug,omitempty"`
+	StartEvent     time.Time      `json:"start_event,omitempty"`
+	EndEvent       time.Time      `json:"end_event,omitempty"`
+	Overview       string         `json:"overview,omitempty"`
+	ImgBanner      string         `json:"img_banner,omitempty"`
+	EventCode      string         `json:"event_code,omitempty"`
+	IsPublic       bool           `json:"is_public,omitempty"`
+	DeletedAt      gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+	RegisterStatus int            `gorm:"-" json:"register_status"`
 }
 
 func (Events) TableName() string { return "events" }
@@ -268,6 +272,7 @@ type Academy struct {
 	Materials       []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
 	AcademyProgress AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progress,omitempty"`
 	RegisterStatus  int               `gorm:"-" json:"register_status"`
+	DeletedAt       gorm.DeletedAt    `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (Academy) TableName() string { return "academy" }
@@ -282,6 +287,7 @@ type AcademyMaterial struct {
 	ContentsCount           int64                   `json:"contents_count,omitempty"`
 	Contents                []AcademyContent        `gorm:"foreignKey:MaterialId;references:Id" json:"contents,omitempty"`
 	AcademyMaterialProgress AcademyMaterialProgress `gorm:"foreignKey:MaterialId;references:Id" json:"academy_material_progress,omitempty"`
+	DeletedAt               gorm.DeletedAt          `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (AcademyMaterial) TableName() string { return "academy_materials" }
@@ -293,6 +299,7 @@ type AcademyContent struct {
 	Order                  uint                   `json:"order,omitempty"`
 	Contents               string                 `json:"contents,omitempty"`
 	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progress,omitempty"`
+	DeletedAt              gorm.DeletedAt         `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (AcademyContent) TableName() string { return "academy_contents" }

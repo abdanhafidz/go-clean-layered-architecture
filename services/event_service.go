@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	dto "abdanhafidz.com/go-boilerplate/models/dto"
@@ -13,10 +14,13 @@ import (
 
 type EventService interface {
 	AuthorizeUserToEvent(ctx context.Context, slug string, accountId uuid.UUID) error
-	List(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Events, int64, error)
+	List(ctx context.Context, accountId uuid.UUID, p entity.Pagination) ([]entity.Events, int64, error)
 	DetailBySlug(ctx context.Context, slug string, accountId uuid.UUID) (dto.EventDetailResponse, error)
 	JoinByCode(ctx context.Context, accountID uuid.UUID, code string) (dto.EventDetailResponse, error)
 	GetStatus(ctx context.Context, slug string, accountId uuid.UUID) (eventStatus dto.EventStatus, err error)
+	CreateEvent(ctx context.Context, req dto.CreateEventRequest) (entity.Events, error)
+	UpdateEvent(ctx context.Context, id uuid.UUID, req dto.UpdateEventRequest) (entity.Events, error)
+	DeleteEvent(ctx context.Context, id uuid.UUID) error
 }
 
 type eventService struct {
@@ -50,30 +54,9 @@ func (s *eventService) AuthorizeUserToEvent(ctx context.Context, slug string, ac
 
 	return err
 }
-func (s *eventService) List(ctx context.Context, accountId uuid.UUID, pagination repositories.Pagination) ([]entity.Events, int64, error) {
-	evList := []entity.Events{}
-	evPublicList, total, err := s.eventsRepo.ListPublic(ctx, &pagination)
-	evList = append(evList, evPublicList...)
-
-	if err != nil {
-		return []entity.Events{}, 0, err
-	}
-
-	evAssignList, err := s.eventAssignRepo.ListByAccount(ctx, accountId)
-
-	if err != nil {
-		return []entity.Events{}, 0, err
-	}
-
-	for _, evAssign := range evAssignList {
-		evPrivate, err := s.eventsRepo.GetByID(ctx, evAssign.EventId)
-		if err != nil {
-			return []entity.Events{}, 0, err
-		}
-		evList = append(evList, evPrivate)
-	}
-
-	return evList, total, err
+func (s *eventService) List(ctx context.Context, accountId uuid.UUID, pagination entity.Pagination) ([]entity.Events, int64, error) {
+	list, total, err := s.eventsRepo.ListVisible(ctx, accountId, &pagination)
+	return list, total, err
 }
 
 func (s *eventService) DetailBySlug(ctx context.Context, slug string, accountId uuid.UUID) (dto.EventDetailResponse, error) {
@@ -123,7 +106,104 @@ func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uui
 	eventStatus.IsHasNotStarted = currentTime.Before(event.Data.StartEvent)
 	eventStatus.IsFinished = currentTime.Before(event.Data.EndEvent)
 	eventStatus.IsOnGoing = !(eventStatus.IsHasNotStarted) && !(eventStatus.IsFinished)
-
 	return eventStatus, err
+}
 
+func (s *eventService) CreateEvent(ctx context.Context, req dto.CreateEventRequest) (entity.Events, error) {
+	startEvent, err := time.Parse(time.RFC3339, req.StartEvent)
+	if err != nil {
+		if startEvent.Before(time.Now()) {
+			return entity.Events{}, http_error.EVENT_START_DATE_INVALID
+		}
+		return entity.Events{}, http_error.INVALID_DATE_FORMAT
+	}
+	endEvent, err := time.Parse(time.RFC3339, req.EndEvent)
+	if err != nil {
+		if endEvent.Before(startEvent) {
+			return entity.Events{}, http_error.EVENT_END_DATE_INVALID
+		}
+		return entity.Events{}, http_error.INVALID_DATE_FORMAT
+	}
+
+	if len(req.EventCode) != 6 {
+		return entity.Events{}, http_error.INVALID_CODE
+	}
+	for i := 0; i < 6; i++ {
+		c := req.EventCode[i]
+		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+			return entity.Events{}, http_error.INVALID_CODE
+		}
+	}
+
+	slugVal := strings.ToLower(strings.ReplaceAll(req.Title, " ", "-"))
+	if _, err := s.eventsRepo.GetBySlug(ctx, slugVal); err == nil {
+		return entity.Events{}, http_error.DUPLICATE_DATA
+	}
+	if _, err := s.eventsRepo.GetByCode(ctx, req.EventCode); err == nil {
+		return entity.Events{}, http_error.DUPLICATE_DATA
+	}
+
+	ev := entity.Events{
+		Id:         uuid.New(),
+		Title:      req.Title,
+		Slug:       slugVal,
+		StartEvent: startEvent,
+		EndEvent:   endEvent,
+		Overview:   req.Overview,
+		ImgBanner:  req.ImgBanner,
+		EventCode:  req.EventCode,
+		IsPublic:   req.IsPublic,
+	}
+
+	return s.eventsRepo.Create(ctx, ev)
+}
+
+func (s *eventService) UpdateEvent(ctx context.Context, id uuid.UUID, req dto.UpdateEventRequest) (entity.Events, error) {
+	existing, err := s.eventsRepo.GetByID(ctx, id)
+	if err != nil {
+		return entity.Events{}, http_error.DATA_NOT_FOUND
+	}
+
+	if req.Title != "" {
+		existing.Title = req.Title
+	}
+
+	if req.StartEvent != "" {
+		start, err := time.Parse(time.RFC3339, req.StartEvent)
+		if err == nil {
+			if start.Before(time.Now()) {
+				return entity.Events{}, http_error.EVENT_START_DATE_INVALID
+			}
+			existing.StartEvent = start
+		}
+	}
+
+	if req.EndEvent != "" {
+		end, err := time.Parse(time.RFC3339, req.EndEvent)
+		if err == nil {
+			if end.Before(existing.StartEvent) {
+				return entity.Events{}, http_error.EVENT_END_DATE_INVALID
+			}
+			existing.EndEvent = end
+		}
+	}
+
+	if req.Overview != "" {
+		existing.Overview = req.Overview
+	}
+	if req.ImgBanner != "" {
+		existing.ImgBanner = req.ImgBanner
+	}
+	if req.IsPublic != nil {
+		existing.IsPublic = *req.IsPublic
+	}
+
+	return s.eventsRepo.Update(ctx, existing)
+}
+
+func (s *eventService) DeleteEvent(ctx context.Context, id uuid.UUID) error {
+	if _, err := s.eventsRepo.GetByID(ctx, id); err != nil {
+		return http_error.DATA_NOT_FOUND
+	}
+	return s.eventsRepo.Delete(ctx, id)
 }

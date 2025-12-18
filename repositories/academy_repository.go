@@ -3,7 +3,9 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
@@ -23,7 +25,7 @@ type AcademyRepository interface {
 	CreateAcademy(ctx context.Context, a entity.Academy) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, a entity.Academy) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
-	ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error)
+	ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *entity.Pagination) ([]entity.Academy, int64, error)
 	ListAssignmentsByAccount(ctx context.Context, accountId uuid.UUID) ([]entity.AcademyAssign, error)
 	GetAcademyWithMaterials(ctx context.Context, id uuid.UUID) (entity.Academy, []entity.AcademyMaterial, error)
 	CountMaterialsByAcademyID(ctx context.Context, academyId uuid.UUID) (int64, error)
@@ -55,6 +57,13 @@ type AcademyRepository interface {
 	DeleteContentProgressByContentID(ctx context.Context, contentId uuid.UUID) error
 	DeleteContentProgressByMaterialID(ctx context.Context, materialId uuid.UUID) error
 	DeleteMaterialProgressByMaterialID(ctx context.Context, materialId uuid.UUID) error
+	DeleteAcademyProgressByAcademyID(ctx context.Context, academyId uuid.UUID) error
+	DeleteAcademyAssignByAcademyID(ctx context.Context, academyId uuid.UUID) error
+	DeleteMaterialProgressByAcademyID(ctx context.Context, academyId uuid.UUID) error
+	DeleteContentProgressByAcademyID(ctx context.Context, academyId uuid.UUID) error
+	DeleteContentsByMaterialID(ctx context.Context, materialId uuid.UUID) error
+	DeleteContentsByAcademyID(ctx context.Context, academyId uuid.UUID) error
+	DeleteMaterialsByAcademyID(ctx context.Context, academyId uuid.UUID) error
 
 	CountCompletedContentsByMaterialAndAccount(ctx context.Context, accountId uuid.UUID, materialId uuid.UUID) (int64, error)
 	CountCompletedMaterialsByAcademyAndAccount(ctx context.Context, accountId uuid.UUID, academyId uuid.UUID) (int64, error)
@@ -144,15 +153,51 @@ func (r *academyRepository) DeleteAcademy(ctx context.Context, id uuid.UUID) err
 	return r.db.WithContext(ctx).Delete(&entity.Academy{}, "id = ?", id).Error
 }
 
-func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *Pagination) ([]entity.Academy, int64, error) {
+func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uuid.UUID, p *entity.Pagination) ([]entity.Academy, int64, error) {
 	var list []entity.Academy
-	sub := r.db.WithContext(ctx).Model(&entity.AcademyAssign{}).Select("academy_id").Where("account_id = ?", accountId)
-	q := r.db.WithContext(ctx).Model(&entity.Academy{}).Where("is_public = ?", true).Or("id IN (?)", sub)
 	var total int64
-	if err := q.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
+
+	sub := r.db.WithContext(ctx).Model(&entity.AcademyAssign{}).Select("academy_id").Where("account_id = ?", accountId)
+
+	q := r.db.WithContext(ctx).Model(&entity.Academy{}).
+		Where(r.db.Where("is_public = ?", true).Or("id IN (?)", sub))
+
 	if p != nil {
+		sortColumn := "title"
+		switch p.SortBy {
+			case "title":
+				sortColumn = "title"
+			case "slug":
+				sortColumn = "slug"
+			case "description":
+				sortColumn = "description"
+			case "createdAt", "created_at":
+				sortColumn = "created_at"
+			case "updatedAt", "updated_at":
+				sortColumn = "updated_at"
+			case "materials_count", "materialsCount":
+				sortColumn = "materials_count"
+		}
+
+		if s := strings.TrimSpace(p.Search); s != "" {
+			s = strings.Trim(s, "\"'")
+			s = strings.ToLower(s)
+			like := "%" + s + "%"
+
+			if p.SortBy != "" {
+				q = q.Where(fmt.Sprintf("LOWER(%s) LIKE ?", sortColumn), like)
+			} else {
+				q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ?", like, like)
+			}
+		}
+
+		sortDirection := "DESC"
+		if strings.ToLower(p.Order) == "asc" {
+			sortDirection = "ASC"
+		}
+
+		q = q.Order(fmt.Sprintf("%s %s", sortColumn, sortDirection))
+
 		if p.Limit > 0 {
 			q = q.Limit(p.Limit)
 		}
@@ -160,9 +205,15 @@ func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uu
 			q = q.Offset(p.Offset)
 		}
 	}
+
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
 	if err := q.Find(&list).Error; err != nil {
 		return nil, 0, err
 	}
+
 	if len(list) == 0 {
 		return list, total, nil
 	}
@@ -407,6 +458,37 @@ func (r *academyRepository) DeleteContentProgressByMaterialID(ctx context.Contex
 
 func (r *academyRepository) DeleteMaterialProgressByMaterialID(ctx context.Context, materialId uuid.UUID) error {
 	return r.db.WithContext(ctx).Where("material_id = ?", materialId).Delete(&entity.AcademyMaterialProgress{}).Error
+}
+
+func (r *academyRepository) DeleteAcademyProgressByAcademyID(ctx context.Context, academyId uuid.UUID) error {
+	return r.db.WithContext(ctx).Where("academy_id = ?", academyId).Delete(&entity.AcademyProgress{}).Error
+}
+
+func (r *academyRepository) DeleteAcademyAssignByAcademyID(ctx context.Context, academyId uuid.UUID) error {
+	return r.db.WithContext(ctx).Where("academy_id = ?", academyId).Delete(&entity.AcademyAssign{}).Error
+}
+
+func (r *academyRepository) DeleteMaterialProgressByAcademyID(ctx context.Context, academyId uuid.UUID) error {
+	return r.db.WithContext(ctx).Where("academy_id = ?", academyId).Delete(&entity.AcademyMaterialProgress{}).Error
+}
+
+func (r *academyRepository) DeleteContentProgressByAcademyID(ctx context.Context, academyId uuid.UUID) error {
+	return r.db.WithContext(ctx).Where("academy_id = ?", academyId).Delete(&entity.AcademyContentProgress{}).Error
+}
+
+func (r *academyRepository) DeleteContentsByMaterialID(ctx context.Context, materialId uuid.UUID) error {
+	return r.db.WithContext(ctx).Where("material_id = ?", materialId).Delete(&entity.AcademyContent{}).Error
+}
+
+func (r *academyRepository) DeleteContentsByAcademyID(ctx context.Context, academyId uuid.UUID) error {
+	// Delete contents where material_id matches any material in the academy
+	return r.db.WithContext(ctx).Where("material_id IN (?)",
+		r.db.Model(&entity.AcademyMaterial{}).Select("id").Where("academy_id = ?", academyId),
+	).Delete(&entity.AcademyContent{}).Error
+}
+
+func (r *academyRepository) DeleteMaterialsByAcademyID(ctx context.Context, academyId uuid.UUID) error {
+	return r.db.WithContext(ctx).Where("academy_id = ?", academyId).Delete(&entity.AcademyMaterial{}).Error
 }
 
 func (r *academyRepository) CountCompletedContentsByMaterialAndAccount(ctx context.Context, accountId uuid.UUID, materialId uuid.UUID) (int64, error) {

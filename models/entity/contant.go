@@ -7,3 +7,11 @@ const (
 )
 
 const MB = 1024 * 1024
+
+type Pagination struct {
+    Limit  int
+    Offset int
+    Search string
+    SortBy string
+    Order  string
+}

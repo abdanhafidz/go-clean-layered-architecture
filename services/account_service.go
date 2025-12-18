@@ -23,6 +23,7 @@ type AccountService interface {
 	Validate(ctx context.Context, emailorusername string, password string) (dto.AuthenticatedUser, error)
 	ChangePassword(ctx context.Context, accountId uuid.UUID, oldPassword string, newPassword string) (dto.AuthenticatedUser, error)
 	GetDetail(ctx context.Context, accountId uuid.UUID) (dto.AccountDetailResponse, error)
+	GetById(ctx context.Context, accountId uuid.UUID) (entity.Account, error)
 	CreateEmptyDetail(ctx context.Context, accountId uuid.UUID) (dto.AccountDetailResponse, error)
 	UpdateDetail(ctx context.Context, details entity.AccountDetail) (dto.AccountDetailResponse, error)
 }
@@ -96,6 +97,7 @@ func (s *accountService) Validate(ctx context.Context, emailorusername string, p
 
 	token, err := s.jwtService.GenerateToken(ctx, dto.JWTCustomClaims{
 		AccountId: acc.Id.String(),
+		Role:      acc.Role,
 	})
 
 	if err != nil {
@@ -157,6 +159,10 @@ func (s *accountService) GetDetail(ctx context.Context, accountId uuid.UUID) (dt
 	}
 	acc.Password = "SECRET"
 	return dto.AccountDetailResponse{Account: acc, Details: entity.AccountDetail(d)}, nil
+}
+
+func (s *accountService) GetById(ctx context.Context, accountId uuid.UUID) (entity.Account, error) {
+	return s.accountRepo.GetAccountById(ctx, accountId)
 }
 
 func (s *accountService) CreateEmptyDetail(ctx context.Context, accountID uuid.UUID) (dto.AccountDetailResponse, error) {
