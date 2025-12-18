@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
+	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
-	"abdanhafidz.com/go-boilerplate/repositories"
 	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -83,6 +83,9 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	search := ctx.DefaultQuery("search", "")
+	sortBy := ctx.DefaultQuery("sortBy", "")
+	order := ctx.DefaultQuery("order", "")
 	isModified := false
 
 	if limit < 1 {
@@ -99,7 +102,7 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 	}
 
 	offset := (page - 1) * limit
-	p := repositories.Pagination{Limit: limit, Offset: offset}
+	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order}
 	list, total, err := c.academyService.ListAcademy(ctx.Request.Context(), accountId, p)
 
 	if err != nil {
@@ -123,15 +126,13 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 	}
 
 	meta := gin.H{
-		"total_records": total,
-		"page_size":     limit,
-		"current_page":  page,
-		"is_modified":   isModified,
+		"totalItems":  total,
+		"totalPages":  totalPages,
+		"currentPage": page,
 	}
-
-		if isModified {
-			ctx.Status(http.StatusAccepted)
-		}
+	if isModified {
+		ctx.Status(http.StatusAccepted)
+	}
 
 	ResponseJSON(ctx, meta, list, err)
 }

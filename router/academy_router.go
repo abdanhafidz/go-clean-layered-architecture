@@ -9,11 +9,12 @@ import (
 func AcademyRouter(router *gin.Engine, middleware provider.MiddlewareProvider, controller provider.ControllerProvider) {
 	academyController := controller.ProvideAcademyController()
 	authenticationMiddleware := middleware.ProvideAuthenticationMiddleware()
+	authorizationMiddleware := middleware.ProvideAuthorizationMiddleware()
 	routerGroup := router.Group("/api/v1/academy")
 
 	routerGroup.Use(gzip.Gzip(gzip.DefaultCompression))
 	{
-		adminGroup := routerGroup.Group("/admin", authenticationMiddleware.VerifyAccount)
+		adminGroup := routerGroup.Group("/admin", authorizationMiddleware.VerifyAdmin)
 
 		adminGroup.POST("/", academyController.CreateAcademy)
 		adminGroup.GET("/id/:id/detail", academyController.GetAcademyDetail)
@@ -30,7 +31,7 @@ func AcademyRouter(router *gin.Engine, middleware provider.MiddlewareProvider, c
 		adminGroup.DELETE("/assign/:id", academyController.UnassignAccountFromAcademy)
 		adminGroup.GET("/assign/:academy_id", academyController.ListAssignmentsByAcademy)
 	}
-	
+
 	routerGroup.GET("/", authenticationMiddleware.VerifyAccount, academyController.ListAcademy)
 	routerGroup.POST("/join", authenticationMiddleware.VerifyAccount, academyController.JoinAcademyByCode)
 	routerGroup.GET("/:academy_slug", authenticationMiddleware.VerifyAccount, academyController.GetAcademy)

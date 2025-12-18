@@ -22,7 +22,7 @@ type AcademyService interface {
 	CreateAcademy(ctx context.Context, req dto.CreateAcademyRequest) (entity.Academy, error)
 	UpdateAcademy(ctx context.Context, id uuid.UUID, req dto.UpdateAcademyRequest) (entity.Academy, error)
 	DeleteAcademy(ctx context.Context, id uuid.UUID) error
-	ListAcademy(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error)
+	ListAcademy(ctx context.Context, accountId uuid.UUID, p entity.Pagination) ([]entity.Academy, int64, error)
 
 	CreateMaterial(ctx context.Context, req dto.CreateMaterialRequest) (entity.AcademyMaterial, error)
 	GetMaterial(ctx context.Context, accountId uuid.UUID, academySlug string, materialSlug string) (entity.AcademyMaterial, error)
@@ -135,17 +135,36 @@ func (s *academyService) UpdateAcademy(ctx context.Context, id uuid.UUID, req dt
 }
 
 func (s *academyService) DeleteAcademy(ctx context.Context, id uuid.UUID) error {
-	_, mats, err := s.academyRepo.GetAcademyWithMaterials(ctx, id)
-	if err != nil {
+	if _, err := s.academyRepo.GetAcademyByID(ctx, id); err != nil {
 		return http_error.ACADEMY_NOT_FOUND
 	}
-	if len(mats) > 0 {
-		return http_error.ACADEMY_HAS_MATERIALS
-	}
-	return s.academyRepo.DeleteAcademy(ctx, id)
+
+	return s.academyRepo.Atomic(ctx, func(txRepo repositories.AcademyRepository) error {
+		if err := txRepo.DeleteAcademyAssignByAcademyID(ctx, id); err != nil {
+			return err
+		}
+		if err := txRepo.DeleteAcademyProgressByAcademyID(ctx, id); err != nil {
+			return err
+		}
+		if err := txRepo.DeleteMaterialProgressByAcademyID(ctx, id); err != nil {
+			return err
+		}
+		if err := txRepo.DeleteContentProgressByAcademyID(ctx, id); err != nil {
+			return err
+		}
+
+		if err := txRepo.DeleteContentsByAcademyID(ctx, id); err != nil {
+			return err
+		}
+		if err := txRepo.DeleteMaterialsByAcademyID(ctx, id); err != nil {
+			return err
+		}
+
+		return txRepo.DeleteAcademy(ctx, id)
+	})
 }
 
-func (s *academyService) ListAcademy(ctx context.Context, accountId uuid.UUID, p repositories.Pagination) ([]entity.Academy, int64, error) {
+func (s *academyService) ListAcademy(ctx context.Context, accountId uuid.UUID, p entity.Pagination) ([]entity.Academy, int64, error) {
 	list, total, err := s.academyRepo.ListVisibleAcademy(ctx, accountId, &p)
 	return list, total, err
 }
@@ -234,6 +253,11 @@ func (s *academyService) DeleteMaterial(ctx context.Context, id uuid.UUID) error
 			return err
 		}
 		if err := txRepo.DeleteMaterialProgressByMaterialID(ctx, id); err != nil {
+			return err
+		}
+
+		// NEW: Delete contents of this material first
+		if err := txRepo.DeleteContentsByMaterialID(ctx, id); err != nil {
 			return err
 		}
 
@@ -821,9 +845,9 @@ func (s *academyService) JoinByCode(ctx context.Context, accountId uuid.UUID, co
 		return entity.AcademyAssign{}, http_error.DUPLICATE_DATA
 	}
 	assign := entity.AcademyAssign{
-		Id: uuid.New(), 
-		AccountId: accountId, 
-		AcademyId: ac.Id, 
+		Id:        uuid.New(),
+		AccountId: accountId,
+		AcademyId: ac.Id,
 		CreatedAt: time.Now(),
 	}
 	return s.academyRepo.AssignAccountToAcademy(ctx, assign)

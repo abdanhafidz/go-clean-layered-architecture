@@ -10,6 +10,8 @@ var (
 	NOT_FOUND_ERROR       = errors.New("Resource not found")
 	DUPLICATE_DATA        = errors.New("Duplicate data")
 	INVALID_DATA_PAYLOAD  = errors.New("Invalid data payload provided")
+	DATA_NOT_FOUND        = errors.New("Data not found")
+	FORBIDDEN_ERROR       = errors.New("Forbidden, you don't have permission to access this service")
 
 	// ================= AUTH & ACCOUNT =================
 	UNAUTHORIZED           = errors.New("Unauthorized, you don't have permission to access this service")
@@ -35,6 +37,10 @@ var (
 	DESCRIPTION_REQUIRED        = errors.New("Description is required")
 	CODE_REQUIRED               = errors.New("Code is required")
 	INVALID_CODE                = errors.New("Code is invalid, it must be 6 characters long and contain only letters or numbers")
+	EVENT_START_DATE_INVALID    = errors.New("Event start date must be in the future")
+	EVENT_END_DATE_INVALID      = errors.New("Event end date must be after start date")
+	INVALID_DATE_FORMAT         = errors.New("Invalid date format, please use RFC3339")
+	EVENT_START_DATE_IN_PAST    = errors.New("Event start date cannot be in the past")
 
 	// ================= FILE UPLOAD =================
 	FILE_TOO_LARGE               = errors.New("File size exceeds the maximum limit")

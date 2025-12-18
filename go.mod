@@ -1,6 +1,6 @@
 module abdanhafidz.com/go-boilerplate
 
-go 1.24.5
+go 1.25.4
 
 require (
 	github.com/gin-contrib/gzip v1.2.5

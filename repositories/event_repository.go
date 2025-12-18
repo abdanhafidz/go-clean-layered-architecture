@@ -2,16 +2,12 @@ package repositories
 
 import (
 	"context"
+	"strings"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-type Pagination struct {
-	Limit  int
-	Offset int
-}
 
 type EventsRepository interface {
 	Create(ctx context.Context, ev entity.Events) (entity.Events, error)
@@ -20,13 +16,12 @@ type EventsRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (entity.Events, error)
 	GetBySlug(ctx context.Context, slug string) (entity.Events, error)
 	GetByCode(ctx context.Context, code string) (entity.Events, error)
-	GetAllPaginate(ctx context.Context, p Pagination) ([]entity.Events, int64, error)
-	ListPublic(ctx context.Context, p *Pagination) ([]entity.Events, int64, error)
+	GetAllPaginate(ctx context.Context, p entity.Pagination) ([]entity.Events, int64, error)
+	ListPublic(ctx context.Context, p *entity.Pagination) ([]entity.Events, int64, error)
+	ListVisible(ctx context.Context, accountId uuid.UUID, p *entity.Pagination) ([]entity.Events, int64, error)
 }
 
-type eventsRepository struct {
-	db *gorm.DB
-}
+type eventsRepository struct{ db *gorm.DB }
 
 func NewEventsRepository(db *gorm.DB) EventsRepository {
 	return &eventsRepository{db: db}
@@ -74,12 +69,30 @@ func (r *eventsRepository) GetByCode(ctx context.Context, code string) (entity.E
 	return ev, nil
 }
 
-func (r *eventsRepository) GetAllPaginate(ctx context.Context, p Pagination) ([]entity.Events, int64, error) {
+func (r *eventsRepository) GetAllPaginate(ctx context.Context, p entity.Pagination) ([]entity.Events, int64, error) {
 	var list []entity.Events
 	q := r.db.WithContext(ctx).Model(&entity.Events{})
-	var total int64
-	if err := q.Count(&total).Error; err != nil {
-		return nil, 0, err
+	if s := strings.TrimSpace(p.Search); s != "" {
+		s = strings.Trim(s, "\"'")
+		s = strings.ToLower(s)
+		like := "%" + s + "%"
+		q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ? OR LOWER(event_code) LIKE ?", like, like, like)
+	}
+	col := strings.ToLower(strings.TrimSpace(p.SortBy))
+	ord := strings.ToLower(strings.TrimSpace(p.Order))
+	if col == "" {
+		col = "title"
+	}
+	if ord != "desc" {
+		ord = "asc"
+	}
+	switch col {
+	case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public":
+		q = q.Order(col + " " + ord)
+	case "id_event", "id":
+		q = q.Order("id " + ord)
+	default:
+		q = q.Order("title " + ord)
 	}
 	if p.Limit > 0 {
 		q = q.Limit(p.Limit)
@@ -87,20 +100,42 @@ func (r *eventsRepository) GetAllPaginate(ctx context.Context, p Pagination) ([]
 	if p.Offset > 0 {
 		q = q.Offset(p.Offset)
 	}
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	if err := q.Find(&list).Error; err != nil {
 		return nil, 0, err
 	}
 	return list, total, nil
 }
 
-func (r *eventsRepository) ListPublic(ctx context.Context, p *Pagination) ([]entity.Events, int64, error) {
+func (r *eventsRepository) ListPublic(ctx context.Context, p *entity.Pagination) ([]entity.Events, int64, error) {
 	var list []entity.Events
 	q := r.db.WithContext(ctx).Model(&entity.Events{}).Where("is_public = ?", true)
-	var total int64
-	if err := q.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
 	if p != nil {
+		if s := strings.TrimSpace(p.Search); s != "" {
+			s = strings.Trim(s, "\"'")
+			s = strings.ToLower(s)
+			like := "%" + s + "%"
+			q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ? OR LOWER(event_code) LIKE ?", like, like, like)
+		}
+		col := strings.ToLower(strings.TrimSpace(p.SortBy))
+		ord := strings.ToLower(strings.TrimSpace(p.Order))
+		if col == "" {
+			col = "title"
+		}
+		if ord != "desc" {
+			ord = "asc"
+		}
+		switch col {
+		case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public":
+			q = q.Order(col + " " + ord)
+		case "id_event", "id":
+			q = q.Order("id " + ord)
+		default:
+			q = q.Order("title " + ord)
+		}
 		if p.Limit > 0 {
 			q = q.Limit(p.Limit)
 		}
@@ -108,8 +143,95 @@ func (r *eventsRepository) ListPublic(ctx context.Context, p *Pagination) ([]ent
 			q = q.Offset(p.Offset)
 		}
 	}
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	if err := q.Find(&list).Error; err != nil {
 		return nil, 0, err
 	}
+	return list, total, nil
+}
+
+func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID, p *entity.Pagination) ([]entity.Events, int64, error) {
+	var list []entity.Events
+	sub := r.db.WithContext(ctx).Model(&entity.EventAssign{}).Select("event_id").Where("account_id = ?", accountId)
+	q := r.db.WithContext(ctx).Model(&entity.Events{}).Where("is_public = ?", true).Or("id IN (?)", sub)
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if p != nil {
+		if s := strings.TrimSpace(p.Search); s != "" {
+			s = strings.Trim(s, "\"'")
+			s = strings.ToLower(s)
+			like := "%" + s + "%"
+			q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ? OR LOWER(event_code) LIKE ?", like, like, like)
+		}
+		if err := q.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+
+		col := strings.ToLower(strings.TrimSpace(p.SortBy))
+		ord := strings.ToLower(strings.TrimSpace(p.Order))
+		if col == "" {
+			col = "title"
+		}
+		if ord != "desc" {
+			ord = "asc"
+		}
+		switch col {
+		case "title", "slug", "start_event", "end_event", "overview":
+			q = q.Order(col + " " + ord)
+		case "id_event", "id":
+			q = q.Order("id " + ord)
+		default:
+			q = q.Order("title " + ord)
+		}
+		if p.Limit > 0 {
+			q = q.Limit(p.Limit)
+		}
+		if p.Offset > 0 {
+			q = q.Offset(p.Offset)
+		}
+	} else {
+		if err := q.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+	}
+
+	if err := q.Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	if len(list) == 0 {
+		return list, total, nil
+	}
+
+	eventIDs := make([]uuid.UUID, len(list))
+	for i, ev := range list {
+		eventIDs[i] = ev.Id
+	}
+
+	var assigns []entity.EventAssign
+	if err := r.db.WithContext(ctx).
+		Where("account_id = ?", accountId).
+		Where("event_id IN ?", eventIDs).
+		Find(&assigns).Error; err != nil {
+		return nil, 0, err
+	}
+	assignedMap := make(map[uuid.UUID]bool)
+	for _, a := range assigns {
+		assignedMap[a.EventId] = true
+	}
+
+	for i := range list {
+		if assignedMap[list[i].Id] {
+			list[i].RegisterStatus = 1
+		} else {
+			list[i].RegisterStatus = 0
+		}
+	}
+
 	return list, total, nil
 }

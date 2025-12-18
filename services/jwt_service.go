@@ -30,6 +30,7 @@ func (s *jwtService) GenerateToken(ctx context.Context, payload dto.JWTCustomCla
 
 	claims := jwt.MapClaims{
 		"account_id": payload.AccountId,
+		"role":       payload.Role,
 	}
 
 	fmt.Println(s.secretKey)
@@ -74,7 +75,13 @@ func (s *jwtService) ValidateToken(ctx context.Context, tokenStr string) (claim 
 	if !ok {
 		return nil, http_error.INTERNAL_SERVER_ERROR
 	}
+	role, ok := claims["role"].(string)
+	if !ok {
+		return nil, http_error.INTERNAL_SERVER_ERROR
+	}
+
 	return &dto.JWTCustomClaims{
 		AccountId: account_id,
+		Role:      role,
 	}, nil
 }
