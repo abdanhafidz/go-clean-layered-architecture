@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"log"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,10 +28,17 @@ func NewAppProvider() AppProvider {
 	ginRouter := gin.Default()
 	configProvider := NewConfigProvider()
 	repositoriesProvider := NewRepositoriesProvider(configProvider)
-	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider)
+	supabaseCfg := configProvider.ProvideSupabaseConfig()
+	storageDriver, errStorage := services.NewSupabaseStorageService(supabaseCfg.GetURL(), supabaseCfg.GetServiceKey(), supabaseCfg.GetBucketName())
+	if errStorage != nil {
+		log.Fatalf("Supabase storage initialization failed: %v", errStorage)
+	}
+	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
 	controllerProvider := NewControllerProvider(servicesProvider)
 	middlewareProvider := NewMiddlewareProvider(servicesProvider)
-	configProvider.ProvideDatabaseConfig().AutoMigrateAll(
+
+	// Database Migrations with error handling
+	err := configProvider.ProvideDatabaseConfig().AutoMigrateAll(
 		// Accounts & Auth
 		&entity.Account{},
 		&entity.AccountDetail{},
@@ -61,14 +70,26 @@ func NewAppProvider() AppProvider {
 		&entity.AcademyContent{},
 		&entity.AcademyMaterialProgress{},
 		&entity.AcademyContentProgress{},
+		&entity.AcademyProgress{},
+		&entity.ExamAcademyAssign{},
+		&entity.ExamAcademyAnswer{},
+		&entity.ExamAcademyAttempt{},
+		&entity.ExamAcademyResult{},
+		&entity.AcademyAssign{},
 
 		// Options & Regions
 		&entity.OptionCategory{},
 		&entity.OptionValues{},
 		&entity.RegionProvince{},
 		&entity.RegionCity{},
+
+		// Files Storage
+		&entity.File{},
 	)
 
+	if err != nil {
+		log.Fatalf("Database migration failed: %v", err)
+	}
 	return &appProvider{
 		ginRouter:            ginRouter,
 		configProvider:       configProvider,

@@ -43,7 +43,7 @@ func ResponseFAILED[TMetaData any](c *gin.Context, metaData TMetaData, err error
 			MetaData: metaData,
 		})
 		return
-	} else if errors.Is(err, http_error.DATA_NOT_FOUND) || errors.Is(err, gorm.ErrRecordNotFound) {
+	} else if errors.Is(err, http_error.NOT_FOUND_ERROR) || errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(404, dto.ErrorResponse{
 			Status:   "error",
 			Error:    err,
@@ -56,6 +56,26 @@ func ResponseFAILED[TMetaData any](c *gin.Context, metaData TMetaData, err error
 			Status:   "error",
 			Error:    err,
 			Message:  "Server took to long to respond!",
+			MetaData: metaData,
+		})
+		return
+	} else if errors.Is(err, http_error.FORBIDDEN_ERROR) {
+		c.JSON(403, dto.ErrorResponse{
+			Status:   "error",
+			Error:    err,
+			Message:  err.Error(),
+			MetaData: metaData,
+		})
+		return
+	} else if errors.Is(err, http_error.EVENT_START_DATE_IN_PAST) ||
+		errors.Is(err, http_error.EVENT_START_DATE_INVALID) ||
+		errors.Is(err, http_error.EVENT_END_DATE_INVALID) ||
+		errors.Is(err, http_error.INVALID_DATE_FORMAT) ||
+		errors.Is(err, http_error.INVALID_CODE) {
+		c.JSON(400, dto.ErrorResponse{
+			Status:   "error",
+			Error:    err,
+			Message:  err.Error(),
 			MetaData: metaData,
 		})
 		return

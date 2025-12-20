@@ -85,6 +85,7 @@ func (s *externalAuthService) GoogleAuth(ctx context.Context, idToken string) (d
 	}
 	token, _ := s.jwtService.GenerateToken(ctx, dto.JWTCustomClaims{
 		AccountId: acc.Id.String(),
+		Role:      acc.Role,
 	})
 
 	err = errors.Join(errAcc, errExtAuth)

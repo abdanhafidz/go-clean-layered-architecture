@@ -1,4 +1,4 @@
-﻿package provider
+package provider
 
 import "abdanhafidz.com/go-boilerplate/repositories"
 
@@ -21,7 +21,12 @@ type RepositoriesProvider interface {
 	ProvideProblemSetRepository() repositories.ProblemSetRepository
 	ProvideQuestionsRepository() repositories.QuestionsRepository
 	ProvideRegionRepository() repositories.RegionRepository
-	ProvideResultRepository() repositories.ResultRepository
+    ProvideResultRepository() repositories.ResultRepository
+    ProvideFileRepository() repositories.FileRepository
+    ProvideExamAcademyAssignRepository() repositories.ExamAcademyAssignRepository
+    ProvideExamAcademyAttemptRepository() repositories.ExamAcademyAttemptRepository
+    ProvideExamAcademyAnswerRepository() repositories.ExamAcademyAnswerRepository
+    ProvideAcademyResultRepository() repositories.AcademyResultRepository
 }
 
 type repositoriesProvider struct {
@@ -43,13 +48,17 @@ type repositoriesProvider struct {
 	problemSetRepository           repositories.ProblemSetRepository
 	questionsRepository            repositories.QuestionsRepository
 	regionRepository               repositories.RegionRepository
-	resultRepository               repositories.ResultRepository
+    resultRepository               repositories.ResultRepository
+    fileRepository                 repositories.FileRepository 
+    examAcademyAssignRepository    repositories.ExamAcademyAssignRepository
+    examAcademyAttemptRepository   repositories.ExamAcademyAttemptRepository
+    examAcademyAnswerRepository    repositories.ExamAcademyAnswerRepository
+    academyResultRepository        repositories.AcademyResultRepository
 }
 
 func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	dbConfig := cfg.ProvideDatabaseConfig()
 	db := dbConfig.GetInstance()
-
 	academyRepository := repositories.NewAcademyRepository(db)
 	accountDetailRepository := repositories.NewAccountDetailRepository(db)
 	accountRepository := repositories.NewAccountRepository(db)
@@ -68,9 +77,14 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	problemSetRepository := repositories.NewProblemSetRepository(db)
 	questionsRepository := repositories.NewQuestionsRepository(db)
 	regionRepository := repositories.NewRegionRepository(db)
-	resultRepository := repositories.NewResultRepository(db)
+    resultRepository := repositories.NewResultRepository(db)
+    fileRepository := repositories.NewFileRepository(db) // Init here
+    examAcademyAssignRepository := repositories.NewExamAcademyAssignRepository(db)
+    examAcademyAttemptRepository := repositories.NewExamAcademyAttemptRepository(db)
+    examAcademyAnswerRepository := repositories.NewExamAcademyAnswerRepository(db)
+    academyResultRepository := repositories.NewAcademyResultRepository(db)
 
-	return &repositoriesProvider{
+    return &repositoriesProvider{
 		academyRepository:              academyRepository,
 		accountDetailRepository:        accountDetailRepository,
 		accountRepository:              accountRepository,
@@ -89,8 +103,13 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 		problemSetRepository:           problemSetRepository,
 		questionsRepository:            questionsRepository,
 		regionRepository:               regionRepository,
-		resultRepository:               resultRepository,
-	}
+        resultRepository:               resultRepository,
+        fileRepository:                 fileRepository, // Assign here
+        examAcademyAssignRepository:    examAcademyAssignRepository,
+        examAcademyAttemptRepository:   examAcademyAttemptRepository,
+        examAcademyAnswerRepository:    examAcademyAnswerRepository,
+        academyResultRepository:        academyResultRepository,
+    }
 }
 
 func (r *repositoriesProvider) ProvideAcademyRepository() repositories.AcademyRepository {
@@ -168,3 +187,11 @@ func (r *repositoriesProvider) ProvideRegionRepository() repositories.RegionRepo
 func (r *repositoriesProvider) ProvideResultRepository() repositories.ResultRepository {
 	return r.resultRepository
 }
+
+func (r *repositoriesProvider) ProvideFileRepository() repositories.FileRepository {
+    return r.fileRepository
+}
+func (r *repositoriesProvider) ProvideExamAcademyAssignRepository() repositories.ExamAcademyAssignRepository { return r.examAcademyAssignRepository }
+func (r *repositoriesProvider) ProvideExamAcademyAttemptRepository() repositories.ExamAcademyAttemptRepository { return r.examAcademyAttemptRepository }
+func (r *repositoriesProvider) ProvideExamAcademyAnswerRepository() repositories.ExamAcademyAnswerRepository { return r.examAcademyAnswerRepository }
+func (r *repositoriesProvider) ProvideAcademyResultRepository() repositories.AcademyResultRepository { return r.academyResultRepository }

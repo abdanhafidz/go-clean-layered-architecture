@@ -14,7 +14,7 @@ type middlewareProvider struct {
 
 func NewMiddlewareProvider(servicesProvider ServicesProvider) MiddlewareProvider {
 	authenticationMiddleware := middleware.NewAuthenticationMiddleware(servicesProvider.ProvideJWTService())
-	authorizationMiddleware := middleware.NewAuthorizationMiddleware(servicesProvider.ProvideEventService())
+	authorizationMiddleware := middleware.NewAuthorizationMiddleware(servicesProvider.ProvideEventService(), servicesProvider.ProvideJWTService())
 	return &middlewareProvider{
 		authenticationMiddleware: authenticationMiddleware,
 		authorizationMiddleware:  authorizationMiddleware,

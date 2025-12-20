@@ -8,7 +8,7 @@ type SignInRequest struct {
 }
 
 type SignUpRequest struct {
-	Name 	 string `json:"name"`
+	Name     string `json:"name"`
 	Email    string `json:"email" binding:"required,email"`
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -20,7 +20,11 @@ type CreateEmailVerificationRequest struct {
 
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" binding:"required" `
-	NewPassword string `json:"new_password" binding:"required" `
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
+type UpdateUserRoleRequest struct {
+	Role string `json:"role" binding:"required"`
 }
 
 type ValidateVerifyEmailRequest struct {
