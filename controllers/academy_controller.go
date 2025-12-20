@@ -3,10 +3,11 @@ package controllers
 import (
 	"net/http"
 	"strconv"
-
+	
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -281,6 +282,10 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 
 func (c *academyController) JoinAcademyByCode(ctx *gin.Context) {
 	req := RequestJSON[dto.JoinAcademyByCodeRequest](ctx)
+	if err := utils.ValidateCode(req.Code); err != nil {
+		ResponseJSON[any, any](ctx, req, nil, http_error.INVALID_CODE)
+		return
+	}
 	accountId := ParseAccountId(ctx)
 	res, err := c.academyService.JoinByCode(ctx.Request.Context(), accountId, req.Code)
 	ResponseJSON(ctx, req, res, err)
