@@ -163,32 +163,27 @@ func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uu
 		Where(r.db.Where("is_public = ?", true).Or("id IN (?)", sub))
 
 	if p != nil {
+		if p.RegisterStatus != nil {
+			if *p.RegisterStatus == 1 {
+				q = q.Where("id IN (?)", sub)
+			} else if *p.RegisterStatus == 0 {
+				q = q.Where("id NOT IN (?)", sub)
+			}
+		}
+
 		sortColumn := "title"
 		switch p.SortBy {
-			case "title":
-				sortColumn = "title"
-			case "slug":
-				sortColumn = "slug"
-			case "description":
-				sortColumn = "description"
-			case "createdAt", "created_at":
-				sortColumn = "created_at"
-			case "updatedAt", "updated_at":
-				sortColumn = "updated_at"
-			case "materials_count", "materialsCount":
-				sortColumn = "materials_count"
+		case "title":
+			sortColumn = "title"
+		case "createdAt", "created_at":
+			sortColumn = "created_at"
 		}
 
 		if s := strings.TrimSpace(p.Search); s != "" {
 			s = strings.Trim(s, "\"'")
 			s = strings.ToLower(s)
 			like := "%" + s + "%"
-
-			if p.SortBy != "" {
-				q = q.Where(fmt.Sprintf("LOWER(%s) LIKE ?", sortColumn), like)
-			} else {
-				q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ?", like, like)
-			}
+			q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ?", like, like)
 		}
 
 		sortDirection := "DESC"

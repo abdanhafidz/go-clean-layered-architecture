@@ -36,7 +36,7 @@ var (
 	IMAGE_REQUIRED              = errors.New("Image is required")
 	DESCRIPTION_REQUIRED        = errors.New("Description is required")
 	CODE_REQUIRED               = errors.New("Code is required")
-	INVALID_CODE                = errors.New("Code is invalid, it must be 6 characters long and contain only letters or numbers")
+	INVALID_CODE                = errors.New("Code must be on range 6-12")
 	EVENT_START_DATE_INVALID    = errors.New("Event start date must be in the future")
 	EVENT_END_DATE_INVALID      = errors.New("Event end date must be after start date")
 	INVALID_DATE_FORMAT         = errors.New("Invalid date format, please use RFC3339")

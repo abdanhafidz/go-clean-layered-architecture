@@ -86,6 +86,13 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 	search := ctx.DefaultQuery("search", "")
 	sortBy := ctx.DefaultQuery("sortBy", "")
 	order := ctx.DefaultQuery("order", "")
+
+	var registerStatus *int
+	if val := ctx.Query("registerStatus"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil {
+			registerStatus = &i
+		}
+	}
 	isModified := false
 
 	if limit < 1 {
@@ -102,7 +109,7 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 	}
 
 	offset := (page - 1) * limit
-	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order}
+	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus}
 	list, total, err := c.academyService.ListAcademy(ctx.Request.Context(), accountId, p)
 
 	if err != nil {

@@ -87,12 +87,10 @@ func (r *eventsRepository) GetAllPaginate(ctx context.Context, p entity.Paginati
 		ord = "asc"
 	}
 	switch col {
-	case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public":
-		q = q.Order(col + " " + ord)
-	case "id_event", "id":
-		q = q.Order("id " + ord)
-	default:
-		q = q.Order("title " + ord)
+		case "title", "start_event", "end_event", "overview", "is_public", "created_at":
+			q = q.Order(col + " " + ord)
+		default:
+			q = q.Order("title " + ord)
 	}
 	if p.Limit > 0 {
 		q = q.Limit(p.Limit)
@@ -129,8 +127,10 @@ func (r *eventsRepository) ListPublic(ctx context.Context, p *entity.Pagination)
 			ord = "asc"
 		}
 		switch col {
-		case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public":
+		case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public", "created_at":
 			q = q.Order(col + " " + ord)
+		case "createdat":
+			q = q.Order("created_at " + ord)
 		case "id_event", "id":
 			q = q.Order("id " + ord)
 		default:
@@ -163,6 +163,14 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 	}
 
 	if p != nil {
+		if p.RegisterStatus != nil {
+			if *p.RegisterStatus == 1 {
+				q = q.Where("id IN (?)", sub)
+			} else if *p.RegisterStatus == 0 {
+				q = q.Where("id NOT IN (?)", sub)
+			}
+		}
+
 		if s := strings.TrimSpace(p.Search); s != "" {
 			s = strings.Trim(s, "\"'")
 			s = strings.ToLower(s)
@@ -182,8 +190,10 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 			ord = "asc"
 		}
 		switch col {
-		case "title", "slug", "start_event", "end_event", "overview":
+		case "title", "slug", "start_event", "end_event", "overview", "created_at":
 			q = q.Order(col + " " + ord)
+		case "createdat":
+			q = q.Order("created_at " + ord)
 		case "id_event", "id":
 			q = q.Order("id " + ord)
 		default:
