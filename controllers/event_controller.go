@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"strconv"
-
+	
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -82,9 +83,13 @@ func (c *eventController) DetailBySlug(ctx *gin.Context) {
 
 func (c *eventController) Join(ctx *gin.Context) {
 	req := RequestJSON[dto.JoinEventRequest](ctx)
+	if err := utils.ValidateCode(req.EventCode); err != nil {
+		ResponseJSON[any, any](ctx, req, nil, err)
+		return
+	}
 	accountId := ParseAccountId(ctx)
 	res, err := c.eventService.JoinByCode(ctx.Request.Context(), accountId, req.EventCode)
-	ResponseJSON(ctx, req, res, err)
+	ResponseJSON[any, any](ctx, req, res, err)
 }
 
 func (c *eventController) CreateEvent(ctx *gin.Context) {

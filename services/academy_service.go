@@ -819,15 +819,6 @@ func (s *academyService) ListAssignmentsByAcademy(ctx context.Context, academyId
 	return s.academyRepo.ListAssignmentsByAcademy(ctx, academyId)
 }
 func (s *academyService) JoinByCode(ctx context.Context, accountId uuid.UUID, code string) (entity.AcademyAssign, error) {
-	if len(code) != 6 {
-		return entity.AcademyAssign{}, http_error.BAD_REQUEST_ERROR
-	}
-	for i := 0; i < 6; i++ {
-		ch := code[i]
-		if !((ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')) {
-			return entity.AcademyAssign{}, http_error.BAD_REQUEST_ERROR
-		}
-	}
 	ac, err := s.academyRepo.GetAcademyByCode(ctx, code)
 	if err != nil {
 		return entity.AcademyAssign{}, http_error.ACADEMY_NOT_FOUND
