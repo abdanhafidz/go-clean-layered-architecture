@@ -86,6 +86,7 @@ type Events struct {
 	ImgBanner      string         `json:"img_banner,omitempty"`
 	EventCode      string         `json:"event_code,omitempty"`
 	IsPublic       bool           `json:"is_public,omitempty"`
+	CreatedAt      time.Time      `json:"created_at,omitempty"`
 	DeletedAt      gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 	RegisterStatus int            `gorm:"-" json:"register_status"`
 }
@@ -272,6 +273,7 @@ type Academy struct {
 	Materials       []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
 	AcademyProgress AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progress,omitempty"`
 	RegisterStatus  int               `gorm:"-" json:"register_status"`
+	CreatedAt       time.Time         `json:"created_at,omitempty"`
 	DeletedAt       gorm.DeletedAt    `json:"deleted_at,omitempty" gorm:"index"`
 }
 
@@ -287,6 +289,7 @@ type AcademyMaterial struct {
 	ContentsCount           int64                   `json:"contents_count,omitempty"`
 	Contents                []AcademyContent        `gorm:"foreignKey:MaterialId;references:Id" json:"contents,omitempty"`
 	AcademyMaterialProgress AcademyMaterialProgress `gorm:"foreignKey:MaterialId;references:Id" json:"academy_material_progress,omitempty"`
+	CreatedAt               time.Time               `json:"created_at,omitempty"`
 	DeletedAt               gorm.DeletedAt          `json:"deleted_at,omitempty" gorm:"index"`
 }
 
@@ -299,6 +302,7 @@ type AcademyContent struct {
 	Order                  uint                   `json:"order,omitempty"`
 	Contents               string                 `json:"contents,omitempty"`
 	AcademyContentProgress AcademyContentProgress `gorm:"foreignKey:ContentId;references:Id" json:"academy_content_progress,omitempty"`
+	CreatedAt              time.Time              `json:"created_at,omitempty"`
 	DeletedAt              gorm.DeletedAt         `json:"deleted_at,omitempty" gorm:"index"`
 }
 

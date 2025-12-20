@@ -34,6 +34,13 @@ func (c *eventController) List(ctx *gin.Context) {
 	search := ctx.DefaultQuery("search", "")
 	sortBy := ctx.DefaultQuery("sortBy", "")
 	order := ctx.DefaultQuery("order", "")
+
+	var registerStatus *int
+	if val := ctx.Query("registerStatus"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil {
+			registerStatus = &i
+		}
+	}
 	if limit < 1 {
 		limit = 10
 	} else if limit > 50 {
@@ -43,7 +50,7 @@ func (c *eventController) List(ctx *gin.Context) {
 		page = 1
 	}
 	offset := (page - 1) * limit
-	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order}
+	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus}
 	accountId := ParseAccountId(ctx)
 	list, total, err := c.eventService.List(ctx.Request.Context(), accountId, p)
 	var totalPages int

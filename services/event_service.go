@@ -9,6 +9,7 @@ import (
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/repositories"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/google/uuid"
 )
 
@@ -125,14 +126,8 @@ func (s *eventService) CreateEvent(ctx context.Context, req dto.CreateEventReque
 		return entity.Events{}, http_error.INVALID_DATE_FORMAT
 	}
 
-	if len(req.EventCode) != 6 {
-		return entity.Events{}, http_error.INVALID_CODE
-	}
-	for i := 0; i < 6; i++ {
-		c := req.EventCode[i]
-		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
-			return entity.Events{}, http_error.INVALID_CODE
-		}
+	if err := utils.ValidateCode(req.EventCode); err != nil {
+		return entity.Events{}, err
 	}
 
 	slugVal := strings.ToLower(strings.ReplaceAll(req.Title, " ", "-"))

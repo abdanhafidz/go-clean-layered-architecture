@@ -59,7 +59,7 @@ func ResponseFAILED[TMetaData any](c *gin.Context, metaData TMetaData, err error
 			MetaData: metaData,
 		})
 		return
-	} else if errors.Is(err, http_error.FORBIDDEN_ERROR) {
+	} else if errors.Is(err, http_error.FORBIDDEN_ERROR) || errors.Is(err, http_error.INVALID_CODE) {
 		c.JSON(403, dto.ErrorResponse{
 			Status:   "error",
 			Error:    err,
@@ -70,8 +70,7 @@ func ResponseFAILED[TMetaData any](c *gin.Context, metaData TMetaData, err error
 	} else if errors.Is(err, http_error.EVENT_START_DATE_IN_PAST) ||
 		errors.Is(err, http_error.EVENT_START_DATE_INVALID) ||
 		errors.Is(err, http_error.EVENT_END_DATE_INVALID) ||
-		errors.Is(err, http_error.INVALID_DATE_FORMAT) ||
-		errors.Is(err, http_error.INVALID_CODE) {
+		errors.Is(err, http_error.INVALID_DATE_FORMAT) {
 		c.JSON(400, dto.ErrorResponse{
 			Status:   "error",
 			Error:    err,
