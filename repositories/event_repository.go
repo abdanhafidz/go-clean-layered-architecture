@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"strings"
+	"time"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	"github.com/google/uuid"
@@ -87,10 +88,10 @@ func (r *eventsRepository) GetAllPaginate(ctx context.Context, p entity.Paginati
 		ord = "asc"
 	}
 	switch col {
-		case "title", "start_event", "end_event", "overview", "is_public", "created_at":
-			q = q.Order(col + " " + ord)
-		default:
-			q = q.Order("title " + ord)
+	case "title", "start_event", "end_event", "overview", "is_public", "created_at":
+		q = q.Order(col + " " + ord)
+	default:
+		q = q.Order("title " + ord)
 	}
 	if p.Limit > 0 {
 		q = q.Limit(p.Limit)
@@ -164,10 +165,23 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 
 	if p != nil {
 		if p.RegisterStatus != nil {
-			if *p.RegisterStatus == 1 {
-				q = q.Where("id IN (?)", sub)
-			} else if *p.RegisterStatus == 0 {
-				q = q.Where("id NOT IN (?)", sub)
+			switch *p.RegisterStatus {
+			case 1:
+				q = q.Where("academy.id IN (?)", sub)
+			case 0:
+				q = q.Where("academy.id NOT IN (?)", sub)
+			}
+		}
+
+		if p.Status != nil {
+			now := time.Now()
+			switch *p.Status {
+			case entity.EventStatusUpcoming:
+				q = q.Where("start_event > ?", now)
+			case entity.EventStatusOngoing:
+				q = q.Where("start_event <= ? AND end_event >= ?", now, now)
+			case entity.EventStatusEnded:
+				q = q.Where("end_event < ?", now)
 			}
 		}
 
@@ -199,15 +213,15 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 		default:
 			q = q.Order("title " + ord)
 		}
+		if err := q.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+
 		if p.Limit > 0 {
 			q = q.Limit(p.Limit)
 		}
 		if p.Offset > 0 {
 			q = q.Offset(p.Offset)
-		}
-	} else {
-		if err := q.Count(&total).Error; err != nil {
-			return nil, 0, err
 		}
 	}
 

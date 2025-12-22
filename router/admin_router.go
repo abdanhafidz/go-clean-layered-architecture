@@ -6,6 +6,7 @@ import (
 )
 
 func AdminRouter(router *gin.Engine, middleware provider.MiddlewareProvider, controller provider.ControllerProvider) {
+	authenticationMiddleware := middleware.ProvideAuthenticationMiddleware()
 	authorizationMiddleware := middleware.ProvideAuthorizationMiddleware()
 
 	eventController := controller.ProvideEventController()
@@ -13,7 +14,7 @@ func AdminRouter(router *gin.Engine, middleware provider.MiddlewareProvider, con
 	authenticationController := controller.ProvideAuthenticationController()
 
 	// Event Admin Routes
-	eventAdminGroup := router.Group("api/v1/admin/events", authorizationMiddleware.VerifyAdmin)
+	eventAdminGroup := router.Group("api/v1/admin/events", authenticationMiddleware.VerifyAccount, authorizationMiddleware.VerifyAdmin)
 	{
 		eventAdminGroup.POST("/", eventController.CreateEvent)
 		eventAdminGroup.PUT("/:id", eventController.UpdateEvent)
@@ -21,7 +22,7 @@ func AdminRouter(router *gin.Engine, middleware provider.MiddlewareProvider, con
 	}
 
 	// Academy Admin Routes
-	academyAdminGroup := router.Group("/api/v1/admin/academy", authorizationMiddleware.VerifyAdmin)
+	academyAdminGroup := router.Group("/api/v1/admin/academy", authenticationMiddleware.VerifyAccount, authorizationMiddleware.VerifyAdmin)
 	{
 		academyAdminGroup.POST("/", academyController.CreateAcademy)
 		academyAdminGroup.GET("/id/:id/detail", academyController.GetAcademyDetail)
@@ -40,7 +41,7 @@ func AdminRouter(router *gin.Engine, middleware provider.MiddlewareProvider, con
 	}
 
 	// Authentication Admin Routes 
-	authAdminGroup := router.Group("/api/v1/admin/authentication", authorizationMiddleware.VerifySuperAdmin)
+	authAdminGroup := router.Group("/api/v1/admin/authentication", authenticationMiddleware.VerifyAccount, authorizationMiddleware.VerifySuperAdmin)
 	{
 		authAdminGroup.PUT("/:account_id/assign", authenticationController.UpdateUserRole)
 	}

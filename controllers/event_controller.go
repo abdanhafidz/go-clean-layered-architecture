@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"strconv"
-	
+
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
@@ -42,6 +42,13 @@ func (c *eventController) List(ctx *gin.Context) {
 			registerStatus = &i
 		}
 	}
+
+	var status *string
+	if val := ctx.Query("status"); val != "" {
+		if val == entity.EventStatusUpcoming || val == entity.EventStatusOngoing || val == entity.EventStatusEnded {
+			status = &val
+		}
+	}
 	if limit < 1 {
 		limit = 10
 	} else if limit > 50 {
@@ -51,7 +58,7 @@ func (c *eventController) List(ctx *gin.Context) {
 		page = 1
 	}
 	offset := (page - 1) * limit
-	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus}
+	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus, Status: status}
 	accountId := ParseAccountId(ctx)
 	list, total, err := c.eventService.List(ctx.Request.Context(), accountId, p)
 	var totalPages int

@@ -3,12 +3,12 @@ package controllers
 import (
 	"net/http"
 	"strconv"
-	
+
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
-	"abdanhafidz.com/go-boilerplate/utils"
 	"abdanhafidz.com/go-boilerplate/services"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -109,8 +109,15 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 		isModified = true
 	}
 
+	var status *string
+	if val := ctx.Query("status"); val != "" {
+		if val == entity.StatusNotStarted || val == entity.StatusInProgress || val == entity.StatusFinished {
+			status = &val
+		}
+	}
+
 	offset := (page - 1) * limit
-	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus}
+	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus, Status: status}
 	list, total, err := c.academyService.ListAcademy(ctx.Request.Context(), accountId, p)
 
 	if err != nil {
