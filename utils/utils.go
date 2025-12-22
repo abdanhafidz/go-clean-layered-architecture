@@ -3,6 +3,7 @@ package utils
 import (
 	"time"
 
+	models "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"github.com/google/uuid"
 )
@@ -45,14 +46,8 @@ func TimePtrToString(t *time.Time) *string {
 }
 
 func ValidateCode(code string) error {
-	if len(code) < 6 || len(code) > 12 {
+	if !models.CodeRegex.MatchString(code) {
 		return http_error.INVALID_CODE
-	}
-	for i := 0; i < len(code); i++ {
-		c := code[i]
-		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
-			return http_error.INVALID_CODE
-		}
 	}
 	return nil
 }
