@@ -132,7 +132,7 @@ func (s *examService) GetExamEventAttempt(ctx context.Context, eventSlug string,
 
 	var attemptStatus dto.UserExamStatus
 	attemptStatus.IsNotAttempt = errors.Is(err, gorm.ErrRecordNotFound)
-	attemptStatus.IsTimeOut = (utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt) == 0) || false
+	attemptStatus.IsTimeOut = !attemptStatus.IsNotAttempt && (utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt) == 0)
 	attemptStatus.IsSubmitted = examEventAttempt.Submitted
 	attemptStatus.IsOnAttempt = !attemptStatus.IsNotAttempt && !attemptStatus.IsTimeOut && !attemptStatus.IsSubmitted
 	return attemptStatus, examEventAttempt, nil
@@ -409,4 +409,5 @@ func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, att
 
 	return CPQuestionVerdict, err
 }
+
 
