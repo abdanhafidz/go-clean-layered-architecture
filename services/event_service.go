@@ -105,7 +105,7 @@ func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uui
 	event, err := s.DetailBySlug(ctx, slug, accountId)
 	currentTime := time.Now()
 	eventStatus.IsHasNotStarted = currentTime.Before(event.Data.StartEvent)
-	eventStatus.IsFinished = currentTime.Before(event.Data.EndEvent)
+	eventStatus.IsFinished = currentTime.After(event.Data.EndEvent)
 	eventStatus.IsOnGoing = !(eventStatus.IsHasNotStarted) && !(eventStatus.IsFinished)
 	return eventStatus, err
 }
