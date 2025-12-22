@@ -249,7 +249,7 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 	if attemptStatus.IsNotAttempt {
 
 		if eventStatus.IsFinished {
-			return entity.ExamEventAttempt{}, err
+			return entity.ExamEventAttempt{}, err.EVENT_FINISHED
 		}
 
 		startTime, dueTime := s.SetupExamTimer(ctx, exam)
@@ -405,3 +405,4 @@ func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, att
 
 	return CPQuestionVerdict, err
 }
+
