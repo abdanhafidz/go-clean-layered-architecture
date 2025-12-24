@@ -23,6 +23,8 @@ type EnvConfig interface {
 	GetSupabaseURL() string
 	GetSupabaseKey() string
 	GetSupabaseBucket() string
+	GetXenditAPIKey() string
+	GetXenditCallbackToken() string
 }
 
 type envConfig struct {
@@ -99,4 +101,12 @@ func (e *envConfig) GetSupabaseKey() string {
 
 func (e *envConfig) GetSupabaseBucket() string {
 	return strings.TrimSpace(os.Getenv("SUPABASE_BUCKET_NAME"))
+}
+
+func (e *envConfig) GetXenditAPIKey() string {
+	return strings.TrimSpace(os.Getenv("XENDIT_API_KEY"))
+}
+
+func (e *envConfig) GetXenditCallbackToken() string {
+	return strings.TrimSpace(os.Getenv("XENDIT_CALLBACK_TOKEN"))
 }

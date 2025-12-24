@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"regexp"
 	"time"
 
-	models "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"github.com/google/uuid"
 )
@@ -46,9 +46,9 @@ func TimePtrToString(t *time.Time) *string {
 }
 
 func ValidateCode(code string) error {
-	if !models.CodeRegex.MatchString(code) {
+	var CodeRegex = regexp.MustCompile(`^[a-zA-Z0-9]{6,12}$`)
+	if !CodeRegex.MatchString(code) {
 		return http_error.INVALID_CODE
 	}
 	return nil
 }
-

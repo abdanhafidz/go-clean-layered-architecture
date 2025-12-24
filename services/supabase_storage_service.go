@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	http_error "abdanhafidz.com/go-boilerplate/models/error" 
+
+	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	storage_go "github.com/supabase-community/storage-go"
 )
 
@@ -19,19 +20,23 @@ type supabaseStorageService struct {
 	url        string
 }
 
-func NewSupabaseStorageService(url string, key string, bucketName string) (StorageService, error) {
+func NewSupabaseStorageService(url string, key string, bucketName string) StorageService {
+
 	if url == "" || key == "" || bucketName == "" {
-		return nil, fmt.Errorf("%w: supabase storage config is empty (url, key, and bucket are required)", http_error.INTERNAL_SERVER_ERROR)  
+		fmt.Errorf("%w: supabase storage config is empty (url, key, and bucket are required)")
+		return nil
 	}
 	if !strings.HasPrefix(url, "https://") || !strings.Contains(url, ".supabase.co") {
-		return nil, fmt.Errorf("%w: supabase storage url is invalid", http_error.INTERNAL_SERVER_ERROR)
+		fmt.Errorf("%w: supabase storage url is invalid")
+		return nil
 	}
 	if strings.Count(key, ".") != 2 {
-		return nil, fmt.Errorf("%w: supabase service key is not a valid compact JWS", http_error.INTERNAL_SERVER_ERROR)
+		fmt.Errorf("%w: supabase service key is not a valid compact JWS")
+		return nil
 	}
 
 	client := storage_go.NewClient(url+"/storage/v1", key, nil)
-	return &supabaseStorageService{client: client, bucketName: bucketName, url: url}, nil
+	return &supabaseStorageService{client: client, bucketName: bucketName, url: url}
 }
 
 func (s *supabaseStorageService) UploadFile(ctx context.Context, file io.Reader, destinationPath string, contentType string) (string, error) {
@@ -39,7 +44,7 @@ func (s *supabaseStorageService) UploadFile(ctx context.Context, file io.Reader,
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", http_error.UPLOAD_FAILED, err)
 	}
-	
+
 	publicURL := s.client.GetPublicUrl(s.bucketName, destinationPath).SignedURL
 	if publicURL == "" {
 		publicURL = fmt.Sprintf("%s/storage/v1/object/public/%s/%s", s.url, s.bucketName, destinationPath)

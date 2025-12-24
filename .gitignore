@@ -1,2 +1,8 @@
-/.env
+*.env
 go-boilerplate.exe
+vendor/
+*.log
+*.exe
+*.dll
+*.so
+*.dylib

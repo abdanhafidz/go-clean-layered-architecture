@@ -1,0 +1,1 @@
+swag init -g swagger/swagger_info.go -o swagger/docs --parseDependency --parseInternal

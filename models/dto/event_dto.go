@@ -6,7 +6,8 @@ import (
 
 type EventDetailResponse struct {
 	Data           *entity.Events
-	RegisterStatus int `json:"register_status" binding:"required"`
+	RegisterStatus int                            `json:"register_status" `
+	EventPayment   entity.EventPaymentTransaction `json:"event_payment,omitempty"`
 }
 
 type JoinEventRequest struct {

@@ -4,7 +4,7 @@ import (
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	uuid "github.com/google/uuid"
 )
 
 func ParseAccountId(ctx *gin.Context) uuid.UUID {
@@ -15,6 +15,17 @@ func ParseAccountId(ctx *gin.Context) uuid.UUID {
 		return uuid.UUID{}
 	}
 	return accountId
+}
+
+func ParseUUID(ctx *gin.Context, attrName string) uuid.UUID {
+	uuidRaw, _ := ctx.Get(attrName)
+	uuidParsed, err := utils.ToUUID(uuidRaw)
+
+	if err != nil {
+		ResponseJSON(ctx, gin.H{"id": uuidParsed}, uuid.UUID{}, http_error.INVALID_TOKEN)
+		return uuid.UUID{}
+	}
+	return uuidParsed
 }
 func RequestJSON[TRequest any](ctx *gin.Context) TRequest {
 	var request TRequest

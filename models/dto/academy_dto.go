@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	"github.com/google/uuid"
+)
 
 type CreateAcademyRequest struct {
 	Title       string `json:"title" binding:"required"`
@@ -106,6 +109,12 @@ type AcademyDetailResponse struct {
 	AcademyProgress *AcademyProgressResponse  `json:"academy_progress"`
 	Materials       []AcademyMaterialResponse `json:"materials"`
 	RegisterStatus  int                       `json:"register_status" binding:"required"`
+}
+
+type AcademyMiniDetailResponse struct {
+	Data           *entity.Academy                  `json:"data"`
+	RegisterStatus int                              `json:"register_status" binding:"required"`
+	Payment        entity.AcademyPaymentTransaction `json:"payment"`
 }
 
 type MaterialDetailResponse struct {

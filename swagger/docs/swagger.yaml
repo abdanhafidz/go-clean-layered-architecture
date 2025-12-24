@@ -1,0 +1,2255 @@
+basePath: /
+definitions:
+  dto.AcademyMiniDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Academy'
+      payment:
+        $ref: '#/definitions/models.AcademyPaymentTransaction'
+      register_status:
+        type: integer
+    required:
+    - register_status
+    type: object
+  dto.AccountDetailResponse:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      details:
+        $ref: '#/definitions/models.AccountDetail'
+    type: object
+  dto.AnswerExamEventRequest:
+    properties:
+      answer:
+        items:
+          type: string
+        type: array
+      question_id:
+        type: string
+    required:
+    - question_id
+    type: object
+  dto.AssignRequest:
+    properties:
+      academy_id:
+        type: string
+      account_id:
+        type: string
+    type: object
+  dto.AuthenticatedUser:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      token:
+        type: string
+    type: object
+  dto.ContentDetailResponse:
+    properties:
+      id:
+        type: string
+      order:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.CreateAcademyRequest:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      image_url:
+        type: string
+      is_public:
+        type: boolean
+      slug:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  dto.CreateContentRequest:
+    properties:
+      contents:
+        type: string
+      material_id:
+        type: string
+      title:
+        type: string
+    required:
+    - material_id
+    - title
+    type: object
+  dto.CreateEmailVerificationRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  dto.CreateEventRequest:
+    properties:
+      end_event:
+        type: string
+      event_code:
+        type: string
+      img_banner:
+        type: string
+      is_public:
+        type: boolean
+      overview:
+        type: string
+      start_event:
+        type: string
+      title:
+        type: string
+    required:
+    - end_event
+    - event_code
+    - img_banner
+    - overview
+    - start_event
+    - title
+    type: object
+  dto.CreateMaterialRequest:
+    properties:
+      academy_id:
+        type: string
+      description:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+    required:
+    - academy_id
+    - title
+    type: object
+  dto.DeleteEmailVerificationRequest:
+    properties:
+      token:
+        type: integer
+    required:
+    - token
+    type: object
+  dto.ErrorResponse:
+    properties:
+      errors: {}
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.EventDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Events'
+      event_payment:
+        $ref: '#/definitions/models.EventPaymentTransaction'
+      register_status:
+        type: integer
+    type: object
+  dto.ExternalAuthRequest:
+    properties:
+      oauth_id:
+        type: string
+      oauth_provider:
+        type: string
+    required:
+    - oauth_id
+    - oauth_provider
+    type: object
+  dto.FileResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      mime_type:
+        type: string
+      original_name:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    type: object
+  dto.FileResponseSingle:
+    properties:
+      data:
+        $ref: '#/definitions/dto.FileResponse'
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.FileUploadResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.FileResponse'
+        type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.JoinAcademyByCodeRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  dto.JoinEventRequest:
+    properties:
+      event_code:
+        type: string
+    required:
+    - event_code
+    type: object
+  dto.MaterialDetailResponse:
+    properties:
+      academy_id:
+        type: string
+      contents:
+        items:
+          $ref: '#/definitions/dto.ContentDetailResponse'
+        type: array
+      contents_count:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      meta:
+        additionalProperties:
+          type: string
+        type: object
+      order:
+        type: integer
+      progress:
+        $ref: '#/definitions/dto.MaterialProgressResponse'
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.MaterialProgressResponse:
+    properties:
+      academy_id:
+        type: string
+      account_id:
+        type: string
+      completed_at:
+        type: string
+      id:
+        type: string
+      material_id:
+        type: string
+      progress:
+        type: number
+      status:
+        type: string
+      total_completed_contents:
+        type: integer
+    type: object
+  dto.OptionsRequest:
+    properties:
+      option_name:
+        type: string
+      option_values:
+        items:
+          type: string
+        type: array
+    required:
+    - option_name
+    - option_values
+    type: object
+  dto.ResetPasswordRequest:
+    properties:
+      new_password:
+        type: string
+      token:
+        type: integer
+    required:
+    - new_password
+    - token
+    type: object
+  dto.SignInRequest:
+    properties:
+      email_or_username:
+        type: string
+      password:
+        type: string
+    required:
+    - email_or_username
+    - password
+    type: object
+  dto.SignUpRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  dto.SuccessResponse-any:
+    properties:
+      data: {}
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-array_models_AcademyAssign:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.AcademyAssign'
+        type: array
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-array_models_Events:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Events'
+        type: array
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-array_models_Exam:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Exam'
+        type: array
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-array_models_RegionCity:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.RegionCity'
+        type: array
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-array_models_RegionProvince:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.RegionProvince'
+        type: array
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-dto_AcademyMiniDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.AcademyMiniDetailResponse'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-dto_AccountDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.AccountDetailResponse'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-dto_AnswerExamEventRequest:
+    properties:
+      data:
+        $ref: '#/definitions/dto.AnswerExamEventRequest'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-dto_AuthenticatedUser:
+    properties:
+      data:
+        $ref: '#/definitions/dto.AuthenticatedUser'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-dto_EventDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.EventDetailResponse'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-dto_MaterialDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.MaterialDetailResponse'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-map_string_bool:
+    properties:
+      data:
+        $ref: '#/definitions/map_string_bool'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_Academy:
+    properties:
+      data:
+        $ref: '#/definitions/models.Academy'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_AcademyAssign:
+    properties:
+      data:
+        $ref: '#/definitions/models.AcademyAssign'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_AcademyContent:
+    properties:
+      data:
+        $ref: '#/definitions/models.AcademyContent'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_AcademyMaterial:
+    properties:
+      data:
+        $ref: '#/definitions/models.AcademyMaterial'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_AcademyPaymentTransaction:
+    properties:
+      data:
+        $ref: '#/definitions/models.AcademyPaymentTransaction'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_Account:
+    properties:
+      data:
+        $ref: '#/definitions/models.Account'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_EmailVerification:
+    properties:
+      data:
+        $ref: '#/definitions/models.EmailVerification'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_EventPaymentTransaction:
+    properties:
+      data:
+        $ref: '#/definitions/models.EventPaymentTransaction'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_Events:
+    properties:
+      data:
+        $ref: '#/definitions/models.Events'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_ExamAcademyAttempt:
+    properties:
+      data:
+        $ref: '#/definitions/models.ExamAcademyAttempt'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_ExamEventAttempt:
+    properties:
+      data:
+        $ref: '#/definitions/models.ExamEventAttempt'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_Options:
+    properties:
+      data:
+        $ref: '#/definitions/models.Options'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.UpdateAcademyRequest:
+    properties:
+      description:
+        type: string
+      image_url:
+        type: string
+      is_public:
+        type: boolean
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.UpdateAccountDetailRequest:
+    properties:
+      avatar:
+        type: string
+      city:
+        type: string
+      full_name:
+        type: string
+      phone_number:
+        type: string
+      province:
+        type: string
+      school_name:
+        type: string
+    type: object
+  dto.UpdateEventRequest:
+    properties:
+      end_event:
+        type: string
+      img_banner:
+        type: string
+      is_public:
+        type: boolean
+      overview:
+        type: string
+      start_event:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.ValidateVerifyEmailRequest:
+    properties:
+      email:
+        type: string
+      token:
+        type: integer
+    required:
+    - email
+    - token
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  map_string_bool:
+    additionalProperties:
+      type: boolean
+    type: object
+  models.Academy:
+    properties:
+      academy_progress:
+        $ref: '#/definitions/models.AcademyProgress'
+      code:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      is_public:
+        type: boolean
+      materials:
+        items:
+          $ref: '#/definitions/models.AcademyMaterial'
+        type: array
+      materials_count:
+        type: integer
+      price:
+        type: number
+      register_status:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  models.AcademyAssign:
+    properties:
+      academy:
+        $ref: '#/definitions/models.Academy'
+      academy_id:
+        type: string
+      account:
+        $ref: '#/definitions/models.Account'
+      account_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+    type: object
+  models.AcademyContent:
+    properties:
+      academy_content_progress:
+        $ref: '#/definitions/models.AcademyContentProgress'
+      contents:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      material_id:
+        type: string
+      order:
+        type: integer
+      title:
+        type: string
+    type: object
+  models.AcademyContentProgress:
+    properties:
+      academy_id:
+        type: string
+      account_id:
+        type: string
+      completed_at:
+        type: string
+      content_id:
+        type: string
+      id:
+        type: string
+      material_id:
+        type: string
+      status:
+        type: string
+    type: object
+  models.AcademyMaterial:
+    properties:
+      academy_id:
+        type: string
+      academy_material_progress:
+        $ref: '#/definitions/models.AcademyMaterialProgress'
+      contents:
+        items:
+          $ref: '#/definitions/models.AcademyContent'
+        type: array
+      contents_count:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: string
+      order:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  models.AcademyMaterialProgress:
+    properties:
+      academy_id:
+        type: string
+      account_id:
+        type: string
+      completed_at:
+        type: string
+      id:
+        type: string
+      material_id:
+        type: string
+      progress:
+        type: number
+      status:
+        type: string
+      total_completed_contents:
+        type: integer
+    type: object
+  models.AcademyPaymentTransaction:
+    properties:
+      academy_id:
+        type: string
+      account_id:
+        type: string
+      amount:
+        type: number
+      expired_at:
+        type: string
+      id:
+        type: string
+      invoice_id:
+        type: string
+      invoice_url:
+        type: string
+      status:
+        type: string
+      transaction_at:
+        type: string
+      xendit_transaction_id:
+        type: string
+    type: object
+  models.AcademyProgress:
+    properties:
+      academy_id:
+        type: string
+      account_id:
+        type: string
+      completed_at:
+        type: string
+      id:
+        type: string
+      progress:
+        type: number
+      status:
+        type: string
+      total_completed_materials:
+        type: integer
+    type: object
+  models.Account:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: string
+      is_detail_completed:
+        type: boolean
+      is_email_verified:
+        type: boolean
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  models.AccountDetail:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      account_id:
+        type: string
+      avatar:
+        type: string
+      city:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      phone_number:
+        type: string
+      province:
+        type: string
+      school_name:
+        type: string
+    type: object
+  models.EmailVerification:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      account_id:
+        type: string
+      created_at:
+        type: string
+      expired_at:
+        type: string
+      id:
+        type: string
+      is_expired:
+        type: boolean
+      token:
+        type: integer
+    type: object
+  models.EventPaymentTransaction:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: number
+      event_id:
+        type: string
+      expired_at:
+        type: string
+      id:
+        type: string
+      invoice_id:
+        type: string
+      invoice_url:
+        type: string
+      status:
+        type: string
+      transaction_at:
+        type: string
+      xendit_transaction_id:
+        type: string
+    type: object
+  models.Events:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      end_event:
+        type: string
+      event_code:
+        type: string
+      id_event:
+        type: string
+      img_banner:
+        type: string
+      is_public:
+        type: boolean
+      overview:
+        type: string
+      price:
+        type: number
+      register_status:
+        type: integer
+      slug:
+        type: string
+      start_event:
+        type: string
+      title:
+        type: string
+    type: object
+  models.Exam:
+    properties:
+      configuration:
+        $ref: '#/definitions/models.ExamConfiguration'
+      description:
+        type: string
+      duration:
+        type: integer
+      id_exam:
+        type: string
+      proctoring:
+        $ref: '#/definitions/models.ExamProctoring'
+      randomize:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  models.ExamAcademyAnswer:
+    properties:
+      answer:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      exam_attempt:
+        $ref: '#/definitions/models.ExamAcademyAttempt'
+      id:
+        type: string
+      id_attempt:
+        type: string
+      id_question:
+        type: string
+      score:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.ExamAcademyAttempt:
+    properties:
+      academy:
+        $ref: '#/definitions/models.Academy'
+      account:
+        $ref: '#/definitions/models.Account'
+      answers:
+        items:
+          $ref: '#/definitions/models.ExamAcademyAnswer'
+        type: array
+      created_at:
+        type: string
+      due_at:
+        type: string
+      exam:
+        $ref: '#/definitions/models.Exam'
+      id_academy:
+        type: string
+      id_account:
+        type: string
+      id_attempt:
+        type: string
+      id_exam:
+        type: string
+      mark:
+        type: number
+      questions:
+        items:
+          $ref: '#/definitions/models.Questions'
+        type: array
+      remaining_time:
+        type: integer
+      submitted:
+        type: boolean
+    type: object
+  models.ExamConfiguration:
+    properties:
+      allow_retake:
+        type: boolean
+      allow_review:
+        type: boolean
+      enable_timer:
+        type: boolean
+      id_exam:
+        type: string
+      id_result:
+        type: string
+    type: object
+  models.ExamEventAnswer:
+    properties:
+      answer:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      exam_attempt:
+        $ref: '#/definitions/models.ExamEventAttempt'
+      id:
+        type: string
+      id_attempt:
+        type: string
+      id_question:
+        type: string
+      score:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.ExamEventAttempt:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      answers:
+        items:
+          $ref: '#/definitions/models.ExamEventAnswer'
+        type: array
+      created_at:
+        type: string
+      due_at:
+        type: string
+      event:
+        $ref: '#/definitions/models.Events'
+      exam:
+        $ref: '#/definitions/models.Exam'
+      id_account:
+        type: string
+      id_attempt:
+        type: string
+      id_event:
+        type: string
+      id_exam:
+        type: string
+      mark:
+        type: number
+      questions:
+        items:
+          $ref: '#/definitions/models.Questions'
+        type: array
+      remaining_time:
+        type: integer
+      submitted:
+        type: boolean
+    type: object
+  models.ExamProctoring:
+    properties:
+      disable_copy_paste:
+        type: boolean
+      enable_exam_browser:
+        type: boolean
+      enable_eye_tracking:
+        type: boolean
+      enable_full_screen:
+        type: boolean
+      enable_tab_block:
+        type: boolean
+      enable_vad:
+        type: boolean
+      enable_webcam:
+        type: boolean
+      id_exam:
+        type: string
+      id_result:
+        type: string
+    type: object
+  models.OptionCategory:
+    properties:
+      id:
+        type: integer
+      option_name:
+        type: string
+      option_slug:
+        type: string
+    type: object
+  models.OptionValues:
+    properties:
+      id:
+        type: integer
+      option_category_id:
+        type: integer
+      option_value:
+        type: string
+    type: object
+  models.Options:
+    properties:
+      option_category:
+        $ref: '#/definitions/models.OptionCategory'
+      option_values:
+        items:
+          $ref: '#/definitions/models.OptionValues'
+        type: array
+    type: object
+  models.ProblemSet:
+    properties:
+      description:
+        type: string
+      id_problem_set:
+        type: string
+      title:
+        type: string
+    type: object
+  models.Questions:
+    properties:
+      ans_key:
+        items:
+          type: string
+        type: array
+      corr_mark:
+        type: number
+      id_problem_set:
+        type: string
+      id_question:
+        type: string
+      incorr_mark:
+        type: number
+      null_mark:
+        type: number
+      options:
+        items:
+          type: string
+        type: array
+      problem_set:
+        $ref: '#/definitions/models.ProblemSet'
+      question:
+        type: string
+      type:
+        type: string
+    type: object
+  models.RegionCity:
+    properties:
+      code:
+        type: string
+      full_code:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      province_id:
+        type: integer
+      type:
+        type: string
+    type: object
+  models.RegionProvince:
+    properties:
+      code:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact:
+    email: admin@example.com
+    name: Abdan Hafidz
+  description: Backend API documentation
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Go Boilerplate API
+  version: 1.0.0
+paths:
+  /api/v1/academy/{academy_slug}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve academy details using its slug
+      parameters:
+      - description: Academy Slug
+        in: path
+        name: academy_slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Academy by Slug
+      tags:
+      - Academy
+  /api/v1/academy/{academy_slug}/{material_slug}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve material details using its slug
+      parameters:
+      - description: Academy Slug
+        in: path
+        name: academy_slug
+        required: true
+        type: string
+      - description: Material Slug
+        in: path
+        name: material_slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_MaterialDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Material by Slug
+      tags:
+      - Material
+  /api/v1/academy/{academy_slug}/{material_slug}/{order}:
+    post:
+      consumes:
+      - application/json
+      description: Update the progress of a content within a material
+      parameters:
+      - description: Academy Slug
+        in: path
+        name: academy_slug
+        required: true
+        type: string
+      - description: Material Slug
+        in: path
+        name: material_slug
+        required: true
+        type: string
+      - description: Content Order
+        in: path
+        name: order
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Content Progress
+      tags:
+      - Progress
+  /api/v1/academy/{academy_slug}/exam/{exam_slug}/attempt:
+    get:
+      consumes:
+      - application/json
+      description: Start an attempt for a specific exam in an academy
+      parameters:
+      - description: Academy Slug
+        in: path
+        name: academy_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_ExamAcademyAttempt'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Attempt Academy Exam
+      tags:
+      - Academy Exam
+  /api/v1/academy/join:
+    post:
+      consumes:
+      - application/json
+      description: Join an academy using a unique code
+      parameters:
+      - description: Join Academy by Code Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.JoinAcademyByCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_AcademyMiniDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "402":
+          description: Payment Required
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_AcademyPaymentTransaction'
+      security:
+      - BearerAuth: []
+      summary: Join Academy by Code
+      tags:
+      - Academy
+  /api/v1/account/me:
+    put:
+      consumes:
+      - application/json
+      description: Update detailed information about the authenticated user's account
+      parameters:
+      - description: Update Account Detail Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAccountDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_AccountDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update Account Detail
+      tags:
+      - Account Detail
+  /api/v1/admin/academy:
+    post:
+      consumes:
+      - application/json
+      description: Create a new academy
+      parameters:
+      - description: Create Academy Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAcademyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Academy'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Academy
+      tags:
+      - Academy
+  /api/v1/admin/academy/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign an account to an academy
+      parameters:
+      - description: Assign Account to Academy Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AssignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_AcademyAssign'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign Account to Academy
+      tags:
+      - Academy
+  /api/v1/admin/academy/assign/{academy_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of assignments for a specific academy
+      parameters:
+      - description: Academy ID
+        in: path
+        name: academy_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_AcademyAssign'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List Assignments by Academy
+      tags:
+      - Academy
+  /api/v1/admin/academy/assign/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Unassign an account from an academy
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unassign Account from Academy
+      tags:
+      - Academy
+  /api/v1/admin/academy/contents:
+    post:
+      consumes:
+      - application/json
+      description: Create a new content for a material
+      parameters:
+      - description: Create Content Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateContentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_AcademyContent'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Content
+      tags:
+      - Content
+  /api/v1/admin/academy/contents/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing content
+      parameters:
+      - description: Content ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Content
+      tags:
+      - Content
+  /api/v1/admin/academy/id/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing academy
+      parameters:
+      - description: Academy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Academy
+      tags:
+      - Academy
+    put:
+      consumes:
+      - application/json
+      description: Update an existing academy
+      parameters:
+      - description: Academy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Academy Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAcademyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Academy'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Academy
+      tags:
+      - Academy
+  /api/v1/admin/academy/id/{id}/detail:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed academy information using its ID
+      parameters:
+      - description: Academy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Academy'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Academy Detail by ID
+      tags:
+      - Academy
+  /api/v1/admin/academy/materials:
+    post:
+      consumes:
+      - application/json
+      description: Create a new material for an academy
+      parameters:
+      - description: Create Material Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMaterialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_AcademyMaterial'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Material
+      tags:
+      - Material
+  /api/v1/admin/events:
+    post:
+      consumes:
+      - application/json
+      description: Create a new event with the provided details
+      parameters:
+      - description: Create Event Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_EventDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create Event
+      tags:
+      - Event
+  /api/v1/admin/events/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing event by its ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-map_string_bool'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete Event
+      tags:
+      - Event
+    put:
+      consumes:
+      - application/json
+      description: Update an existing event with the provided details
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Event Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Events'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update Event
+      tags:
+      - Event
+  /api/v1/authentication/external-login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user using external OAuth provider
+      parameters:
+      - description: External Auth Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ExternalAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_AuthenticatedUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: External Authentication
+      tags:
+      - Authentication
+  /api/v1/authentication/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and obtain access token
+      parameters:
+      - description: Sign In Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_AuthenticatedUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: User Login
+      tags:
+      - Authentication
+  /api/v1/authentication/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: Sign Up Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: User Registration
+      tags:
+      - Authentication
+  /api/v1/email/create-verification:
+    post:
+      consumes:
+      - application/json
+      description: Generate a verification token and send it to the specified email
+        address
+      parameters:
+      - description: Create Email Verification Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateEmailVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_EmailVerification'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create Email Verification Token
+      tags:
+      - Email Verification
+  /api/v1/email/verify:
+    post:
+      consumes:
+      - application/json
+      description: Validate the provided verification token for the specified email
+        address
+      parameters:
+      - description: Validate Verify Email Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ValidateVerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Validate Email Verification Token
+      tags:
+      - Email Verification
+  /api/v1/events:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of events with optional filters
+      parameters:
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Search term for event titles
+        in: query
+        name: search
+        type: string
+      - description: Field to sort by (e.g., 'date', 'title')
+        in: query
+        name: sortBy
+        type: string
+      - description: Sort order ('asc' or 'desc')
+        in: query
+        name: order
+        type: string
+      - description: Filter by registration status
+        in: query
+        name: registerStatus
+        type: integer
+      - description: Filter by event status (upcoming, ongoing, ended)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_Events'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List Events
+      tags:
+      - Event
+  /api/v1/events/{event_slug}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed information about a specific event using its
+        slug
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_EventDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Event Detail by Slug
+      tags:
+      - Event
+  /api/v1/events/{event_slug}/exam:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of exams associated with a specific event
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_Exam'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List Exams by Event
+      tags:
+      - Exam Event
+  /api/v1/events/{event_slug}/exam/{attempt_id}/answer_question:
+    post:
+      consumes:
+      - application/json
+      description: Submit an answer for a specific question in an exam attempt
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Attempt ID
+        in: path
+        name: attempt_id
+        required: true
+        type: string
+      - description: Answer Exam Event Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AnswerExamEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_AnswerExamEventRequest'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Answer Exam Event Question
+      tags:
+      - Exam Event
+  /api/v1/events/{event_slug}/exam/{exam_slug}/attempt:
+    get:
+      consumes:
+      - application/json
+      description: Start an attempt for a specific exam in an event
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_ExamEventAttempt'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Attempt Exam Event
+      tags:
+      - Exam Event
+  /api/v1/events/register-event:
+    post:
+      consumes:
+      - application/json
+      description: Register the authenticated user for an event using an event code
+      parameters:
+      - description: Join Event Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.JoinEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-dto_EventDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "402":
+          description: Payment Required
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_EventPaymentTransaction'
+      summary: Join Event
+      tags:
+      - Event
+  /api/v1/files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload one or more files to the server
+      parameters:
+      - description: Upload Context (e.g., image, submission, material)
+        in: formData
+        name: context
+        type: string
+      - description: Files to upload (multiple allowed)
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FileUploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Upload Files
+      tags:
+      - Upload
+  /api/v1/files/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve file details using its ID
+      parameters:
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileResponseSingle'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get File by ID
+      tags:
+      - Upload
+  /api/v1/options/create:
+    post:
+      consumes:
+      - application/json
+      description: Create multiple options in bulk
+      parameters:
+      - description: Bulk Options Request
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/dto.OptionsRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create Bulk Options
+      tags:
+      - Option
+  /api/v1/options/list/{slug}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve option details using its slug
+      parameters:
+      - description: Option Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Options'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Option by Slug
+      tags:
+      - Option
+  /api/v1/options/region/cities:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of cities within a specific province
+      parameters:
+      - description: Province ID
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            province_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_RegionCity'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List Cities by Province
+      tags:
+      - Region
+  /api/v1/options/region/provinces:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all provinces
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_RegionProvince'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List Provinces
+      tags:
+      - Region
+  /api/v1/options/region/seed-cities:
+    post:
+      consumes:
+      - application/json
+      description: Seed multiple cities into the system
+      parameters:
+      - description: Seed Cities Request
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.RegionCity'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_RegionCity'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Seed Cities
+      tags:
+      - Region
+  /api/v1/options/region/seed-provinces:
+    post:
+      consumes:
+      - application/json
+      description: Seed multiple provinces into the system
+      parameters:
+      - description: Seed Provinces Request
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.RegionProvince'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Seed Provinces
+      tags:
+      - Region
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

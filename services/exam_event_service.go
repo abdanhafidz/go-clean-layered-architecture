@@ -125,7 +125,7 @@ func (s *examService) GetExamEventAttempt(ctx context.Context, eventSlug string,
 
 	examEventAttempt, err := s.examEventAttemptRepo.GetByExamEvent(ctx, ev.Data.Id, exam.Id, accountId)
 	fmt.Println("Error Exam Event Attempt", errors.Is(err, gorm.ErrRecordNotFound))
-	
+
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return dto.UserExamStatus{}, entity.ExamEventAttempt{}, err
 	}
@@ -236,9 +236,9 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 		return entity.ExamEventAttempt{}, err
 	}
 	attemptStatus, examEventAttempt, err := s.GetExamEventAttempt(ctx, eventSlug, examSlug, accountId)
-	
+
 	fmt.Println("Get AttemptStatus = ", attemptStatus, "Err =", err)
-	
+
 	if err != nil {
 		return entity.ExamEventAttempt{}, err
 	}
@@ -249,9 +249,8 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 	if err != nil {
 		return entity.ExamEventAttempt{}, err
 	}
-	
-	if attemptStatus.IsNotAttempt {
 
+	if attemptStatus.IsNotAttempt {
 		if eventStatus.IsFinished {
 			return entity.ExamEventAttempt{}, err
 		}
@@ -312,13 +311,18 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 		}
 
 		s.SubmitExamEvent(ctx, examEventAttempt.Id)
+
 		examEventAttempt.Submitted = true
+		
 		if err := s.examEventAttemptRepo.Update(ctx, &examEventAttempt); err != nil {
 			return entity.ExamEventAttempt{}, err
 		}
 		return examEventAttempt, err
 
 	} else if attemptStatus.IsSubmitted {
+		if !exam.Configuration.AllowReview {
+			examEventAttempt = ProtectExamEventAttempt(examEventAttempt)
+		}
 		return examEventAttempt, nil
 	}
 	return entity.ExamEventAttempt{}, http_error.INTERNAL_SERVER_ERROR
@@ -330,8 +334,6 @@ func (s *examService) EvaluateAnswer(ctx context.Context, question entity.Questi
 		score := float32(0)
 		isCorrect := true
 		for i, ans := range answer {
-			fmt.Println("User Answer :", ans)
-			fmt.Println("Answer Key :", question.AnsKey[i])
 			if ans != question.AnsKey[i] && ans != "" {
 				score += float32(question.IncorrMark)
 				isCorrect = false
@@ -409,5 +411,3 @@ func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, att
 
 	return CPQuestionVerdict, err
 }
-
-

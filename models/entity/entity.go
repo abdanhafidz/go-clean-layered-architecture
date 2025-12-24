@@ -88,6 +88,7 @@ type Events struct {
 	IsPublic       bool           `json:"is_public,omitempty"`
 	CreatedAt      time.Time      `json:"created_at,omitempty"`
 	DeletedAt      gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+	Price          float64        `json:"price,omitempty"`
 	RegisterStatus int            `gorm:"-" json:"register_status"`
 }
 
@@ -113,15 +114,41 @@ type ProblemSet struct {
 func (ProblemSet) TableName() string { return "problem_set" }
 
 type Exam struct {
-	Id          uuid.UUID     `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id_exam"`
-	Slug        string        `json:"slug,omitempty"`
-	Title       string        `json:"title,omitempty"`
-	Description string        `json:"description,omitempty"`
-	Duration    time.Duration `json:"duration,omitempty"`
-	Randomize   uint          `json:"randomize,omitempty"`
+	Id            uuid.UUID         `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id_exam"`
+	Slug          string            `json:"slug,omitempty"`
+	Title         string            `json:"title,omitempty"`
+	Description   string            `json:"description,omitempty"`
+	Duration      time.Duration     `json:"duration,omitempty"`
+	Randomize     uint              `json:"randomize,omitempty"`
+	Configuration ExamConfiguration `gorm:"foreignKey:Id;references:Id" json:"configuration,omitempty"`
+	Proctoring    ExamProctoring    `gorm:"foreignKey:Id;references:Id" json:"proctoring,omitempty"`
 }
 
 func (Exam) TableName() string { return "exam" }
+
+type ExamConfiguration struct {
+	Id          uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id_result"`
+	ExamId      uuid.UUID `json:"id_exam,omitempty"`
+	AllowRetake bool      `json:"allow_retake,omitempty"`
+	AllowReview bool      `json:"allow_review,omitempty"`
+	EnableTimer bool      `json:"enable_timer,omitempty"`
+}
+
+func (ExamConfiguration) TableName() string { return "exam_configuration" }
+
+type ExamProctoring struct {
+	Id                 uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id_result"`
+	ExamId             uuid.UUID `json:"id_exam,omitempty"`
+	EnableWebCam       bool      `json:"enable_webcam,omitempty"`
+	EnableVAD          bool      `json:"enable_vad,omitempty"`
+	EnableTabBlock     bool      `json:"enable_tab_block,omitempty"`
+	RequiredFullScreen bool      `json:"enable_full_screen,omitempty"`
+	EnableEyeTracking  bool      `json:"enable_eye_tracking,omitempty"`
+	DisableCopyPaste   bool      `json:"disable_copy_paste,omitempty"`
+	EnableExamBrowser  bool      `json:"enable_exam_browser,omitempty"`
+}
+
+func (ExamProctoring) TableName() string { return "exam_proctoring" }
 
 type OptionCategory struct {
 	Id         uint   `gorm:"primaryKey" json:"id"`
@@ -272,6 +299,7 @@ type Academy struct {
 	MaterialsCount  int64             `json:"materials_count,omitempty"`
 	Materials       []AcademyMaterial `gorm:"foreignKey:AcademyId;references:Id" json:"materials,omitempty"`
 	AcademyProgress AcademyProgress   `gorm:"foreignKey:AcademyId;references:Id" json:"academy_progress,omitempty"`
+	Price           float64           `json:"price,omitempty"`
 	RegisterStatus  int               `gorm:"-" json:"register_status"`
 	CreatedAt       time.Time         `json:"created_at,omitempty"`
 	DeletedAt       gorm.DeletedAt    `json:"deleted_at,omitempty" gorm:"index"`
@@ -423,3 +451,43 @@ type ExamAcademyResult struct {
 }
 
 func (ExamAcademyResult) TableName() string { return "academy_exam_result" }
+
+type AcademyPaymentTransaction struct {
+	Id            uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	AccountId     uuid.UUID `json:"account_id,omitempty"`
+	AcademyId     uuid.UUID `json:"academy_id,omitempty"`
+	ExternalId    string    `json:"xendit_transaction_id,omitempty"`
+	InvoiceId     string    `json:"invoice_id,omitempty"`
+	InvoiceUrl    string    `json:"invoice_url,omitempty"`
+	Amount        float64   `json:"amount,omitempty"`
+	TransactionAt time.Time `json:"transaction_at,omitempty"`
+	ExpiredAt     time.Time `json:"expired_at,omitempty"`
+	Status        string    `json:"status,omitempty"`
+}
+
+func (AcademyPaymentTransaction) TableName() string { return "academy_payment_transaction" }
+
+type EventPaymentTransaction struct {
+	Id            uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	AccountId     uuid.UUID `json:"account_id,omitempty"`
+	EventId       uuid.UUID `json:"event_id,omitempty"`
+	ExternalId    string    `json:"xendit_transaction_id,omitempty"`
+	InvoiceId     string    `json:"invoice_id,omitempty"`
+	InvoiceUrl    string    `json:"invoice_url,omitempty"`
+	Amount        float64   `json:"amount,omitempty"`
+	TransactionAt time.Time `json:"transaction_at,omitempty"`
+	ExpiredAt     time.Time `json:"expired_at,omitempty"`
+	Status        string    `json:"status,omitempty"`
+}
+
+func (EventPaymentTransaction) TableName() string { return "event_payment_transaction" }
+
+type AcademyCoupon struct {
+	Id         uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	AcademyId  uuid.UUID `json:"academy_id,omitempty"`
+	Code       string    `gorm:"unique" json:"code,omitempty"`
+	Discount   float64   `json:"discount,omitempty"`
+	ValidUntil time.Time `json:"valid_until,omitempty"`
+}
+
+func (AcademyCoupon) TableName() string { return "academy_coupon" }
