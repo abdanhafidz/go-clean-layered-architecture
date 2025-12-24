@@ -8,6 +8,7 @@ import (
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -86,6 +87,13 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 	search := ctx.DefaultQuery("search", "")
 	sortBy := ctx.DefaultQuery("sortBy", "")
 	order := ctx.DefaultQuery("order", "")
+
+	var registerStatus *int
+	if val := ctx.Query("registerStatus"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil {
+			registerStatus = &i
+		}
+	}
 	isModified := false
 
 	if limit < 1 {
@@ -101,8 +109,15 @@ func (c *academyController) ListAcademy(ctx *gin.Context) {
 		isModified = true
 	}
 
+	var status *string
+	if val := ctx.Query("status"); val != "" {
+		if val == entity.StatusNotStarted || val == entity.StatusInProgress || val == entity.StatusFinished {
+			status = &val
+		}
+	}
+
 	offset := (page - 1) * limit
-	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order}
+	p := entity.Pagination{Limit: limit, Offset: offset, Search: search, SortBy: sortBy, Order: order, RegisterStatus: registerStatus, Status: status}
 	list, total, err := c.academyService.ListAcademy(ctx.Request.Context(), accountId, p)
 
 	if err != nil {
@@ -274,6 +289,10 @@ func (c *academyController) UpdateContentProgress(ctx *gin.Context) {
 
 func (c *academyController) JoinAcademyByCode(ctx *gin.Context) {
 	req := RequestJSON[dto.JoinAcademyByCodeRequest](ctx)
+	if err := utils.ValidateCode(req.Code); err != nil {
+		ResponseJSON[any, any](ctx, req, nil, http_error.INVALID_CODE)
+		return
+	}
 	accountId := ParseAccountId(ctx)
 	res, err := c.academyService.JoinByCode(ctx.Request.Context(), accountId, req.Code)
 	ResponseJSON(ctx, req, res, err)

@@ -3,6 +3,7 @@ package utils
 import (
 	"time"
 
+	models "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"github.com/google/uuid"
 )
@@ -43,3 +44,11 @@ func TimePtrToString(t *time.Time) *string {
 	s := t.Format(time.RFC3339)
 	return &s
 }
+
+func ValidateCode(code string) error {
+	if !models.CodeRegex.MatchString(code) {
+		return http_error.INVALID_CODE
+	}
+	return nil
+}
+

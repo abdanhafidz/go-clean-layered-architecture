@@ -9,6 +9,7 @@ import (
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/repositories"
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/google/uuid"
 )
 
@@ -104,7 +105,7 @@ func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uui
 	event, err := s.DetailBySlug(ctx, slug, accountId)
 	currentTime := time.Now()
 	eventStatus.IsHasNotStarted = currentTime.Before(event.Data.StartEvent)
-	eventStatus.IsFinished = currentTime.Before(event.Data.EndEvent)
+	eventStatus.IsFinished = currentTime.After(event.Data.EndEvent)
 	eventStatus.IsOnGoing = !(eventStatus.IsHasNotStarted) && !(eventStatus.IsFinished)
 	return eventStatus, err
 }
@@ -125,14 +126,8 @@ func (s *eventService) CreateEvent(ctx context.Context, req dto.CreateEventReque
 		return entity.Events{}, http_error.INVALID_DATE_FORMAT
 	}
 
-	if len(req.EventCode) != 6 {
-		return entity.Events{}, http_error.INVALID_CODE
-	}
-	for i := 0; i < 6; i++ {
-		c := req.EventCode[i]
-		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
-			return entity.Events{}, http_error.INVALID_CODE
-		}
+	if err := utils.ValidateCode(req.EventCode); err != nil {
+		return entity.Events{}, err
 	}
 
 	slugVal := strings.ToLower(strings.ReplaceAll(req.Title, " ", "-"))

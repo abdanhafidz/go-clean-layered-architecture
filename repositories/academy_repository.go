@@ -159,36 +159,44 @@ func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uu
 
 	sub := r.db.WithContext(ctx).Model(&entity.AcademyAssign{}).Select("academy_id").Where("account_id = ?", accountId)
 
+	// Base query
 	q := r.db.WithContext(ctx).Model(&entity.Academy{}).
-		Where(r.db.Where("is_public = ?", true).Or("id IN (?)", sub))
+		Where(r.db.Where("academy.is_public = ?", true).Or("academy.id IN (?)", sub))
+
+	// Join for status filtering
+	if p != nil && p.Status != nil {
+		q = q.Joins("LEFT JOIN academy_progress ap ON ap.academy_id = academy.id AND ap.account_id = ?", accountId)
+		status := *p.Status
+		if status == entity.StatusNotStarted {
+			q = q.Where("ap.status IS NULL OR ap.status = ?", entity.StatusNotStarted)
+		} else {
+			q = q.Where("ap.status = ?", status)
+		}
+	}
 
 	if p != nil {
+		if p.RegisterStatus != nil {
+			switch *p.RegisterStatus {
+			case 1:
+				q = q.Where("academy.id IN (?)", sub)
+			case 0:
+				q = q.Where("academy.id NOT IN (?)", sub)
+			}
+		}
+
 		sortColumn := "title"
 		switch p.SortBy {
-			case "title":
-				sortColumn = "title"
-			case "slug":
-				sortColumn = "slug"
-			case "description":
-				sortColumn = "description"
-			case "createdAt", "created_at":
-				sortColumn = "created_at"
-			case "updatedAt", "updated_at":
-				sortColumn = "updated_at"
-			case "materials_count", "materialsCount":
-				sortColumn = "materials_count"
+		case "title":
+			sortColumn = "title"
+		case "createdAt", "created_at":
+			sortColumn = "created_at"
 		}
 
 		if s := strings.TrimSpace(p.Search); s != "" {
 			s = strings.Trim(s, "\"'")
 			s = strings.ToLower(s)
 			like := "%" + s + "%"
-
-			if p.SortBy != "" {
-				q = q.Where(fmt.Sprintf("LOWER(%s) LIKE ?", sortColumn), like)
-			} else {
-				q = q.Where("LOWER(title) LIKE ? OR LOWER(slug) LIKE ?", like, like)
-			}
+			q = q.Where("LOWER(academy.title) LIKE ? OR LOWER(academy.slug) LIKE ?", like, like)
 		}
 
 		sortDirection := "DESC"
@@ -196,7 +204,12 @@ func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uu
 			sortDirection = "ASC"
 		}
 
+		// Disambiguate sort column
 		q = q.Order(fmt.Sprintf("%s %s", sortColumn, sortDirection))
+
+		if err := q.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
 
 		if p.Limit > 0 {
 			q = q.Limit(p.Limit)
@@ -204,10 +217,6 @@ func (r *academyRepository) ListVisibleAcademy(ctx context.Context, accountId uu
 		if p.Offset > 0 {
 			q = q.Offset(p.Offset)
 		}
-	}
-
-	if err := q.Count(&total).Error; err != nil {
-		return nil, 0, err
 	}
 
 	if err := q.Find(&list).Error; err != nil {

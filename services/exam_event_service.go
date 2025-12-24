@@ -125,13 +125,14 @@ func (s *examService) GetExamEventAttempt(ctx context.Context, eventSlug string,
 
 	examEventAttempt, err := s.examEventAttemptRepo.GetByExamEvent(ctx, ev.Data.Id, exam.Id, accountId)
 	fmt.Println("Error Exam Event Attempt", errors.Is(err, gorm.ErrRecordNotFound))
+	
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return dto.UserExamStatus{}, entity.ExamEventAttempt{}, err
 	}
 
 	var attemptStatus dto.UserExamStatus
 	attemptStatus.IsNotAttempt = errors.Is(err, gorm.ErrRecordNotFound)
-	attemptStatus.IsTimeOut = (utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt) == 0) || false
+	attemptStatus.IsTimeOut = !attemptStatus.IsNotAttempt && (utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt) == 0)
 	attemptStatus.IsSubmitted = examEventAttempt.Submitted
 	attemptStatus.IsOnAttempt = !attemptStatus.IsNotAttempt && !attemptStatus.IsTimeOut && !attemptStatus.IsSubmitted
 	return attemptStatus, examEventAttempt, nil
@@ -235,7 +236,9 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 		return entity.ExamEventAttempt{}, err
 	}
 	attemptStatus, examEventAttempt, err := s.GetExamEventAttempt(ctx, eventSlug, examSlug, accountId)
-
+	
+	fmt.Println("Get AttemptStatus = ", attemptStatus, "Err =", err)
+	
 	if err != nil {
 		return entity.ExamEventAttempt{}, err
 	}
@@ -246,10 +249,11 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 	if err != nil {
 		return entity.ExamEventAttempt{}, err
 	}
+	
 	if attemptStatus.IsNotAttempt {
 
 		if eventStatus.IsFinished {
-			return entity.ExamEventAttempt{}, err.EVENT_FINISHED
+			return entity.ExamEventAttempt{}, err
 		}
 
 		startTime, dueTime := s.SetupExamTimer(ctx, exam)
@@ -405,4 +409,5 @@ func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, att
 
 	return CPQuestionVerdict, err
 }
+
 

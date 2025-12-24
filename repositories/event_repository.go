@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"strings"
+	"time"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
 	"github.com/google/uuid"
@@ -87,10 +88,8 @@ func (r *eventsRepository) GetAllPaginate(ctx context.Context, p entity.Paginati
 		ord = "asc"
 	}
 	switch col {
-	case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public":
+	case "title", "start_event", "end_event", "overview", "is_public", "created_at":
 		q = q.Order(col + " " + ord)
-	case "id_event", "id":
-		q = q.Order("id " + ord)
 	default:
 		q = q.Order("title " + ord)
 	}
@@ -129,8 +128,10 @@ func (r *eventsRepository) ListPublic(ctx context.Context, p *entity.Pagination)
 			ord = "asc"
 		}
 		switch col {
-		case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public":
+		case "title", "slug", "start_event", "end_event", "event_code", "overview", "is_public", "created_at":
 			q = q.Order(col + " " + ord)
+		case "createdat":
+			q = q.Order("created_at " + ord)
 		case "id_event", "id":
 			q = q.Order("id " + ord)
 		default:
@@ -163,6 +164,27 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 	}
 
 	if p != nil {
+		if p.RegisterStatus != nil {
+			switch *p.RegisterStatus {
+			case 1:
+				q = q.Where("academy.id IN (?)", sub)
+			case 0:
+				q = q.Where("academy.id NOT IN (?)", sub)
+			}
+		}
+
+		if p.Status != nil {
+			now := time.Now()
+			switch *p.Status {
+			case entity.EventStatusUpcoming:
+				q = q.Where("start_event > ?", now)
+			case entity.EventStatusOngoing:
+				q = q.Where("start_event <= ? AND end_event >= ?", now, now)
+			case entity.EventStatusEnded:
+				q = q.Where("end_event < ?", now)
+			}
+		}
+
 		if s := strings.TrimSpace(p.Search); s != "" {
 			s = strings.Trim(s, "\"'")
 			s = strings.ToLower(s)
@@ -182,22 +204,24 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 			ord = "asc"
 		}
 		switch col {
-		case "title", "slug", "start_event", "end_event", "overview":
+		case "title", "slug", "start_event", "end_event", "overview", "created_at":
 			q = q.Order(col + " " + ord)
+		case "createdat":
+			q = q.Order("created_at " + ord)
 		case "id_event", "id":
 			q = q.Order("id " + ord)
 		default:
 			q = q.Order("title " + ord)
 		}
+		if err := q.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+
 		if p.Limit > 0 {
 			q = q.Limit(p.Limit)
 		}
 		if p.Offset > 0 {
 			q = q.Offset(p.Offset)
-		}
-	} else {
-		if err := q.Count(&total).Error; err != nil {
-			return nil, 0, err
 		}
 	}
 

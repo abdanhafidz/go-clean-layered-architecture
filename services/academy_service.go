@@ -79,13 +79,8 @@ func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcadem
 	if strings.TrimSpace(req.ImageUrl) == "" {
 		return entity.Academy{}, http_error.IMAGE_REQUIRED
 	}
-	if len(req.Code) != 6 {
-		return entity.Academy{}, http_error.INVALID_CODE
-	}
-	for i := 0; i < 6; i++ {
-		if !((req.Code[i] >= 'A' && req.Code[i] <= 'Z') || (req.Code[i] >= '0' && req.Code[i] <= '9')) {
-			return entity.Academy{}, http_error.INVALID_CODE
-		}
+	if err := utils.ValidateCode(req.Code); err != nil {
+		return entity.Academy{}, err
 	}
 
 	slugVal := req.Slug
@@ -824,15 +819,6 @@ func (s *academyService) ListAssignmentsByAcademy(ctx context.Context, academyId
 	return s.academyRepo.ListAssignmentsByAcademy(ctx, academyId)
 }
 func (s *academyService) JoinByCode(ctx context.Context, accountId uuid.UUID, code string) (entity.AcademyAssign, error) {
-	if len(code) != 6 {
-		return entity.AcademyAssign{}, http_error.BAD_REQUEST_ERROR
-	}
-	for i := 0; i < 6; i++ {
-		ch := code[i]
-		if !((ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')) {
-			return entity.AcademyAssign{}, http_error.BAD_REQUEST_ERROR
-		}
-	}
 	ac, err := s.academyRepo.GetAcademyByCode(ctx, code)
 	if err != nil {
 		return entity.AcademyAssign{}, http_error.ACADEMY_NOT_FOUND
