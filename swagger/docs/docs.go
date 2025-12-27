@@ -144,7 +144,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-models_ExamAcademyAttempt"
+                            "$ref": "#/definitions/dto.SuccessResponse-models_AcademyExamAttempt"
                         }
                     },
                     "400": {
@@ -861,6 +861,351 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/exam": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of exams",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "List Exams",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term for exam title",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field to sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc or desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-array_models_Exam"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new exam with configuration and proctoring settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "Create Exam",
+                "parameters": [
+                    {
+                        "description": "Create Exam Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateExamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-models_Exam"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/exam/{exam_id}/academy/{academy_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign an exam to an academy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "Assign Exam to Academy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "exam_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Academy ID",
+                        "name": "academy_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/exam/{exam_id}/event/{event_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign an exam to an event",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "Assign Exam to Event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "exam_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/exam/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve detailed exam information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "Get Exam Detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-models_Exam"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing exam",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "Update Exam",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Exam Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateExamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-models_Exam"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete an existing exam",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exam"
+                ],
+                "summary": "Delete Exam",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/authentication/external-login": {
             "post": {
                 "description": "Authenticate user using external OAuth provider",
@@ -1292,7 +1637,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AnswerExamEventRequest"
+                            "$ref": "#/definitions/dto.AnswerEventExamRequest"
                         }
                     }
                 ],
@@ -1300,7 +1645,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-dto_AnswerExamEventRequest"
+                            "$ref": "#/definitions/dto.SuccessResponse-dto_AnswerEventExamRequest"
                         }
                     },
                     "400": {
@@ -1345,11 +1690,369 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-models_ExamEventAttempt"
+                            "$ref": "#/definitions/dto.SuccessResponse-models_EventExamAttempt"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/events/{event_slug}/exam/{exam_slug}/proctoring": {
+            "get": {
+                "description": "List proctoring logs by account, exam, or event",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "List Proctoring Logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "account_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "exam_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-array_models_EventExamProctoringLogs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new proctoring log entry with optional file attachment",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Create Proctoring Log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id_event",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "id_exam",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id_account",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Violation Score",
+                        "name": "violation_score",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Violation Category",
+                        "name": "violation_category",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Attachment File",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id}": {
+            "get": {
+                "description": "Get details of a specific proctoring log",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Get Proctoring Log By ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-models_EventExamProctoringLogs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing proctoring log",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Update Proctoring Log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Violation Score",
+                        "name": "violation_score",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Violation Category",
+                        "name": "violation_category",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Attachment File",
+                        "name": "file",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account ID (required for upload context)",
+                        "name": "id_account",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a proctoring log entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Delete Proctoring Log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -1740,7 +2443,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AnswerExamEventRequest": {
+        "dto.AnswerEventExamRequest": {
             "type": "object",
             "required": [
                 "question_id"
@@ -1878,6 +2581,56 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "start_event": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateExamRequest": {
+            "type": "object",
+            "properties": {
+                "allow_retake": {
+                    "type": "boolean"
+                },
+                "allow_review": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disable_copy_paste": {
+                    "type": "boolean"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "enable_exam_browser": {
+                    "type": "boolean"
+                },
+                "enable_eye_tracking": {
+                    "type": "boolean"
+                },
+                "enable_full_screen": {
+                    "type": "boolean"
+                },
+                "enable_tab_block": {
+                    "type": "boolean"
+                },
+                "enable_timer": {
+                    "type": "boolean"
+                },
+                "enable_vad": {
+                    "type": "boolean"
+                },
+                "enable_webcam": {
+                    "type": "boolean"
+                },
+                "randomize": {
+                    "type": "integer"
+                },
+                "slug": {
                     "type": "string"
                 },
                 "title": {
@@ -2200,6 +2953,22 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SuccessResponse-array_models_EventExamProctoringLogs": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.EventExamProctoringLogs"
+                    }
+                },
+                "message": {},
+                "meta_data": {},
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SuccessResponse-array_models_Events": {
             "type": "object",
             "properties": {
@@ -2290,11 +3059,11 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SuccessResponse-dto_AnswerExamEventRequest": {
+        "dto.SuccessResponse-dto_AnswerEventExamRequest": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/dto.AnswerExamEventRequest"
+                    "$ref": "#/definitions/dto.AnswerEventExamRequest"
                 },
                 "message": {},
                 "meta_data": {},
@@ -2394,6 +3163,19 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SuccessResponse-models_AcademyExamAttempt": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.AcademyExamAttempt"
+                },
+                "message": {},
+                "meta_data": {},
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SuccessResponse-models_AcademyMaterial": {
             "type": "object",
             "properties": {
@@ -2446,6 +3228,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SuccessResponse-models_EventExamAttempt": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.EventExamAttempt"
+                },
+                "message": {},
+                "meta_data": {},
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SuccessResponse-models_EventExamProctoringLogs": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.EventExamProctoringLogs"
+                },
+                "message": {},
+                "meta_data": {},
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SuccessResponse-models_EventPaymentTransaction": {
             "type": "object",
             "properties": {
@@ -2472,24 +3280,11 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SuccessResponse-models_ExamAcademyAttempt": {
+        "dto.SuccessResponse-models_Exam": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/models.ExamAcademyAttempt"
-                },
-                "message": {},
-                "meta_data": {},
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.SuccessResponse-models_ExamEventAttempt": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.ExamEventAttempt"
+                    "$ref": "#/definitions/models.Exam"
                 },
                 "message": {},
                 "meta_data": {},
@@ -2503,6 +3298,19 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.Options"
+                },
+                "message": {},
+                "meta_data": {},
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SuccessResponse-string": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
                 },
                 "message": {},
                 "meta_data": {},
@@ -2738,6 +3546,91 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AcademyExamAnswer": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "exam_attempt": {
+                    "$ref": "#/definitions/models.AcademyExamAttempt"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "id_attempt": {
+                    "type": "string"
+                },
+                "id_question": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AcademyExamAttempt": {
+            "type": "object",
+            "properties": {
+                "academy": {
+                    "$ref": "#/definitions/models.Academy"
+                },
+                "account": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AcademyExamAnswer"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "due_at": {
+                    "type": "string"
+                },
+                "exam": {
+                    "$ref": "#/definitions/models.Exam"
+                },
+                "id_academy": {
+                    "type": "string"
+                },
+                "id_account": {
+                    "type": "string"
+                },
+                "id_attempt": {
+                    "type": "string"
+                },
+                "id_exam": {
+                    "type": "string"
+                },
+                "mark": {
+                    "type": "number"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Questions"
+                    }
+                },
+                "remaining_time": {
+                    "type": "integer"
+                },
+                "submitted": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.AcademyMaterial": {
             "type": "object",
             "properties": {
@@ -2956,6 +3849,120 @@ const docTemplate = `{
                 }
             }
         },
+        "models.EventExamAnswer": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "exam_attempt": {
+                    "$ref": "#/definitions/models.EventExamAttempt"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "id_attempt": {
+                    "type": "string"
+                },
+                "id_question": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.EventExamAttempt": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.EventExamAnswer"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "due_at": {
+                    "type": "string"
+                },
+                "event": {
+                    "$ref": "#/definitions/models.Events"
+                },
+                "exam": {
+                    "$ref": "#/definitions/models.Exam"
+                },
+                "id_account": {
+                    "type": "string"
+                },
+                "id_attempt": {
+                    "type": "string"
+                },
+                "id_event": {
+                    "type": "string"
+                },
+                "id_exam": {
+                    "type": "string"
+                },
+                "mark": {
+                    "type": "number"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Questions"
+                    }
+                },
+                "remaining_time": {
+                    "type": "integer"
+                },
+                "submitted": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.EventExamProctoringLogs": {
+            "type": "object",
+            "properties": {
+                "attachement": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id_account": {
+                    "type": "string"
+                },
+                "id_event": {
+                    "type": "string"
+                },
+                "id_exam": {
+                    "type": "string"
+                },
+                "id_result": {
+                    "type": "string"
+                },
+                "violation_category": {
+                    "type": "string"
+                },
+                "violation_score": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.EventPaymentTransaction": {
             "type": "object",
             "properties": {
@@ -3041,6 +4048,12 @@ const docTemplate = `{
                 "configuration": {
                     "$ref": "#/definitions/models.ExamConfiguration"
                 },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -3064,91 +4077,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ExamAcademyAnswer": {
-            "type": "object",
-            "properties": {
-                "answer": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "exam_attempt": {
-                    "$ref": "#/definitions/models.ExamAcademyAttempt"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "id_attempt": {
-                    "type": "string"
-                },
-                "id_question": {
-                    "type": "string"
-                },
-                "score": {
-                    "type": "number"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ExamAcademyAttempt": {
-            "type": "object",
-            "properties": {
-                "academy": {
-                    "$ref": "#/definitions/models.Academy"
-                },
-                "account": {
-                    "$ref": "#/definitions/models.Account"
-                },
-                "answers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ExamAcademyAnswer"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "due_at": {
-                    "type": "string"
-                },
-                "exam": {
-                    "$ref": "#/definitions/models.Exam"
-                },
-                "id_academy": {
-                    "type": "string"
-                },
-                "id_account": {
-                    "type": "string"
-                },
-                "id_attempt": {
-                    "type": "string"
-                },
-                "id_exam": {
-                    "type": "string"
-                },
-                "mark": {
-                    "type": "number"
-                },
-                "questions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Questions"
-                    }
-                },
-                "remaining_time": {
-                    "type": "integer"
-                },
-                "submitted": {
-                    "type": "boolean"
-                }
-            }
-        },
         "models.ExamConfiguration": {
             "type": "object",
             "properties": {
@@ -3166,91 +4094,6 @@ const docTemplate = `{
                 },
                 "id_result": {
                     "type": "string"
-                }
-            }
-        },
-        "models.ExamEventAnswer": {
-            "type": "object",
-            "properties": {
-                "answer": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "exam_attempt": {
-                    "$ref": "#/definitions/models.ExamEventAttempt"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "id_attempt": {
-                    "type": "string"
-                },
-                "id_question": {
-                    "type": "string"
-                },
-                "score": {
-                    "type": "number"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ExamEventAttempt": {
-            "type": "object",
-            "properties": {
-                "account": {
-                    "$ref": "#/definitions/models.Account"
-                },
-                "answers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ExamEventAnswer"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "due_at": {
-                    "type": "string"
-                },
-                "event": {
-                    "$ref": "#/definitions/models.Events"
-                },
-                "exam": {
-                    "$ref": "#/definitions/models.Exam"
-                },
-                "id_account": {
-                    "type": "string"
-                },
-                "id_attempt": {
-                    "type": "string"
-                },
-                "id_event": {
-                    "type": "string"
-                },
-                "id_exam": {
-                    "type": "string"
-                },
-                "mark": {
-                    "type": "number"
-                },
-                "questions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Questions"
-                    }
-                },
-                "remaining_time": {
-                    "type": "integer"
-                },
-                "submitted": {
-                    "type": "boolean"
                 }
             }
         },
@@ -3331,6 +4174,12 @@ const docTemplate = `{
         "models.ProblemSet": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "description": {
                     "type": "string"
                 },

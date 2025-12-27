@@ -9,6 +9,8 @@ type ControllerProvider interface {
 	ProvideAuthenticationController() controllers.AuthenticationController
 	ProvideEmailVerificationController() controllers.EmailVerificationController
 	ProvideEventController() controllers.EventController
+	ProvideEventExamController() controllers.EventExamController
+	ProvideEventExamProctoringController() controllers.EventExamProctoringController
 	ProvideExamController() controllers.ExamController
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
@@ -17,17 +19,19 @@ type ControllerProvider interface {
 }
 
 type controllerProvider struct {
-	academyController controllers.AcademyController
-	academyExamController controllers.AcademyExamController
-	accountDetailController controllers.AccountDetailController
-	authenticationController controllers.AuthenticationController
-	emailVerificationController controllers.EmailVerificationController
-	eventController controllers.EventController
-	examController controllers.ExamController
-	forgotPasswordController controllers.ForgotPasswordController
-	optionController controllers.OptionController
-	regionController controllers.RegionController
-	uploadController controllers.UploadController
+	academyController             controllers.AcademyController
+	academyExamController         controllers.AcademyExamController
+	accountDetailController       controllers.AccountDetailController
+	authenticationController      controllers.AuthenticationController
+	emailVerificationController   controllers.EmailVerificationController
+	eventController               controllers.EventController
+	eventExamController           controllers.EventExamController
+	eventExamProctoringController controllers.EventExamProctoringController
+	examController                controllers.ExamController
+	forgotPasswordController      controllers.ForgotPasswordController
+	optionController              controllers.OptionController
+	regionController              controllers.RegionController
+	uploadController              controllers.UploadController
 }
 
 func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider {
@@ -38,23 +42,27 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 	authenticationController := controllers.NewAuthenticationController(servicesProvider.ProvideAccountService(), servicesProvider.ProvideExternalAuthService())
 	emailVerificationController := controllers.NewEmailVerificationController(servicesProvider.ProvideEmailVerificationService())
 	eventController := controllers.NewEventController(servicesProvider.ProvideEventService())
+	eventExamController := controllers.NewEventExamController(servicesProvider.ProvideEventExamService())
+	eventExamProctoringController := controllers.NewEventExamProctoringController(servicesProvider.ProvideEventExamProctoringService())
 	examController := controllers.NewExamController(servicesProvider.ProvideExamService())
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
 	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
 	regionController := controllers.NewRegionController(servicesProvider.ProvideRegionService())
 	uploadController := controllers.NewUploadController(servicesProvider.ProvideUploadService())
 	return &controllerProvider{
-		academyController: academyController,
-		academyExamController: academyExamController,
-		accountDetailController: accountDetailController,
-		authenticationController: authenticationController,
-		emailVerificationController: emailVerificationController,
-		eventController: eventController,
-		examController: examController,
-		forgotPasswordController: forgotPasswordController,
-		optionController: optionController,
-		regionController: regionController,
-		uploadController: uploadController,
+		academyController:             academyController,
+		academyExamController:         academyExamController,
+		accountDetailController:       accountDetailController,
+		authenticationController:      authenticationController,
+		emailVerificationController:   emailVerificationController,
+		eventController:               eventController,
+		eventExamController:           eventExamController,
+		eventExamProctoringController: eventExamProctoringController,
+		examController:                examController,
+		forgotPasswordController:      forgotPasswordController,
+		optionController:              optionController,
+		regionController:              regionController,
+		uploadController:              uploadController,
 	}
 }
 
@@ -84,6 +92,14 @@ func (c *controllerProvider) ProvideEventController() controllers.EventControlle
 	return c.eventController
 }
 
+func (c *controllerProvider) ProvideEventExamController() controllers.EventExamController {
+	return c.eventExamController
+}
+
+func (c *controllerProvider) ProvideEventExamProctoringController() controllers.EventExamProctoringController {
+	return c.eventExamProctoringController
+}
+
 func (c *controllerProvider) ProvideExamController() controllers.ExamController {
 	return c.examController
 }
@@ -103,4 +119,3 @@ func (c *controllerProvider) ProvideRegionController() controllers.RegionControl
 func (c *controllerProvider) ProvideUploadController() controllers.UploadController {
 	return c.uploadController
 }
-

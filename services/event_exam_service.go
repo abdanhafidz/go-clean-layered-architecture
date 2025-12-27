@@ -15,44 +15,45 @@ import (
 	"gorm.io/gorm"
 )
 
-type ExamService interface {
+type EventExamService interface {
 	ListExamByEvent(ctx context.Context, eventSlug string, accountId uuid.UUID) ([]entity.Exam, error)
 	GetEventExamExisting(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (ev dto.EventDetailResponse, exam entity.Exam, err error)
-	GetExamEventAttempt(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (dto.UserExamStatus, entity.ExamEventAttempt, error)
-	AttemptExamEvent(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (entity.ExamEventAttempt, error)
+	GetEventExamAttempt(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (dto.UserExamStatus, entity.EventExamAttempt, error)
+	AttemptEventExam(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (entity.EventExamAttempt, error)
 	SetupQuestions(ctx context.Context, eventSlug string, examId uuid.UUID, accountId uuid.UUID) ([]entity.Questions, error)
-	SetupAnswer(ctx context.Context, questions []entity.Questions, attemptId uuid.UUID) ([]entity.ExamEventAnswer, error)
+	SetupAnswer(ctx context.Context, questions []entity.Questions, attemptId uuid.UUID) ([]entity.EventExamAnswer, error)
 	SetupExamTimer(ctx context.Context, exam entity.Exam) (time.Time, time.Time)
-	SubmitExamEvent(ctx context.Context, attemptId uuid.UUID) (result entity.Result, err error)
-	AnswerExamEvent(ctx context.Context, eventSlug string, attemptId uuid.UUID, questionId uuid.UUID, answer []string) (entity.CPQuestionVerdict, error)
+	SubmitEventExam(ctx context.Context, attemptId uuid.UUID) (result entity.Result, err error)
+	AnswerEventExam(ctx context.Context, eventSlug string, attemptId uuid.UUID, questionId uuid.UUID, answer []string) (entity.CPQuestionVerdict, error)
 }
+
 type evaluator func(answer []string) (float32, entity.CPQuestionVerdict)
 
-type examService struct {
+type eventExamService struct {
 	eventService             EventService
 	problemSetService        ProblemSetService
 	problemSetExamAssignRepo repositories.ProblemSetExamAssignRepository
 	examRepo                 repositories.ExamRepository
-	examEventAttemptRepo     repositories.ExamEventAttemptRepository
-	examEventAnswerRepo      repositories.ExamEventAnswerRepository
-	examEventAssignRepo      repositories.ExamEventAssignRepository
+	eventExamAttemptRepo     repositories.EventExamAttemptRepository
+	eventExamAnswerRepo      repositories.EventExamAnswerRepository
+	eventExamAssignRepo      repositories.EventExamAssignRepository
 	resultRepo               repositories.ResultRepository
 }
 
-func NewExamService(eventService EventService, problemSetService ProblemSetService, problemSetExamAssignRepo repositories.ProblemSetExamAssignRepository, examRepo repositories.ExamRepository, examEventAttemptRepo repositories.ExamEventAttemptRepository, examEventAssignRepo repositories.ExamEventAssignRepository, examEventAnswerRepo repositories.ExamEventAnswerRepository, resultRepo repositories.ResultRepository) ExamService {
-	return &examService{
+func NewEventExamService(eventService EventService, problemSetService ProblemSetService, problemSetExamAssignRepo repositories.ProblemSetExamAssignRepository, examRepo repositories.ExamRepository, eventExamAttemptRepo repositories.EventExamAttemptRepository, eventExamAssignRepo repositories.EventExamAssignRepository, eventExamAnswerRepo repositories.EventExamAnswerRepository, resultRepo repositories.ResultRepository) EventExamService {
+	return &eventExamService{
 		eventService:             eventService,
 		problemSetService:        problemSetService,
 		problemSetExamAssignRepo: problemSetExamAssignRepo,
 		examRepo:                 examRepo,
-		examEventAttemptRepo:     examEventAttemptRepo,
-		examEventAssignRepo:      examEventAssignRepo,
-		examEventAnswerRepo:      examEventAnswerRepo,
+		eventExamAttemptRepo:     eventExamAttemptRepo,
+		eventExamAssignRepo:      eventExamAssignRepo,
+		eventExamAnswerRepo:      eventExamAnswerRepo,
 		resultRepo:               resultRepo,
 	}
 }
 
-func ProtectExamEventAttempt(attempt entity.ExamEventAttempt) entity.ExamEventAttempt {
+func ProtectEventExamAttempt(attempt entity.EventExamAttempt) entity.EventExamAttempt {
 
 	var cleanQuestions []entity.Questions
 	for _, q := range attempt.Questions {
@@ -67,7 +68,7 @@ func ProtectExamEventAttempt(attempt entity.ExamEventAttempt) entity.ExamEventAt
 	attempt.Questions = cleanQuestions
 
 	// protect answers verdict info
-	var cleanAnswers []entity.ExamEventAnswer
+	var cleanAnswers []entity.EventExamAnswer
 
 	for _, a := range attempt.Answers {
 		aCopy := a
@@ -81,7 +82,7 @@ func ProtectExamEventAttempt(attempt entity.ExamEventAttempt) entity.ExamEventAt
 	return attempt
 }
 
-func (s *examService) ListExamByEvent(ctx context.Context, eventSlug string, accountId uuid.UUID) ([]entity.Exam, error) {
+func (s *eventExamService) ListExamByEvent(ctx context.Context, eventSlug string, accountId uuid.UUID) ([]entity.Exam, error) {
 	ev, err := s.eventService.DetailBySlug(ctx, eventSlug, accountId)
 
 	if err != nil {
@@ -98,7 +99,7 @@ func (s *examService) ListExamByEvent(ctx context.Context, eventSlug string, acc
 
 }
 
-func (s *examService) GetEventExamExisting(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (ev dto.EventDetailResponse, exam entity.Exam, err error) {
+func (s *eventExamService) GetEventExamExisting(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (ev dto.EventDetailResponse, exam entity.Exam, err error) {
 
 	if ev, err = s.eventService.DetailBySlug(ctx, eventSlug, accountId); err != nil {
 		return ev, exam, err
@@ -108,37 +109,37 @@ func (s *examService) GetEventExamExisting(ctx context.Context, eventSlug string
 		return ev, exam, err
 	}
 
-	if err := s.examEventAssignRepo.Check(ctx, ev.Data.Id, exam.Id); err != nil {
+	if err := s.eventExamAssignRepo.Check(ctx, ev.Data.Id, exam.Id); err != nil {
 		return dto.EventDetailResponse{}, entity.Exam{}, err
 	}
 
 	return ev, exam, err
 }
 
-func (s *examService) GetExamEventAttempt(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (dto.UserExamStatus, entity.ExamEventAttempt, error) {
+func (s *eventExamService) GetEventExamAttempt(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (dto.UserExamStatus, entity.EventExamAttempt, error) {
 
 	ev, exam, err := s.GetEventExamExisting(ctx, eventSlug, examSlug, accountId)
 
 	if err != nil {
-		return dto.UserExamStatus{}, entity.ExamEventAttempt{}, err
+		return dto.UserExamStatus{}, entity.EventExamAttempt{}, err
 	}
 
-	examEventAttempt, err := s.examEventAttemptRepo.GetByExamEvent(ctx, ev.Data.Id, exam.Id, accountId)
+	eventExamAttempt, err := s.eventExamAttemptRepo.GetByEventExam(ctx, ev.Data.Id, exam.Id, accountId)
 	fmt.Println("Error Exam Event Attempt", errors.Is(err, gorm.ErrRecordNotFound))
 
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return dto.UserExamStatus{}, entity.ExamEventAttempt{}, err
+		return dto.UserExamStatus{}, entity.EventExamAttempt{}, err
 	}
 
 	var attemptStatus dto.UserExamStatus
 	attemptStatus.IsNotAttempt = errors.Is(err, gorm.ErrRecordNotFound)
-	attemptStatus.IsTimeOut = !attemptStatus.IsNotAttempt && (utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt) == 0)
-	attemptStatus.IsSubmitted = examEventAttempt.Submitted
+	attemptStatus.IsTimeOut = !attemptStatus.IsNotAttempt && (utils.CalculateRemainingTime(eventExamAttempt.CreatedAt, eventExamAttempt.DueAt) == 0)
+	attemptStatus.IsSubmitted = eventExamAttempt.Submitted
 	attemptStatus.IsOnAttempt = !attemptStatus.IsNotAttempt && !attemptStatus.IsTimeOut && !attemptStatus.IsSubmitted
-	return attemptStatus, examEventAttempt, nil
+	return attemptStatus, eventExamAttempt, nil
 
 }
-func (s *examService) SetupQuestions(ctx context.Context, eventSlug string, examId uuid.UUID, accountId uuid.UUID) ([]entity.Questions, error) {
+func (s *eventExamService) SetupQuestions(ctx context.Context, eventSlug string, examId uuid.UUID, accountId uuid.UUID) ([]entity.Questions, error) {
 	examAssign, err := s.problemSetExamAssignRepo.GetByExam(ctx, examId)
 
 	if err != nil {
@@ -154,33 +155,33 @@ func (s *examService) SetupQuestions(ctx context.Context, eventSlug string, exam
 	return questions, err
 }
 
-func (s *examService) SetupAnswer(ctx context.Context, questions []entity.Questions, attemptId uuid.UUID) ([]entity.ExamEventAnswer, error) {
-	var examEventAnswers []entity.ExamEventAnswer
+func (s *eventExamService) SetupAnswer(ctx context.Context, questions []entity.Questions, attemptId uuid.UUID) ([]entity.EventExamAnswer, error) {
+	var eventExamAnswers []entity.EventExamAnswer
 	for _, q := range questions {
 
-		blank_ans := entity.ExamEventAnswer{
+		blank_ans := entity.EventExamAnswer{
 			AttemptId:  attemptId,
 			QuestionId: q.Id,
 		}
 
-		err := s.examEventAnswerRepo.Create(ctx, &blank_ans)
+		err := s.eventExamAnswerRepo.Create(ctx, &blank_ans)
 		if err != nil {
-			return []entity.ExamEventAnswer{}, err
+			return []entity.EventExamAnswer{}, err
 		}
-		examEventAnswers = append(examEventAnswers, blank_ans)
+		eventExamAnswers = append(eventExamAnswers, blank_ans)
 	}
 
-	return examEventAnswers, nil
+	return eventExamAnswers, nil
 }
 
-func (s *examService) SetupExamTimer(ctx context.Context, exam entity.Exam) (time.Time, time.Time) {
+func (s *eventExamService) SetupExamTimer(ctx context.Context, exam entity.Exam) (time.Time, time.Time) {
 	startTime := time.Now()
 	dueTime := startTime.Add(exam.Duration * time.Minute)
 	return startTime, dueTime
 }
 
-func (s *examService) SubmitExamEvent(ctx context.Context, attemptId uuid.UUID) (result entity.Result, err error) {
-	attempt, err := s.examEventAttemptRepo.GetById(ctx, attemptId)
+func (s *eventExamService) SubmitEventExam(ctx context.Context, attemptId uuid.UUID) (result entity.Result, err error) {
+	attempt, err := s.eventExamAttemptRepo.GetById(ctx, attemptId)
 	finalScore := float32(0)
 	if err != nil {
 		return entity.Result{}, err
@@ -194,10 +195,10 @@ func (s *examService) SubmitExamEvent(ctx context.Context, attemptId uuid.UUID) 
 
 		attempt.Submitted = true
 		result.AttemptId = attempt.Id
-		result.ExamEventAttempt = &attempt
+		result.EventExamAttempt = &attempt
 		result.FinalScore = float32(finalScore)
 
-		s.examEventAttemptRepo.Update(ctx, &attempt)
+		s.eventExamAttemptRepo.Update(ctx, &attempt)
 		err := s.resultRepo.Create(ctx, &result)
 
 		if err != nil {
@@ -219,47 +220,47 @@ func (s *examService) SubmitExamEvent(ctx context.Context, attemptId uuid.UUID) 
 	return result, err
 
 }
-func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (entity.ExamEventAttempt, error) {
+func (s *eventExamService) AttemptEventExam(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (entity.EventExamAttempt, error) {
 	eventStatus, err := s.eventService.GetStatus(ctx, eventSlug, accountId)
 
 	if err != nil {
-		return entity.ExamEventAttempt{}, err
+		return entity.EventExamAttempt{}, err
 	}
 
 	if eventStatus.IsHasNotStarted {
-		return entity.ExamEventAttempt{}, http_error.EVENT_NOT_STARTED
+		return entity.EventExamAttempt{}, http_error.EVENT_NOT_STARTED
 	}
 
 	ev, exam, err := s.GetEventExamExisting(ctx, eventSlug, examSlug, accountId)
 
 	if err != nil {
-		return entity.ExamEventAttempt{}, err
+		return entity.EventExamAttempt{}, err
 	}
-	attemptStatus, examEventAttempt, err := s.GetExamEventAttempt(ctx, eventSlug, examSlug, accountId)
+	attemptStatus, eventExamAttempt, err := s.GetEventExamAttempt(ctx, eventSlug, examSlug, accountId)
 
 	fmt.Println("Get AttemptStatus = ", attemptStatus, "Err =", err)
 
 	if err != nil {
-		return entity.ExamEventAttempt{}, err
+		return entity.EventExamAttempt{}, err
 	}
 
 	questions, err := s.SetupQuestions(ctx, eventSlug, exam.Id, accountId)
-	examEventAttempt.Questions = questions
+	eventExamAttempt.Questions = questions
 
 	if err != nil {
-		return entity.ExamEventAttempt{}, err
+		return entity.EventExamAttempt{}, err
 	}
 
 	if attemptStatus.IsNotAttempt {
 		if eventStatus.IsFinished {
-			return entity.ExamEventAttempt{}, err
+			return entity.EventExamAttempt{}, err
 		}
 
 		startTime, dueTime := s.SetupExamTimer(ctx, exam)
 		remTime := utils.CalculateRemainingTime(startTime, dueTime)
 
 		fmt.Println("Rem Time = ", remTime)
-		examEventAttempt = entity.ExamEventAttempt{
+		eventExamAttempt = entity.EventExamAttempt{
 			AccountId: accountId,
 			EventId:   ev.Data.Id,
 			ExamId:    exam.Id,
@@ -270,65 +271,65 @@ func (s *examService) AttemptExamEvent(ctx context.Context, eventSlug string, ex
 			Questions: questions,
 		}
 
-		if err := s.examEventAttemptRepo.Create(ctx, &examEventAttempt); err != nil {
-			return entity.ExamEventAttempt{}, err
+		if err := s.eventExamAttemptRepo.Create(ctx, &eventExamAttempt); err != nil {
+			return entity.EventExamAttempt{}, err
 		}
 
-		answers, err := s.SetupAnswer(ctx, questions, examEventAttempt.Id)
+		answers, err := s.SetupAnswer(ctx, questions, eventExamAttempt.Id)
 		fmt.Println("Answer = ", answers)
 		if err != nil {
-			return entity.ExamEventAttempt{}, err
+			return entity.EventExamAttempt{}, err
 		}
 
-		examEventAttempt.Answers = answers
-		return ProtectExamEventAttempt(examEventAttempt), err
+		eventExamAttempt.Answers = answers
+		return ProtectEventExamAttempt(eventExamAttempt), err
 
 	} else if attemptStatus.IsOnAttempt {
 
 		if eventStatus.IsFinished {
-			s.SubmitExamEvent(ctx, examEventAttempt.Id)
-			examEventAttempt.Submitted = true
-			if err := s.examEventAttemptRepo.Update(ctx, &examEventAttempt); err != nil {
-				return entity.ExamEventAttempt{}, err
+			s.SubmitEventExam(ctx, eventExamAttempt.Id)
+			eventExamAttempt.Submitted = true
+			if err := s.eventExamAttemptRepo.Update(ctx, &eventExamAttempt); err != nil {
+				return entity.EventExamAttempt{}, err
 			}
-			return examEventAttempt, err
+			return eventExamAttempt, err
 		}
-		remTime := utils.CalculateRemainingTime(examEventAttempt.CreatedAt, examEventAttempt.DueAt)
-		examEventAttempt.RemTime = remTime
+		remTime := utils.CalculateRemainingTime(eventExamAttempt.CreatedAt, eventExamAttempt.DueAt)
+		eventExamAttempt.RemTime = remTime
 
-		if err := s.examEventAttemptRepo.Update(ctx, &examEventAttempt); err != nil {
-			return entity.ExamEventAttempt{}, err
+		if err := s.eventExamAttemptRepo.Update(ctx, &eventExamAttempt); err != nil {
+			return entity.EventExamAttempt{}, err
 		}
 
-		examEventAttempt.Questions = questions
+		eventExamAttempt.Questions = questions
 
-		return ProtectExamEventAttempt(examEventAttempt), err
+		return ProtectEventExamAttempt(eventExamAttempt), err
 
 	} else if attemptStatus.IsTimeOut {
-		if examEventAttempt.RemTime != 0 {
+		if eventExamAttempt.RemTime != 0 {
 			remTime := 0
-			examEventAttempt.RemTime = remTime
+			eventExamAttempt.RemTime = remTime
 		}
 
-		s.SubmitExamEvent(ctx, examEventAttempt.Id)
+		s.SubmitEventExam(ctx, eventExamAttempt.Id)
 
-		examEventAttempt.Submitted = true
-		
-		if err := s.examEventAttemptRepo.Update(ctx, &examEventAttempt); err != nil {
-			return entity.ExamEventAttempt{}, err
+		eventExamAttempt.Submitted = true
+
+		if err := s.eventExamAttemptRepo.Update(ctx, &eventExamAttempt); err != nil {
+			return entity.EventExamAttempt{}, err
 		}
-		return examEventAttempt, err
+		return eventExamAttempt, err
 
 	} else if attemptStatus.IsSubmitted {
 		if !exam.Configuration.AllowReview {
-			examEventAttempt = ProtectExamEventAttempt(examEventAttempt)
+			eventExamAttempt = ProtectEventExamAttempt(eventExamAttempt)
 		}
-		return examEventAttempt, nil
+		return eventExamAttempt, nil
 	}
-	return entity.ExamEventAttempt{}, http_error.INTERNAL_SERVER_ERROR
+	return entity.EventExamAttempt{}, http_error.INTERNAL_SERVER_ERROR
 }
 
-func (s *examService) EvaluateAnswer(ctx context.Context, question entity.Questions) evaluator {
+func (s *eventExamService) EvaluateAnswer(ctx context.Context, question entity.Questions) evaluator {
 
 	nonCPEvaluator := func(answer []string) (float32, entity.CPQuestionVerdict) {
 		score := float32(0)
@@ -373,9 +374,9 @@ func (s *examService) EvaluateAnswer(ctx context.Context, question entity.Questi
 
 	return examEvaluator[question.Type]
 }
-func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, attemptId uuid.UUID, questionId uuid.UUID, answer []string) (entity.CPQuestionVerdict, error) {
+func (s *eventExamService) AnswerEventExam(ctx context.Context, eventSlug string, attemptId uuid.UUID, questionId uuid.UUID, answer []string) (entity.CPQuestionVerdict, error) {
 
-	attempt, err := s.examEventAttemptRepo.GetById(ctx, attemptId)
+	attempt, err := s.eventExamAttemptRepo.GetById(ctx, attemptId)
 
 	if err != nil {
 		return entity.CPQuestionVerdict{}, err
@@ -402,7 +403,7 @@ func (s *examService) AnswerExamEvent(ctx context.Context, eventSlug string, att
 
 	score, CPQuestionVerdict := s.EvaluateAnswer(ctx, question)(answer)
 
-	err = s.examEventAnswerRepo.Update(ctx, &entity.ExamEventAnswer{
+	err = s.eventExamAnswerRepo.Update(ctx, &entity.EventExamAnswer{
 		AttemptId:  attemptId,
 		QuestionId: questionId,
 		Answers:    answer,

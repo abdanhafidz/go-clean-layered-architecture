@@ -205,6 +205,7 @@ func (s *academyService) CreateAcademy(ctx context.Context, req dto.CreateAcadem
 	if strings.TrimSpace(req.ImageUrl) == "" {
 		return entity.Academy{}, http_error.IMAGE_REQUIRED
 	}
+
 	if err := utils.ValidateCode(req.Code); err != nil {
 		return entity.Academy{}, err
 	}

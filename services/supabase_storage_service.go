@@ -23,15 +23,15 @@ type supabaseStorageService struct {
 func NewSupabaseStorageService(url string, key string, bucketName string) StorageService {
 
 	if url == "" || key == "" || bucketName == "" {
-		fmt.Errorf("%w: supabase storage config is empty (url, key, and bucket are required)")
+		fmt.Errorf(" supabase storage config is empty (url, key, and bucket are required)")
 		return nil
 	}
 	if !strings.HasPrefix(url, "https://") || !strings.Contains(url, ".supabase.co") {
-		fmt.Errorf("%w: supabase storage url is invalid")
+		fmt.Errorf("supabase storage url is invalid")
 		return nil
 	}
 	if strings.Count(key, ".") != 2 {
-		fmt.Errorf("%w: supabase service key is not a valid compact JWS")
+		fmt.Errorf("supabase service key is not a valid compact JWS")
 		return nil
 	}
 

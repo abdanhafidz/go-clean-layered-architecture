@@ -60,17 +60,16 @@ func (s *jwtService) ValidateToken(ctx context.Context, tokenStr string) (claim 
 		return []byte(s.secretKey), nil
 	})
 
-	fmt.Println("Token", token)
-	fmt.Println("secretKey", s.secretKey)
-
 	if err != nil || !token.Valid {
 		return nil, http_error.INVALID_TOKEN
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
+
 	if !ok {
 		return nil, http_error.INTERNAL_SERVER_ERROR
 	}
+
 	account_id, ok := claims["account_id"].(string)
 	if !ok {
 		return nil, http_error.INTERNAL_SERVER_ERROR

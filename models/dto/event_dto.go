@@ -2,6 +2,7 @@ package dto
 
 import (
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	"github.com/google/uuid"
 )
 
 type EventDetailResponse struct {
@@ -37,4 +38,13 @@ type UpdateEventRequest struct {
 	Overview   string `json:"overview"`
 	ImgBanner  string `json:"img_banner"`
 	IsPublic   *bool  `json:"is_public"`
+}
+
+type EventExamProctoringLogsRequest struct {
+	EventId           uuid.UUID `json:"id_event,omitempty" form:"id_event"`
+	ExamId            uuid.UUID `json:"id_exam,omitempty" form:"id_exam"`
+	AccountId         uuid.UUID `json:"id_account,omitempty" form:"id_account"`
+	ViolationScore    uint      `json:"violation_score,omitempty" form:"violation_score"`
+	ViolationCategory string    `json:"violation_category,omitempty" form:"violation_category"`
+	Attachement       string    `json:"attachement,omitempty" form:"attachement"`
 }

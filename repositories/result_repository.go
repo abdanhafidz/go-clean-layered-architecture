@@ -28,7 +28,7 @@ func (r *resultRepository) Create(ctx context.Context, rs *entity.Result) error 
 func (r *resultRepository) GetByAttemptId(ctx context.Context, attemptId uuid.UUID) (entity.Result, error) {
 	var rs entity.Result
 	err := r.db.WithContext(ctx).
-		Preload("ExamEventAttempt").
+		Preload("EventExamAttempt").
 		First(&rs, "attempt_id = ?", attemptId).Error
 	return rs, err
 }
@@ -38,7 +38,7 @@ func (r *resultRepository) GetById(ctx context.Context, id uuid.UUID) (entity.Re
 		Preload("Account").
 		Preload("Event").
 		Preload("ProblemSet").
-		Preload("ExamEventAttempt").
+		Preload("EventExamAttempt").
 		First(&rs, "id = ?", id).Error
 	return rs, err
 }

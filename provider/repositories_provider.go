@@ -12,12 +12,13 @@ type RepositoriesProvider interface {
 	ProvideEventAssignRepository() repositories.EventAssignRepository
 	ProvideEventPaymentRepository() repositories.EventPaymentRepository
 	ProvideEventsRepository() repositories.EventsRepository
-	ProvideExamAcademyAnswerRepository() repositories.ExamAcademyAnswerRepository
-	ProvideExamAcademyAssignRepository() repositories.ExamAcademyAssignRepository
-	ProvideExamAcademyAttemptRepository() repositories.ExamAcademyAttemptRepository
-	ProvideExamEventAnswerRepository() repositories.ExamEventAnswerRepository
-	ProvideExamEventAssignRepository() repositories.ExamEventAssignRepository
-	ProvideExamEventAttemptRepository() repositories.ExamEventAttemptRepository
+	ProvideAcademyExamAnswerRepository() repositories.AcademyExamAnswerRepository
+	ProvideAcademyExamAssignRepository() repositories.AcademyExamAssignRepository
+	ProvideAcademyExamAttemptRepository() repositories.AcademyExamAttemptRepository
+	ProvideEventExamAnswerRepository() repositories.EventExamAnswerRepository
+	ProvideEventExamAssignRepository() repositories.EventExamAssignRepository
+	ProvideEventExamAttemptRepository() repositories.EventExamAttemptRepository
+	ProvideEventExamProctoringRepository() repositories.EventExamProctoringRepository
 	ProvideExamRepository() repositories.ExamRepository
 	ProvideExternalAuthRepository() repositories.ExternalAuthRepository
 	ProvideFCMRepository() repositories.FCMRepository
@@ -32,32 +33,33 @@ type RepositoriesProvider interface {
 }
 
 type repositoriesProvider struct {
-	academyPaymentRepository repositories.AcademyPaymentRepository
-	academyRepository repositories.AcademyRepository
-	academyResultRepository repositories.AcademyResultRepository
-	accountDetailRepository repositories.AccountDetailRepository
-	accountRepository repositories.AccountRepository
-	emailVerificationRepository repositories.EmailVerificationRepository
-	eventAssignRepository repositories.EventAssignRepository
-	eventPaymentRepository repositories.EventPaymentRepository
-	eventsRepository repositories.EventsRepository
-	examAcademyAnswerRepository repositories.ExamAcademyAnswerRepository
-	examAcademyAssignRepository repositories.ExamAcademyAssignRepository
-	examAcademyAttemptRepository repositories.ExamAcademyAttemptRepository
-	examEventAnswerRepository repositories.ExamEventAnswerRepository
-	examEventAssignRepository repositories.ExamEventAssignRepository
-	examEventAttemptRepository repositories.ExamEventAttemptRepository
-	examRepository repositories.ExamRepository
-	externalAuthRepository repositories.ExternalAuthRepository
-	fCMRepository repositories.FCMRepository
-	fileRepository repositories.FileRepository
-	forgotPasswordRepository repositories.ForgotPasswordRepository
-	optionRepository repositories.OptionRepository
+	academyPaymentRepository       repositories.AcademyPaymentRepository
+	academyRepository              repositories.AcademyRepository
+	academyResultRepository        repositories.AcademyResultRepository
+	accountDetailRepository        repositories.AccountDetailRepository
+	accountRepository              repositories.AccountRepository
+	emailVerificationRepository    repositories.EmailVerificationRepository
+	eventAssignRepository          repositories.EventAssignRepository
+	eventPaymentRepository         repositories.EventPaymentRepository
+	eventsRepository               repositories.EventsRepository
+	academyExamAnswerRepository    repositories.AcademyExamAnswerRepository
+	academyExamAssignRepository    repositories.AcademyExamAssignRepository
+	academyExamAttemptRepository   repositories.AcademyExamAttemptRepository
+	eventExamAnswerRepository      repositories.EventExamAnswerRepository
+	eventExamAssignRepository      repositories.EventExamAssignRepository
+	eventExamAttemptRepository     repositories.EventExamAttemptRepository
+	eventExamProctoringRepository  repositories.EventExamProctoringRepository
+	examRepository                 repositories.ExamRepository
+	externalAuthRepository         repositories.ExternalAuthRepository
+	fCMRepository                  repositories.FCMRepository
+	fileRepository                 repositories.FileRepository
+	forgotPasswordRepository       repositories.ForgotPasswordRepository
+	optionRepository               repositories.OptionRepository
 	problemSetExamAssignRepository repositories.ProblemSetExamAssignRepository
-	problemSetRepository repositories.ProblemSetRepository
-	questionsRepository repositories.QuestionsRepository
-	regionRepository repositories.RegionRepository
-	resultRepository repositories.ResultRepository
+	problemSetRepository           repositories.ProblemSetRepository
+	questionsRepository            repositories.QuestionsRepository
+	regionRepository               repositories.RegionRepository
+	resultRepository               repositories.ResultRepository
 }
 
 func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
@@ -73,12 +75,13 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	eventAssignRepository := repositories.NewEventAssignRepository(db)
 	eventPaymentRepository := repositories.NewEventPaymentRepository(db)
 	eventsRepository := repositories.NewEventsRepository(db)
-	examAcademyAnswerRepository := repositories.NewExamAcademyAnswerRepository(db)
-	examAcademyAssignRepository := repositories.NewExamAcademyAssignRepository(db)
-	examAcademyAttemptRepository := repositories.NewExamAcademyAttemptRepository(db)
-	examEventAnswerRepository := repositories.NewExamEventAnswerRepository(db)
-	examEventAssignRepository := repositories.NewExamEventAssignRepository(db)
-	examEventAttemptRepository := repositories.NewExamEventAttemptRepository(db)
+	academyExamAnswerRepository := repositories.NewAcademyExamAnswerRepository(db)
+	academyExamAssignRepository := repositories.NewAcademyExamAssignRepository(db)
+	academyExamAttemptRepository := repositories.NewAcademyExamAttemptRepository(db)
+	eventExamAnswerRepository := repositories.NewEventExamAnswerRepository(db)
+	eventExamAssignRepository := repositories.NewEventExamAssignRepository(db)
+	eventExamAttemptRepository := repositories.NewEventExamAttemptRepository(db)
+	eventExamProctoringRepository := repositories.NewEventExamProctoringRepository(db)
 	examRepository := repositories.NewExamRepository(db)
 	externalAuthRepository := repositories.NewExternalAuthRepository(db)
 	fCMRepository := repositories.NewFCMRepository(db)
@@ -92,32 +95,33 @@ func NewRepositoriesProvider(cfg ConfigProvider) RepositoriesProvider {
 	resultRepository := repositories.NewResultRepository(db)
 
 	return &repositoriesProvider{
-		academyPaymentRepository: academyPaymentRepository,
-		academyRepository: academyRepository,
-		academyResultRepository: academyResultRepository,
-		accountDetailRepository: accountDetailRepository,
-		accountRepository: accountRepository,
-		emailVerificationRepository: emailVerificationRepository,
-		eventAssignRepository: eventAssignRepository,
-		eventPaymentRepository: eventPaymentRepository,
-		eventsRepository: eventsRepository,
-		examAcademyAnswerRepository: examAcademyAnswerRepository,
-		examAcademyAssignRepository: examAcademyAssignRepository,
-		examAcademyAttemptRepository: examAcademyAttemptRepository,
-		examEventAnswerRepository: examEventAnswerRepository,
-		examEventAssignRepository: examEventAssignRepository,
-		examEventAttemptRepository: examEventAttemptRepository,
-		examRepository: examRepository,
-		externalAuthRepository: externalAuthRepository,
-		fCMRepository: fCMRepository,
-		fileRepository: fileRepository,
-		forgotPasswordRepository: forgotPasswordRepository,
-		optionRepository: optionRepository,
+		academyPaymentRepository:       academyPaymentRepository,
+		academyRepository:              academyRepository,
+		academyResultRepository:        academyResultRepository,
+		accountDetailRepository:        accountDetailRepository,
+		accountRepository:              accountRepository,
+		emailVerificationRepository:    emailVerificationRepository,
+		eventAssignRepository:          eventAssignRepository,
+		eventPaymentRepository:         eventPaymentRepository,
+		eventsRepository:               eventsRepository,
+		academyExamAnswerRepository:    academyExamAnswerRepository,
+		academyExamAssignRepository:    academyExamAssignRepository,
+		academyExamAttemptRepository:   academyExamAttemptRepository,
+		eventExamAnswerRepository:      eventExamAnswerRepository,
+		eventExamAssignRepository:      eventExamAssignRepository,
+		eventExamAttemptRepository:     eventExamAttemptRepository,
+		eventExamProctoringRepository:  eventExamProctoringRepository,
+		examRepository:                 examRepository,
+		externalAuthRepository:         externalAuthRepository,
+		fCMRepository:                  fCMRepository,
+		fileRepository:                 fileRepository,
+		forgotPasswordRepository:       forgotPasswordRepository,
+		optionRepository:               optionRepository,
 		problemSetExamAssignRepository: problemSetExamAssignRepository,
-		problemSetRepository: problemSetRepository,
-		questionsRepository: questionsRepository,
-		regionRepository: regionRepository,
-		resultRepository: resultRepository,
+		problemSetRepository:           problemSetRepository,
+		questionsRepository:            questionsRepository,
+		regionRepository:               regionRepository,
+		resultRepository:               resultRepository,
 	}
 }
 
@@ -157,28 +161,32 @@ func (r *repositoriesProvider) ProvideEventsRepository() repositories.EventsRepo
 	return r.eventsRepository
 }
 
-func (r *repositoriesProvider) ProvideExamAcademyAnswerRepository() repositories.ExamAcademyAnswerRepository {
-	return r.examAcademyAnswerRepository
+func (r *repositoriesProvider) ProvideAcademyExamAnswerRepository() repositories.AcademyExamAnswerRepository {
+	return r.academyExamAnswerRepository
 }
 
-func (r *repositoriesProvider) ProvideExamAcademyAssignRepository() repositories.ExamAcademyAssignRepository {
-	return r.examAcademyAssignRepository
+func (r *repositoriesProvider) ProvideAcademyExamAssignRepository() repositories.AcademyExamAssignRepository {
+	return r.academyExamAssignRepository
 }
 
-func (r *repositoriesProvider) ProvideExamAcademyAttemptRepository() repositories.ExamAcademyAttemptRepository {
-	return r.examAcademyAttemptRepository
+func (r *repositoriesProvider) ProvideAcademyExamAttemptRepository() repositories.AcademyExamAttemptRepository {
+	return r.academyExamAttemptRepository
 }
 
-func (r *repositoriesProvider) ProvideExamEventAnswerRepository() repositories.ExamEventAnswerRepository {
-	return r.examEventAnswerRepository
+func (r *repositoriesProvider) ProvideEventExamAnswerRepository() repositories.EventExamAnswerRepository {
+	return r.eventExamAnswerRepository
 }
 
-func (r *repositoriesProvider) ProvideExamEventAssignRepository() repositories.ExamEventAssignRepository {
-	return r.examEventAssignRepository
+func (r *repositoriesProvider) ProvideEventExamAssignRepository() repositories.EventExamAssignRepository {
+	return r.eventExamAssignRepository
 }
 
-func (r *repositoriesProvider) ProvideExamEventAttemptRepository() repositories.ExamEventAttemptRepository {
-	return r.examEventAttemptRepository
+func (r *repositoriesProvider) ProvideEventExamAttemptRepository() repositories.EventExamAttemptRepository {
+	return r.eventExamAttemptRepository
+}
+
+func (r *repositoriesProvider) ProvideEventExamProctoringRepository() repositories.EventExamProctoringRepository {
+	return r.eventExamProctoringRepository
 }
 
 func (r *repositoriesProvider) ProvideExamRepository() repositories.ExamRepository {
@@ -224,4 +232,3 @@ func (r *repositoriesProvider) ProvideRegionRepository() repositories.RegionRepo
 func (r *repositoriesProvider) ProvideResultRepository() repositories.ResultRepository {
 	return r.resultRepository
 }
-

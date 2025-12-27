@@ -18,7 +18,7 @@ definitions:
       details:
         $ref: '#/definitions/models.AccountDetail'
     type: object
-  dto.AnswerExamEventRequest:
+  dto.AnswerEventExamRequest:
     properties:
       answer:
         items:
@@ -113,6 +113,39 @@ definitions:
     - overview
     - start_event
     - title
+    type: object
+  dto.CreateExamRequest:
+    properties:
+      allow_retake:
+        type: boolean
+      allow_review:
+        type: boolean
+      description:
+        type: string
+      disable_copy_paste:
+        type: boolean
+      duration:
+        type: integer
+      enable_exam_browser:
+        type: boolean
+      enable_eye_tracking:
+        type: boolean
+      enable_full_screen:
+        type: boolean
+      enable_tab_block:
+        type: boolean
+      enable_timer:
+        type: boolean
+      enable_vad:
+        type: boolean
+      enable_webcam:
+        type: boolean
+      randomize:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
     type: object
   dto.CreateMaterialRequest:
     properties:
@@ -323,6 +356,17 @@ definitions:
       status:
         type: string
     type: object
+  dto.SuccessResponse-array_models_EventExamProctoringLogs:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.EventExamProctoringLogs'
+        type: array
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
   dto.SuccessResponse-array_models_Events:
     properties:
       data:
@@ -385,10 +429,10 @@ definitions:
       status:
         type: string
     type: object
-  dto.SuccessResponse-dto_AnswerExamEventRequest:
+  dto.SuccessResponse-dto_AnswerEventExamRequest:
     properties:
       data:
-        $ref: '#/definitions/dto.AnswerExamEventRequest'
+        $ref: '#/definitions/dto.AnswerEventExamRequest'
       message: {}
       meta_data: {}
       status:
@@ -457,6 +501,15 @@ definitions:
       status:
         type: string
     type: object
+  dto.SuccessResponse-models_AcademyExamAttempt:
+    properties:
+      data:
+        $ref: '#/definitions/models.AcademyExamAttempt'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
   dto.SuccessResponse-models_AcademyMaterial:
     properties:
       data:
@@ -493,6 +546,24 @@ definitions:
       status:
         type: string
     type: object
+  dto.SuccessResponse-models_EventExamAttempt:
+    properties:
+      data:
+        $ref: '#/definitions/models.EventExamAttempt'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-models_EventExamProctoringLogs:
+    properties:
+      data:
+        $ref: '#/definitions/models.EventExamProctoringLogs'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
   dto.SuccessResponse-models_EventPaymentTransaction:
     properties:
       data:
@@ -511,19 +582,10 @@ definitions:
       status:
         type: string
     type: object
-  dto.SuccessResponse-models_ExamAcademyAttempt:
+  dto.SuccessResponse-models_Exam:
     properties:
       data:
-        $ref: '#/definitions/models.ExamAcademyAttempt'
-      message: {}
-      meta_data: {}
-      status:
-        type: string
-    type: object
-  dto.SuccessResponse-models_ExamEventAttempt:
-    properties:
-      data:
-        $ref: '#/definitions/models.ExamEventAttempt'
+        $ref: '#/definitions/models.Exam'
       message: {}
       meta_data: {}
       status:
@@ -533,6 +595,15 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/models.Options'
+      message: {}
+      meta_data: {}
+      status:
+        type: string
+    type: object
+  dto.SuccessResponse-string:
+    properties:
+      data:
+        type: string
       message: {}
       meta_data: {}
       status:
@@ -687,6 +758,62 @@ definitions:
       status:
         type: string
     type: object
+  models.AcademyExamAnswer:
+    properties:
+      answer:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      exam_attempt:
+        $ref: '#/definitions/models.AcademyExamAttempt'
+      id:
+        type: string
+      id_attempt:
+        type: string
+      id_question:
+        type: string
+      score:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.AcademyExamAttempt:
+    properties:
+      academy:
+        $ref: '#/definitions/models.Academy'
+      account:
+        $ref: '#/definitions/models.Account'
+      answers:
+        items:
+          $ref: '#/definitions/models.AcademyExamAnswer'
+        type: array
+      created_at:
+        type: string
+      due_at:
+        type: string
+      exam:
+        $ref: '#/definitions/models.Exam'
+      id_academy:
+        type: string
+      id_account:
+        type: string
+      id_attempt:
+        type: string
+      id_exam:
+        type: string
+      mark:
+        type: number
+      questions:
+        items:
+          $ref: '#/definitions/models.Questions'
+        type: array
+      remaining_time:
+        type: integer
+      submitted:
+        type: boolean
+    type: object
   models.AcademyMaterial:
     properties:
       academy_id:
@@ -830,6 +957,81 @@ definitions:
       token:
         type: integer
     type: object
+  models.EventExamAnswer:
+    properties:
+      answer:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      exam_attempt:
+        $ref: '#/definitions/models.EventExamAttempt'
+      id:
+        type: string
+      id_attempt:
+        type: string
+      id_question:
+        type: string
+      score:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.EventExamAttempt:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      answers:
+        items:
+          $ref: '#/definitions/models.EventExamAnswer'
+        type: array
+      created_at:
+        type: string
+      due_at:
+        type: string
+      event:
+        $ref: '#/definitions/models.Events'
+      exam:
+        $ref: '#/definitions/models.Exam'
+      id_account:
+        type: string
+      id_attempt:
+        type: string
+      id_event:
+        type: string
+      id_exam:
+        type: string
+      mark:
+        type: number
+      questions:
+        items:
+          $ref: '#/definitions/models.Questions'
+        type: array
+      remaining_time:
+        type: integer
+      submitted:
+        type: boolean
+    type: object
+  models.EventExamProctoringLogs:
+    properties:
+      attachement:
+        type: string
+      created_at:
+        type: string
+      id_account:
+        type: string
+      id_event:
+        type: string
+      id_exam:
+        type: string
+      id_result:
+        type: string
+      violation_category:
+        type: string
+      violation_score:
+        type: integer
+    type: object
   models.EventPaymentTransaction:
     properties:
       account_id:
@@ -886,6 +1088,10 @@ definitions:
     properties:
       configuration:
         $ref: '#/definitions/models.ExamConfiguration'
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
       description:
         type: string
       duration:
@@ -901,62 +1107,6 @@ definitions:
       title:
         type: string
     type: object
-  models.ExamAcademyAnswer:
-    properties:
-      answer:
-        items:
-          type: string
-        type: array
-      created_at:
-        type: string
-      exam_attempt:
-        $ref: '#/definitions/models.ExamAcademyAttempt'
-      id:
-        type: string
-      id_attempt:
-        type: string
-      id_question:
-        type: string
-      score:
-        type: number
-      updated_at:
-        type: string
-    type: object
-  models.ExamAcademyAttempt:
-    properties:
-      academy:
-        $ref: '#/definitions/models.Academy'
-      account:
-        $ref: '#/definitions/models.Account'
-      answers:
-        items:
-          $ref: '#/definitions/models.ExamAcademyAnswer'
-        type: array
-      created_at:
-        type: string
-      due_at:
-        type: string
-      exam:
-        $ref: '#/definitions/models.Exam'
-      id_academy:
-        type: string
-      id_account:
-        type: string
-      id_attempt:
-        type: string
-      id_exam:
-        type: string
-      mark:
-        type: number
-      questions:
-        items:
-          $ref: '#/definitions/models.Questions'
-        type: array
-      remaining_time:
-        type: integer
-      submitted:
-        type: boolean
-    type: object
   models.ExamConfiguration:
     properties:
       allow_retake:
@@ -969,62 +1119,6 @@ definitions:
         type: string
       id_result:
         type: string
-    type: object
-  models.ExamEventAnswer:
-    properties:
-      answer:
-        items:
-          type: string
-        type: array
-      created_at:
-        type: string
-      exam_attempt:
-        $ref: '#/definitions/models.ExamEventAttempt'
-      id:
-        type: string
-      id_attempt:
-        type: string
-      id_question:
-        type: string
-      score:
-        type: number
-      updated_at:
-        type: string
-    type: object
-  models.ExamEventAttempt:
-    properties:
-      account:
-        $ref: '#/definitions/models.Account'
-      answers:
-        items:
-          $ref: '#/definitions/models.ExamEventAnswer'
-        type: array
-      created_at:
-        type: string
-      due_at:
-        type: string
-      event:
-        $ref: '#/definitions/models.Events'
-      exam:
-        $ref: '#/definitions/models.Exam'
-      id_account:
-        type: string
-      id_attempt:
-        type: string
-      id_event:
-        type: string
-      id_exam:
-        type: string
-      mark:
-        type: number
-      questions:
-        items:
-          $ref: '#/definitions/models.Questions'
-        type: array
-      remaining_time:
-        type: integer
-      submitted:
-        type: boolean
     type: object
   models.ExamProctoring:
     properties:
@@ -1076,6 +1170,10 @@ definitions:
     type: object
   models.ProblemSet:
     properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
       description:
         type: string
       id_problem_set:
@@ -1260,7 +1358,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.SuccessResponse-models_ExamAcademyAttempt'
+            $ref: '#/definitions/dto.SuccessResponse-models_AcademyExamAttempt'
         "400":
           description: Bad Request
           schema:
@@ -1684,6 +1782,226 @@ paths:
       summary: Update Event
       tags:
       - Event
+  /api/v1/admin/exam:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of exams
+      parameters:
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Search term for exam title
+        in: query
+        name: search
+        type: string
+      - description: Field to sort by
+        in: query
+        name: sortBy
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_Exam'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List Exams
+      tags:
+      - Exam
+    post:
+      consumes:
+      - application/json
+      description: Create a new exam with configuration and proctoring settings
+      parameters:
+      - description: Create Exam Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateExamRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Exam'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Exam
+      tags:
+      - Exam
+  /api/v1/admin/exam/{exam_id}/academy/{academy_id}:
+    post:
+      consumes:
+      - application/json
+      description: Assign an exam to an academy
+      parameters:
+      - description: Exam ID
+        in: path
+        name: exam_id
+        required: true
+        type: string
+      - description: Academy ID
+        in: path
+        name: academy_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign Exam to Academy
+      tags:
+      - Exam
+  /api/v1/admin/exam/{exam_id}/event/{event_id}:
+    post:
+      consumes:
+      - application/json
+      description: Assign an exam to an event
+      parameters:
+      - description: Exam ID
+        in: path
+        name: exam_id
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: event_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign Exam to Event
+      tags:
+      - Exam
+  /api/v1/admin/exam/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing exam
+      parameters:
+      - description: Exam ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Exam
+      tags:
+      - Exam
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed exam information
+      parameters:
+      - description: Exam ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Exam'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Exam Detail
+      tags:
+      - Exam
+    put:
+      consumes:
+      - application/json
+      description: Update an existing exam
+      parameters:
+      - description: Exam ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Exam Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateExamRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_Exam'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Exam
+      tags:
+      - Exam
   /api/v1/authentication/external-login:
     post:
       consumes:
@@ -1938,14 +2256,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.AnswerExamEventRequest'
+          $ref: '#/definitions/dto.AnswerEventExamRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.SuccessResponse-dto_AnswerExamEventRequest'
+            $ref: '#/definitions/dto.SuccessResponse-dto_AnswerEventExamRequest'
         "400":
           description: Bad Request
           schema:
@@ -1975,7 +2293,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.SuccessResponse-models_ExamEventAttempt'
+            $ref: '#/definitions/dto.SuccessResponse-models_EventExamAttempt'
         "400":
           description: Bad Request
           schema:
@@ -1983,6 +2301,248 @@ paths:
       summary: Attempt Exam Event
       tags:
       - Exam Event
+  /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring:
+    get:
+      consumes:
+      - application/json
+      description: List proctoring logs by account, exam, or event
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Account ID
+        in: query
+        name: account_id
+        type: string
+      - description: Exam ID
+        in: query
+        name: exam_id
+        type: string
+      - description: Event ID
+        in: query
+        name: event_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_EventExamProctoringLogs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List Proctoring Logs
+      tags:
+      - Event Exam Proctoring
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new proctoring log entry with optional file attachment
+      parameters:
+      - description: Event ID
+        in: formData
+        name: id_event
+        required: true
+        type: string
+      - description: Exam ID
+        in: formData
+        name: id_exam
+        required: true
+        type: string
+      - description: Account ID
+        in: formData
+        name: id_account
+        required: true
+        type: string
+      - description: Violation Score
+        in: formData
+        name: violation_score
+        required: true
+        type: integer
+      - description: Violation Category
+        in: formData
+        name: violation_category
+        required: true
+        type: string
+      - description: Attachment File
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create Proctoring Log
+      tags:
+      - Event Exam Proctoring
+  /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a proctoring log entry
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Log ID
+        in: path
+        name: log_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete Proctoring Log
+      tags:
+      - Event Exam Proctoring
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific proctoring log
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Log ID
+        in: path
+        name: log_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_EventExamProctoringLogs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Proctoring Log By ID
+      tags:
+      - Event Exam Proctoring
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update an existing proctoring log
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Log ID
+        in: path
+        name: log_id
+        required: true
+        type: string
+      - description: Violation Score
+        in: formData
+        name: violation_score
+        type: integer
+      - description: Violation Category
+        in: formData
+        name: violation_category
+        type: string
+      - description: Attachment File
+        in: formData
+        name: file
+        type: file
+      - description: Account ID (required for upload context)
+        in: formData
+        name: id_account
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update Proctoring Log
+      tags:
+      - Event Exam Proctoring
   /api/v1/events/register-event:
     post:
       consumes:

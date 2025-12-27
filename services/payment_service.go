@@ -125,16 +125,16 @@ func (s *paymentService) PayAcademy(ctx context.Context, accountId uuid.UUID, ac
 		externalId := "academy-" + uuid.NewString()
 		expiredAt := time.Now().Add(24 * time.Hour)
 
-		InvoiceReq := *invoice.NewCreateInvoiceRequest(externalId, amount)
+		invoiceReq := *invoice.NewCreateInvoiceRequest(externalId, amount)
 
-		InvoiceReq.SetDescription("Academy ID: " + academyId.String() + "For Account ID: " + accountId.String())
-		InvoiceReq.SetCurrency("IDR")
-		InvoiceReq.SetInvoiceDuration(float32(24 * 60 * 60)) // 24 jam
+		invoiceReq.SetDescription("Academy ID: " + academyId.String() + "For Account ID: " + accountId.String())
+		invoiceReq.SetCurrency("IDR")
+		invoiceReq.SetInvoiceDuration(float32(24 * 60 * 60)) // 24 jam
 
 		invoiceResp, _, err := s.xenditClient.
 			InvoiceApi.
 			CreateInvoice(ctx).
-			CreateInvoiceRequest(InvoiceReq).
+			CreateInvoiceRequest(invoiceReq).
 			Execute()
 
 		if err != nil {

@@ -72,12 +72,13 @@ func NewAppProvider() AppProvider {
 		&entity.Questions{},
 		&entity.Exam{},
 		&entity.ProblemSetExamAssign{},
-		&entity.ExamEventAssign{},
+		&entity.EventExamAssign{},
 
 		// Exam Attempt & Result
-		&entity.ExamEventAnswer{},
-		&entity.ExamEventAttempt{},
+		&entity.EventExamAnswer{},
+		&entity.EventExamAttempt{},
 		&entity.Result{},
+		&entity.EventExamProctoringLogs{},
 
 		// Academy LMS
 		&entity.Academy{},
@@ -86,10 +87,10 @@ func NewAppProvider() AppProvider {
 		&entity.AcademyMaterialProgress{},
 		&entity.AcademyContentProgress{},
 		&entity.AcademyProgress{},
-		&entity.ExamAcademyAssign{},
-		&entity.ExamAcademyAnswer{},
-		&entity.ExamAcademyAttempt{},
-		&entity.ExamAcademyResult{},
+		&entity.AcademyExamAssign{},
+		&entity.AcademyExamAnswer{},
+		&entity.AcademyExamAttempt{},
+		&entity.AcademyExamResult{},
 		&entity.AcademyAssign{},
 
 		// Options & Regions

@@ -27,14 +27,14 @@ func NewAcademyExamController(academyExamService services.AcademyExamService) Ac
 // @Produce      json
 // @Param        academy_slug  path      string  true  "Academy Slug"
 // @Param        exam_slug     path      string  true  "Exam Slug"
-// @Success      200           {object}  dto.SuccessResponse[models.ExamAcademyAttempt]
+// @Success      200           {object}  dto.SuccessResponse[models.AcademyExamAttempt]
 // @Failure      400           {object}  dto.ErrorResponse
 // @Router       /api/v1/academy/{academy_slug}/exam/{exam_slug}/attempt [get]
 func (c *academyExamController) Attempt(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
 	examSlug := ctx.Param("exam_slug")
 	accountId := ParseAccountId(ctx)
-	res, err := c.academyExamService.AttemptExamAcademy(ctx.Request.Context(), academySlug, examSlug, accountId)
+	res, err := c.academyExamService.AttemptAcademyExam(ctx.Request.Context(), academySlug, examSlug, accountId)
 	ResponseJSON(ctx, gin.H{"academy_slug": academySlug, "exam_slug": examSlug}, res, err)
 }
 
@@ -46,7 +46,7 @@ func (c *academyExamController) Attempt(ctx *gin.Context) {
 // @Produce      json
 // @Param        academy_slug  path      string  true  "Academy Slug"
 // @Param        attempt_id    path      string  true  "Exam Attempt ID"
-// @Param        request       body      dto.AnswerExamEventRequest  true  "Answer Exam Event Request"
+// @Param        request       body      dto.AnswerEventExamRequest  true  "Answer Exam Event Request"
 // @Success      200           {object}  dto.SuccessResponse[any]
 // @Failure      400           {object}  dto.ErrorResponse
 // @Router       /api/v1/academy/{academy_slug}/exam/{attempt_id}/answer_question [post]
@@ -54,8 +54,8 @@ func (c *academyExamController) Attempt(ctx *gin.Context) {
 func (c *academyExamController) Answer(ctx *gin.Context) {
 	academySlug := ctx.Param("academy_slug")
 	attemptId := ParseUUID(ctx, "attempt_id")
-	req := RequestJSON[dto.AnswerExamEventRequest](ctx)
-	res, err := c.academyExamService.AnswerExamAcademy(ctx.Request.Context(), academySlug, attemptId, req.QuestionId, req.Answer)
+	req := RequestJSON[dto.AnswerEventExamRequest](ctx)
+	res, err := c.academyExamService.AnswerAcademyExam(ctx.Request.Context(), academySlug, attemptId, req.QuestionId, req.Answer)
 	ResponseJSON(ctx, gin.H{"cp_grader_result": res}, req, err)
 }
 
@@ -67,13 +67,13 @@ func (c *academyExamController) Answer(ctx *gin.Context) {
 // @Produce      json
 // @Param        academy_slug  path      string  true  "Academy Slug"
 // @Param        attempt_id    path      string  true  "Exam Attempt ID"
-// @Success      200           {object}  dto.SuccessResponse[entity.ExamAcademyResult]
+// @Success      200           {object}  dto.SuccessResponse[entity.AcademyExamResult]
 // @Failure      400           {object}  dto.ErrorResponse
 // @Router       /api/v1/academy/{academy_slug}/exam/{attempt_id}/submit [post]
 
 func (c *academyExamController) Submit(ctx *gin.Context) {
 	attemptId := ParseUUID(ctx, "attempt_id")
-	res, err := c.academyExamService.SubmitExamAcademy(ctx.Request.Context(), attemptId)
+	res, err := c.academyExamService.SubmitAcademyExam(ctx.Request.Context(), attemptId)
 	ResponseJSON(ctx, gin.H{}, res, err)
 }
 
