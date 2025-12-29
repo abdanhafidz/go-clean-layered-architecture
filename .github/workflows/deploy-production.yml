@@ -23,4 +23,4 @@ jobs:
       - name: Push to VPS Git Repository
         run: |
           git remote add vps git@${{ secrets.VPS_HOST }}:${{ secrets.VPS_REPO_PATH }}
-          git push vps main --force
+          git push vps master --force
