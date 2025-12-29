@@ -1,10 +1,9 @@
-name: Deploy to Development
+name: Deploy to Production
 
 on:
   push:
     branches:
       - production
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,29 +22,4 @@ jobs:
       - name: Push to VPS Git Repository
         run: |
           git remote add vps git@${{ secrets.VPS_HOST }}:${{ secrets.VPS_REPO_PATH }}
-          git push vps name: Deploy to Development
-
-on:
-  push:
-    branches:
-      - development
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Push to VPS Git Repository
-        run: |
-          git remote add vps git@${{ secrets.VPS_HOST }}:${{ secrets.VPS_DEV_REPO_PATH }}
           git push vps HEAD:main --force
