@@ -12,7 +12,7 @@ import (
 )
 
 type EventExamProctoringService interface {
-	CreateLog(ctx context.Context, req dto.EventExamProctoringLogsRequest, file *multipart.FileHeader) error
+	CreateLog(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID, req dto.EventExamProctoringLogsRequest, file *multipart.FileHeader) error
 	ListLogs(ctx context.Context, accountId uuid.UUID, examId uuid.UUID, eventId uuid.UUID) ([]entity.EventExamProctoringLogs, error)
 	GetLogById(ctx context.Context, id uuid.UUID) (entity.EventExamProctoringLogs, error)
 	UpdateLog(ctx context.Context, id uuid.UUID, req dto.EventExamProctoringLogsRequest, file *multipart.FileHeader) error
@@ -20,21 +20,29 @@ type EventExamProctoringService interface {
 }
 
 type eventExamProctoringService struct {
-	repo          repositories.EventExamProctoringRepository
-	uploadService UploadService
+	eventExamService EventExamService
+	uploadService    UploadService
+	repo             repositories.EventExamProctoringRepository
 }
 
-func NewEventExamProctoringService(repo repositories.EventExamProctoringRepository, uploadService UploadService) EventExamProctoringService {
+func NewEventExamProctoringService(eventExamService EventExamService, uploadService UploadService, repo repositories.EventExamProctoringRepository) EventExamProctoringService {
 	return &eventExamProctoringService{
-		repo:          repo,
-		uploadService: uploadService,
+		eventExamService: eventExamService,
+		uploadService:    uploadService,
+		repo:             repo,
 	}
 }
 
-func (s *eventExamProctoringService) CreateLog(ctx context.Context, req dto.EventExamProctoringLogsRequest, file *multipart.FileHeader) error {
+func (s *eventExamProctoringService) CreateLog(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID, req dto.EventExamProctoringLogsRequest, file *multipart.FileHeader) error {
+	_, attempt, err := s.eventExamService.GetEventExamAttempt(ctx, eventSlug, examSlug, accountId)
+
+	if err != nil {
+		return err
+	}
+
 	var attachmentUrl string
 	if file != nil {
-		files, err := s.uploadService.UploadFiles(ctx, []*multipart.FileHeader{file}, "submission", req.AccountId)
+		files, err := s.uploadService.UploadFiles(ctx, []*multipart.FileHeader{file}, "submission", accountId)
 		if err != nil {
 			return err
 		}
@@ -45,9 +53,9 @@ func (s *eventExamProctoringService) CreateLog(ctx context.Context, req dto.Even
 
 	log := entity.EventExamProctoringLogs{
 		Id:                uuid.New(),
-		EventId:           req.EventId,
-		ExamId:            req.ExamId,
-		AccountId:         req.AccountId,
+		EventId:           attempt.EventId,
+		ExamId:            attempt.ExamId,
+		AccountId:         accountId,
 		ViolationScore:    req.ViolationScore,
 		ViolationCategory: req.ViolationCategory,
 		Attachement:       attachmentUrl,
@@ -73,7 +81,7 @@ func (s *eventExamProctoringService) UpdateLog(ctx context.Context, id uuid.UUID
 
 	var attachmentUrl = log.Attachement
 	if file != nil {
-		files, err := s.uploadService.UploadFiles(ctx, []*multipart.FileHeader{file}, "submission", req.AccountId)
+		files, err := s.uploadService.UploadFiles(ctx, []*multipart.FileHeader{file}, "submission", log.AccountId)
 		if err != nil {
 			return err
 		}

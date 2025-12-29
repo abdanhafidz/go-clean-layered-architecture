@@ -41,10 +41,28 @@ type UpdateEventRequest struct {
 }
 
 type EventExamProctoringLogsRequest struct {
-	EventId           uuid.UUID `json:"id_event,omitempty" form:"id_event"`
-	ExamId            uuid.UUID `json:"id_exam,omitempty" form:"id_exam"`
-	AccountId         uuid.UUID `json:"id_account,omitempty" form:"id_account"`
-	ViolationScore    uint      `json:"violation_score,omitempty" form:"violation_score"`
-	ViolationCategory string    `json:"violation_category,omitempty" form:"violation_category"`
-	Attachement       string    `json:"attachement,omitempty" form:"attachement"`
+	ViolationScore    uint   `json:"violation_score,omitempty" form:"violation_score"`
+	ViolationCategory string `json:"violation_category,omitempty" form:"violation_category"`
+	Attachement       string `json:"attachement,omitempty" form:"attachement"`
+}
+
+type EventExamListResponse struct {
+	entity.Exam
+	Score float32 `json:"score,omitempty"`
+}
+
+type ExamScore struct {
+	ExamId    uuid.UUID `json:"exam_id"`
+	ExamTitle string    `json:"exam_title"`
+	Score     float32   `json:"score"`
+}
+
+type ScoreboardItem struct {
+	Username          string      `json:"username"`
+	FullName          string      `json:"full_name,omitempty"`
+	TotalExamDuration string      `json:"total_exam_duration"` // Formatted string or float? "username, total exam duration". Let's use string for display or seconds. Requested "column is ... total exam duration".
+	TotalDurationInt  int64       `json:"-"`                   // For sorting
+	Scores            []ExamScore `json:"scores"`
+	TotalScore        float32     `json:"total_score"`
+	AverageScore      float32     `json:"average_score"`
 }

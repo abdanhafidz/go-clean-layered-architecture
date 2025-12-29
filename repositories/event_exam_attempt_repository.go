@@ -43,10 +43,8 @@ func (r *eventExamAttemptRepository) GetByEventExam(ctx context.Context, eventId
 		Where("exam_id = ?", examId).
 		Where("account_id = ?", accountId).
 		First(&attempt).Error
-
 	return attempt, err
 }
-
 func (r *eventExamAttemptRepository) Update(ctx context.Context, a *entity.EventExamAttempt) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.EventExamAttempt{}).

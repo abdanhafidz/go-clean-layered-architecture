@@ -64,7 +64,7 @@ func NewServicesProvider(repoProvider RepositoriesProvider, configProvider Confi
 	emailVerificationService := services.NewEmailVerificationService(accountService, repoProvider.ProvideEmailVerificationRepository())
 	externalAuthService := services.NewExternalAuthService(jWTService, accountService, repoProvider.ProvideExternalAuthRepository())
 	eventExamService := services.NewEventExamService(eventService, problemSetService, repoProvider.ProvideProblemSetExamAssignRepository(), repoProvider.ProvideExamRepository(), repoProvider.ProvideEventExamAttemptRepository(), repoProvider.ProvideEventExamAssignRepository(), repoProvider.ProvideEventExamAnswerRepository(), repoProvider.ProvideResultRepository())
-	eventExamProctoringService := services.NewEventExamProctoringService(repoProvider.ProvideEventExamProctoringRepository(), uploadService)
+	eventExamProctoringService := services.NewEventExamProctoringService(eventExamService, uploadService, repoProvider.ProvideEventExamProctoringRepository())
 	examService := services.NewExamService(repoProvider.ProvideExamRepository(), repoProvider.ProvideEventExamAssignRepository(), repoProvider.ProvideAcademyExamAssignRepository())
 
 	return &servicesProvider{

@@ -42,9 +42,13 @@ func NewEventExamProctoringController(service services.EventExamProctoringServic
 func (ctrl *eventExamProctoringController) CreateLog(c *gin.Context) {
 	req := RequestForm[dto.EventExamProctoringLogsRequest](c)
 
+	eventSlug := c.Param("event_slug")
+	examSlug := c.Param("exam_slug")
+	accountId := ParseAccountId(c)
+
 	file, _ := c.FormFile("file")
 
-	err := ctrl.service.CreateLog(c.Request.Context(), req, file)
+	err := ctrl.service.CreateLog(c.Request.Context(), eventSlug, examSlug, accountId, req, file)
 	ResponseJSON(c, req, "OK", err)
 }
 
@@ -62,7 +66,7 @@ func (ctrl *eventExamProctoringController) CreateLog(c *gin.Context) {
 // @Success 200 {object} dto.SuccessResponse[[]models.EventExamProctoringLogs]
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring [get]
+// @Router /api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring [get]
 func (ctrl *eventExamProctoringController) ListLogs(c *gin.Context) {
 	accountId := ParseUUIDFromQuery(c, "account_id")
 	examId := ParseUUIDFromQuery(c, "exam_id")
@@ -85,7 +89,7 @@ func (ctrl *eventExamProctoringController) ListLogs(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id} [get]
+// @Router /api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id} [get]
 func (ctrl *eventExamProctoringController) GetLogById(c *gin.Context) {
 	id := ParseUUID(c, "log_id")
 	log, err := ctrl.service.GetLogById(c.Request.Context(), id)
@@ -109,7 +113,7 @@ func (ctrl *eventExamProctoringController) GetLogById(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id} [put]
+// @Router /api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id} [put]
 func (ctrl *eventExamProctoringController) UpdateLog(c *gin.Context) {
 	id := ParseUUID(c, "log_id")
 
@@ -134,7 +138,7 @@ func (ctrl *eventExamProctoringController) UpdateLog(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id} [delete]
+// @Router /api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id} [delete]
 func (ctrl *eventExamProctoringController) DeleteLog(c *gin.Context) {
 	id := ParseUUID(c, "log_id")
 	err := ctrl.service.DeleteLog(c.Request.Context(), id)
