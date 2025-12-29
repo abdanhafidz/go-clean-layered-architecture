@@ -22,6 +22,17 @@ func NewForgotPasswordController(forgotPasswordService services.ForgotPasswordSe
 	return &forgotPasswordController{forgotPasswordService: forgotPasswordService}
 }
 
+// Request Forgot Password godoc
+// @Summary      Request Password Reset
+// @Description  Generate a password reset token and send it to the specified email address
+// @Tags         Forgot Password
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.ForgotPasswordRequest  true  "Forgot Password Request"
+// @Success      200      {object}  dto.SuccessResponse[models.ForgotPassword]
+// @Failure      400      {object}  dto.ErrorResponse
+// @Router       /api/v1/authentication/forgot-password [post]
+
 func (c *forgotPasswordController) Request(ctx *gin.Context) {
 	req := RequestJSON[dto.ForgotPasswordRequest](ctx)
 	token := uint(rand.Intn(900000) + 100000)
@@ -30,12 +41,17 @@ func (c *forgotPasswordController) Request(ctx *gin.Context) {
 	ResponseJSON(ctx, req, res, err)
 }
 
+// Reset Forgot Password godoc
+// @Summary      Reset Password
+// @Description  Reset the user's password using the provided token
+// @Tags         Forgot Password
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.ResetPasswordRequest  true  "Reset Password Request"
+// @Success      200      {object}  dto.SuccessResponse[any]
+// @Failure      400      {object}  dto.ErrorResponse
 func (c *forgotPasswordController) Reset(ctx *gin.Context) {
-	type resetReq struct {
-		Token       uint   `json:"token" binding:"required"`
-		NewPassword string `json:"new_password" binding:"required"`
-	}
-	req := RequestJSON[resetReq](ctx)
+	req := RequestJSON[dto.ResetPasswordRequest](ctx)
 	err := c.forgotPasswordService.Reset(ctx.Request.Context(), req.Token, req.NewPassword)
 	ResponseJSON[any](ctx, req, gin.H{"status": "ok"}, err)
 }

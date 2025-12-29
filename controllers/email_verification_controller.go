@@ -23,6 +23,16 @@ func NewEmailVerificationController(emailVerificationService services.EmailVerif
 	return &emailVerificationController{emailVerificationService: emailVerificationService}
 }
 
+// Create Email Verification godoc
+// @Summary      Create Email Verification Token
+// @Description  Generate a verification token and send it to the specified email address
+// @Tags         Email Verification
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.CreateEmailVerificationRequest  true  "Create Email Verification Request"
+// @Success      200      {object}  dto.SuccessResponse[models.EmailVerification]
+// @Failure      400      {object}  dto.ErrorResponse
+// @Router       /api/v1/email/create-verification [post]
 func (c *emailVerificationController) Create(ctx *gin.Context) {
 	req := RequestJSON[dto.CreateEmailVerificationRequest](ctx)
 	token := uint(rand.Intn(900000) + 100000)
@@ -31,17 +41,34 @@ func (c *emailVerificationController) Create(ctx *gin.Context) {
 	ResponseJSON(ctx, req, res, err)
 }
 
+// Validate Email Verification godoc
+// @Summary      Validate Email Verification Token
+// @Description  Validate the provided verification token for the specified email address
+// @Tags         Email Verification
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.ValidateVerifyEmailRequest  true  "Validate Verify Email Request"
+// @Success      200      {object}  dto.SuccessResponse[any]
+// @Failure      400      {object}  dto.ErrorResponse
+// @Router       /api/v1/email/verify [post]
 func (c *emailVerificationController) Validate(ctx *gin.Context) {
 	req := RequestJSON[dto.ValidateVerifyEmailRequest](ctx)
 	err := c.emailVerificationService.VerifyToken(ctx.Request.Context(), req.Email, req.Token)
 	ResponseJSON[any](ctx, req, gin.H{"status": "ok"}, err)
 }
 
+// Delete Email Verification godoc
+// @Summary      Delete Email Verification Token
+// @Description  Delete the verification token after successful validation
+// @Tags         Email Verification
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.DeleteEmailVerificationRequest  true  "Delete Email Verification Request"
+// @Success      200      {object}  dto.SuccessResponse[any]
+// @Failure      400      {object}  dto.ErrorResponse
 func (c *emailVerificationController) Delete(ctx *gin.Context) {
-	type delReq struct {
-		Token uint `json:"token" binding:"required"`
-	}
-	req := RequestJSON[delReq](ctx)
+
+	req := RequestJSON[dto.DeleteEmailVerificationRequest](ctx)
 	err := c.emailVerificationService.DeleteByToken(ctx.Request.Context(), req.Token)
 	ResponseJSON[any](ctx, req, gin.H{"status": "ok"}, err)
 }

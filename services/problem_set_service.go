@@ -2,17 +2,14 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
+	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/repositories"
 	"github.com/google/uuid"
 )
 
-var (
-	ErrProblemSetNotFound = errors.New("problem set not found")
-	ErrQuestionNotFound   = errors.New("question not found")
-)
+var ()
 
 type ProblemSetService interface {
 	CreateProblemSet(ctx context.Context, ps entity.ProblemSet) error
@@ -59,7 +56,7 @@ func (s *problemSetService) CreateProblemSet(ctx context.Context, ps entity.Prob
 func (s *problemSetService) GetProblemSet(ctx context.Context, id uuid.UUID) (entity.ProblemSet, error) {
 	ps, err := s.problemSetRepository.Get(ctx, id)
 	if err != nil {
-		return entity.ProblemSet{}, ErrProblemSetNotFound
+		return entity.ProblemSet{}, http_error.PROBLEM_SET_NOT_FOUND
 	}
 	return ps, nil
 }
@@ -71,7 +68,7 @@ func (s *problemSetService) ListProblemSets(ctx context.Context) ([]entity.Probl
 func (s *problemSetService) UpdateProblemSet(ctx context.Context, ps entity.ProblemSet) error {
 	_, err := s.problemSetRepository.Get(ctx, ps.Id)
 	if err != nil {
-		return ErrProblemSetNotFound
+		return http_error.PROBLEM_SET_NOT_FOUND
 	}
 	return s.problemSetRepository.Update(ctx, ps)
 }
@@ -79,7 +76,7 @@ func (s *problemSetService) UpdateProblemSet(ctx context.Context, ps entity.Prob
 func (s *problemSetService) DeleteProblemSet(ctx context.Context, id uuid.UUID) error {
 	_, err := s.problemSetRepository.Get(ctx, id)
 	if err != nil {
-		return ErrProblemSetNotFound
+		return http_error.PROBLEM_SET_NOT_FOUND
 	}
 	return s.problemSetRepository.Delete(ctx, id)
 }
@@ -89,7 +86,7 @@ func (s *problemSetService) DeleteProblemSet(ctx context.Context, id uuid.UUID) 
 func (s *problemSetService) AddQuestion(ctx context.Context, q entity.Questions) error {
 	_, err := s.problemSetRepository.Get(ctx, q.ProblemSetId)
 	if err != nil {
-		return ErrProblemSetNotFound
+		return http_error.PROBLEM_SET_NOT_FOUND
 	}
 	return s.questionsRepository.Create(ctx, q)
 }
@@ -97,7 +94,7 @@ func (s *problemSetService) AddQuestion(ctx context.Context, q entity.Questions)
 func (s *problemSetService) UpdateQuestion(ctx context.Context, q entity.Questions) error {
 	_, err := s.questionsRepository.Get(ctx, q.Id)
 	if err != nil {
-		return ErrQuestionNotFound
+		return http_error.QUESTION_NOT_FOUND
 	}
 	return s.questionsRepository.Update(ctx, q)
 }
@@ -105,7 +102,7 @@ func (s *problemSetService) UpdateQuestion(ctx context.Context, q entity.Questio
 func (s *problemSetService) DeleteQuestion(ctx context.Context, qID uuid.UUID) error {
 	_, err := s.questionsRepository.Get(ctx, qID)
 	if err != nil {
-		return ErrQuestionNotFound
+		return http_error.QUESTION_NOT_FOUND
 	}
 	return s.questionsRepository.Delete(ctx, qID)
 }
@@ -113,7 +110,7 @@ func (s *problemSetService) DeleteQuestion(ctx context.Context, qID uuid.UUID) e
 func (s *problemSetService) ListQuestions(ctx context.Context, psID uuid.UUID) ([]entity.Questions, error) {
 	_, err := s.problemSetRepository.Get(ctx, psID)
 	if err != nil {
-		return nil, ErrProblemSetNotFound
+		return nil, http_error.PROBLEM_SET_NOT_FOUND
 	}
 	return s.questionsRepository.ListByProblemSet(ctx, psID)
 }
@@ -123,7 +120,7 @@ func (s *problemSetService) ListQuestions(ctx context.Context, psID uuid.UUID) (
 func (s *problemSetService) AssignProblemSetToExam(ctx context.Context, examId uuid.UUID, problemSetId uuid.UUID) error {
 	_, err := s.problemSetRepository.Get(ctx, problemSetId)
 	if err != nil {
-		return ErrProblemSetNotFound
+		return http_error.PROBLEM_SET_NOT_FOUND
 	}
 
 	assign := entity.ProblemSetExamAssign{

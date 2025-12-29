@@ -40,9 +40,19 @@ func AdminRouter(router *gin.Engine, middleware provider.MiddlewareProvider, con
 		academyAdminGroup.GET("/assign/:academy_id", academyController.ListAssignmentsByAcademy)
 	}
 
-	// Authentication Admin Routes 
+	// Authentication Admin Routes
 	authAdminGroup := router.Group("/api/v1/admin/authentication", authenticationMiddleware.VerifyAccount, authorizationMiddleware.VerifySuperAdmin)
 	{
 		authAdminGroup.PUT("/:account_id/assign", authenticationController.UpdateUserRole)
+	}
+
+	// Proctoring Admin Routes
+	proctoringController := controller.ProvideEventExamProctoringController()
+	proctoringAdminGroup := router.Group("/api/v1/admin/proctoring", authenticationMiddleware.VerifyAccount, authorizationMiddleware.VerifyAdmin)
+	{
+		proctoringAdminGroup.GET("/events/:event_slug/exam/:exam_slug/proctoring", proctoringController.ListLogs)
+		proctoringAdminGroup.GET("/events/:event_slug/exam/:exam_slug/proctoring/:log_id", proctoringController.GetLogById)
+		proctoringAdminGroup.PUT("/events/:event_slug/exam/:exam_slug/proctoring/:log_id", proctoringController.UpdateLog)
+		proctoringAdminGroup.DELETE("/events/:event_slug/exam/:exam_slug/proctoring/:log_id", proctoringController.DeleteLog)
 	}
 }

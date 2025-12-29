@@ -60,4 +60,10 @@ var (
 	CONTENT_NOT_FOUND     = errors.New("Content not found")
 	ACADEMY_HAS_MATERIALS = errors.New("Cannot delete academy because it still has materials")
 	MATERIAL_HAS_CONTENTS = errors.New("Cannot delete material because it still has contents")
+
+	PROBLEM_SET_NOT_FOUND = errors.New("problem set not found")
+	QUESTION_NOT_FOUND    = errors.New("question not found")
+
+	PAYMENT_FAILED   = errors.New("There is error during payment process try again later!")
+	PAYMENT_REQUIRED = errors.New("Payment is required to access this content")
 )

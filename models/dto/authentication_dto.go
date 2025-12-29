@@ -36,7 +36,10 @@ type ExternalAuthRequest struct {
 	OauthID       string `json:"oauth_id" binding:"required"`
 	OauthProvider string `json:"oauth_provider" binding:"required"`
 }
-
+type ResetPasswordRequest struct {
+	Token       uint   `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
 type ForgotPasswordRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }

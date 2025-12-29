@@ -1,71 +1,87 @@
 package controllers
 
 import (
-    "compress/gzip"
-    "errors"
-    "io"
-    "net/http"
-    "path/filepath"
-    "strings"
-    "fmt"
+	"compress/gzip"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
+	"strings"
 
-    "github.com/gin-gonic/gin"
-    "github.com/google/uuid"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
-    "abdanhafidz.com/go-boilerplate/models/dto"
-    http_error "abdanhafidz.com/go-boilerplate/models/error"
-    "abdanhafidz.com/go-boilerplate/services"
+	"abdanhafidz.com/go-boilerplate/models/dto"
+	http_error "abdanhafidz.com/go-boilerplate/models/error"
+	"abdanhafidz.com/go-boilerplate/services"
 )
 
-type UploadController interface{
+type UploadController interface {
 	Upload(ctx *gin.Context)
 	GetFileByID(ctx *gin.Context)
 }
 
-type uploadController struct{uploadService services.UploadService}
+type uploadController struct{ uploadService services.UploadService }
 
-func NewUploadController(uploadService services.UploadService) UploadController { return &uploadController{ uploadService: uploadService } }
+func NewUploadController(uploadService services.UploadService) UploadController {
+	return &uploadController{uploadService: uploadService}
+}
 
+// Upload godoc
+// @Summary      Upload Files
+// @Description  Upload one or more files to the server
+// @Tags         Upload
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        context  formData  string  false  "Upload Context (e.g., image, submission, material)"
+// @Param        files    formData  file    true   "Files to upload (multiple allowed)"
+// @Success      201      {object}  dto.FileUploadResponse
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      401      {object}  dto.ErrorResponse
+// @Failure      422      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /api/v1/files [post]
 func (c *uploadController) Upload(ctx *gin.Context) {
-    fmt.Println("👉 Content-Type:", ctx.GetHeader("Content-Type"))
+	fmt.Println("👉 Content-Type:", ctx.GetHeader("Content-Type"))
 
-    if !strings.Contains(ctx.GetHeader("Content-Type"), "multipart/form-data") {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "status":  "error",
-            "code":    "INVALID_FORM",
-            "message": "Content-Type must be multipart/form-data",
-        })
-        return
-    }
+	if !strings.Contains(ctx.GetHeader("Content-Type"), "multipart/form-data") {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    "INVALID_FORM",
+			"message": "Content-Type must be multipart/form-data",
+		})
+		return
+	}
 
-    if strings.EqualFold(ctx.GetHeader("Content-Encoding"), "gzip") {
-        gz, err := gzip.NewReader(ctx.Request.Body)
-        if err != nil {
-            ctx.JSON(http.StatusBadRequest, gin.H{
-                "status":  "error",
-                "code":    "INVALID_FORM",
-                "message": "Failed to decode gzip request body",
-            })
-            return
-        }
-        ctx.Request.Body = io.NopCloser(gz)
-    }
+	if strings.EqualFold(ctx.GetHeader("Content-Encoding"), "gzip") {
+		gz, err := gzip.NewReader(ctx.Request.Body)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"code":    "INVALID_FORM",
+				"message": "Failed to decode gzip request body",
+			})
+			return
+		}
+		ctx.Request.Body = io.NopCloser(gz)
+	}
 
-    // Gunakan limit 32MB
-    if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
-        
-        // 🔴 DEBUG: Print error ASLI ke terminal
-        fmt.Println("❌ ERROR ParseMultipartForm:", err.Error())
+	// Gunakan limit 32MB
+	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
 
-        // Respon sementara dengan error asli agar terlihat di Postman
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "status":      "error",
-            "code":        "INVALID_FORM",
-            "message":     "Failed to parse form data",
-            "debug_error": err.Error(), // <--- Kita butuh baca ini
-        })
-        return
-    }
+		// 🔴 DEBUG: Print error ASLI ke terminal
+		fmt.Println("❌ ERROR ParseMultipartForm:", err.Error())
+
+		// Respon sementara dengan error asli agar terlihat di Postman
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":      "error",
+			"code":        "INVALID_FORM",
+			"message":     "Failed to parse form data",
+			"debug_error": err.Error(), // <--- Kita butuh baca ini
+		})
+		return
+	}
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -165,6 +181,18 @@ func (c *uploadController) Upload(ctx *gin.Context) {
 	})
 }
 
+// Get File By ID godoc
+// @Summary      Get File by ID
+// @Description  Retrieve file details using its ID
+// @Tags         Upload
+// @Accept       json
+// @Produce      json
+// @Param        id  path      string  true  "File ID"
+// @Success      200  {object}  dto.FileResponseSingle
+// @Failure      400  {object}  dto.ErrorResponse
+// @Failure      401  {object}  dto.ErrorResponse
+// @Failure      404  {object}  dto.ErrorResponse
+// @Router       /api/v1/files/{id} [get]
 func (c *uploadController) GetFileByID(ctx *gin.Context) {
 	fileIDStr := ctx.Param("id")
 	fileID, err := uuid.Parse(fileIDStr)
@@ -227,6 +255,7 @@ func (c *uploadController) GetFileByID(ctx *gin.Context) {
 	})
 }
 
+// inferContextFromExt infers the upload context based on file extension
 func (c *uploadController) inferContextFromExt(ext string) string {
 	images := map[string]bool{
 		".jpg": true, ".jpeg": true, ".png": true, ".webp": true,

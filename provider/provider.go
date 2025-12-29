@@ -2,8 +2,8 @@ package provider
 
 import (
 	"log"
+
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
-	"abdanhafidz.com/go-boilerplate/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,20 +25,35 @@ type appProvider struct {
 }
 
 func NewAppProvider() AppProvider {
+	log.Println("[BOOT] Initializing App Provider...")
+
+	log.Println("[BOOT] Creating Gin Router")
 	ginRouter := gin.Default()
+
+	log.Println("[BOOT] Initializing Config Provider")
 	configProvider := NewConfigProvider()
+
+	log.Println("[BOOT] Initializing Repositories Provider")
 	repositoriesProvider := NewRepositoriesProvider(configProvider)
-	supabaseCfg := configProvider.ProvideSupabaseConfig()
-	storageDriver, errStorage := services.NewSupabaseStorageService(supabaseCfg.GetURL(), supabaseCfg.GetServiceKey(), supabaseCfg.GetBucketName())
-	if errStorage != nil {
-		log.Fatalf("Supabase storage initialization failed: %v", errStorage)
-	}
-	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider, storageDriver)
+
+	log.Println("[BOOT] Initializing Services Provider")
+	servicesProvider := NewServicesProvider(repositoriesProvider, configProvider)
+
+	log.Println("[BOOT] Initializing Controller Provider")
 	controllerProvider := NewControllerProvider(servicesProvider)
+
+	log.Println("[BOOT] Initializing Middleware Provider")
 	middlewareProvider := NewMiddlewareProvider(servicesProvider)
 
-	// Database Migrations with error handling
-	err := configProvider.ProvideDatabaseConfig().AutoMigrateAll(
+	// ===============================
+	// DATABASE MIGRATION
+	// ===============================
+	log.Println("[BOOT][DB] Starting database migration...")
+
+	dbConfig := configProvider.ProvideDatabaseConfig()
+	log.Println("[BOOT][DB] Database config acquired")
+
+	err := dbConfig.AutoMigrateAll(
 		// Accounts & Auth
 		&entity.Account{},
 		&entity.AccountDetail{},
@@ -57,12 +72,13 @@ func NewAppProvider() AppProvider {
 		&entity.Questions{},
 		&entity.Exam{},
 		&entity.ProblemSetExamAssign{},
-		&entity.ExamEventAssign{},
+		&entity.EventExamAssign{},
 
 		// Exam Attempt & Result
-		&entity.ExamEventAnswer{},
-		&entity.ExamEventAttempt{},
+		&entity.EventExamAnswer{},
+		&entity.EventExamAttempt{},
 		&entity.Result{},
+		&entity.EventExamProctoringLogs{},
 
 		// Academy LMS
 		&entity.Academy{},
@@ -71,10 +87,10 @@ func NewAppProvider() AppProvider {
 		&entity.AcademyMaterialProgress{},
 		&entity.AcademyContentProgress{},
 		&entity.AcademyProgress{},
-		&entity.ExamAcademyAssign{},
-		&entity.ExamAcademyAnswer{},
-		&entity.ExamAcademyAttempt{},
-		&entity.ExamAcademyResult{},
+		&entity.AcademyExamAssign{},
+		&entity.AcademyExamAnswer{},
+		&entity.AcademyExamAttempt{},
+		&entity.AcademyExamResult{},
 		&entity.AcademyAssign{},
 
 		// Options & Regions
@@ -85,11 +101,20 @@ func NewAppProvider() AppProvider {
 
 		// Files Storage
 		&entity.File{},
+
+		// Payments
+		&entity.EventPaymentTransaction{},
+		&entity.AcademyPaymentTransaction{},
 	)
 
 	if err != nil {
-		log.Fatalf("Database migration failed: %v", err)
+		log.Fatalf("[BOOT][DB] ❌ Database migration failed: %v", err)
 	}
+
+	log.Println("[BOOT][DB] ✅ Database migration completed")
+
+	log.Println("[BOOT] App Provider initialized successfully")
+
 	return &appProvider{
 		ginRouter:            ginRouter,
 		configProvider:       configProvider,
@@ -99,6 +124,7 @@ func NewAppProvider() AppProvider {
 		middlewareProvider:   middlewareProvider,
 	}
 }
+
 func (a *appProvider) ProvideRouter() *gin.Engine {
 	return a.ginRouter
 }

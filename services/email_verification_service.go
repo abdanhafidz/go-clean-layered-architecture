@@ -29,12 +29,15 @@ func NewEmailVerificationService(accountService AccountService, emailVerificatio
 
 func (s *emailVerificationService) CreateToken(ctx context.Context, email string, token uint, due time.Time) (entity.EmailVerification, error) {
 	acc, err := s.accountService.GetByEmail(ctx, email)
+	
 	if err != nil {
 		return entity.EmailVerification{}, err
 	}
+
 	if due.IsZero() {
 		due = time.Now().Add(15 * time.Minute)
 	}
+
 	ev := entity.EmailVerification{AccountId: acc.Id, Token: token, IsExpired: false, CreatedAt: time.Now(), ExpiredAt: due}
 	return s.emailVerificationRepo.Create(ctx, ev)
 }

@@ -25,12 +25,13 @@ type EventService interface {
 }
 
 type eventService struct {
+	paymentService  PaymentService
 	eventsRepo      repositories.EventsRepository
 	eventAssignRepo repositories.EventAssignRepository
 }
 
-func NewEventService(eventsRepo repositories.EventsRepository, eventAssignRepo repositories.EventAssignRepository) EventService {
-	return &eventService{eventsRepo: eventsRepo, eventAssignRepo: eventAssignRepo}
+func NewEventService(paymentService PaymentService, eventsRepo repositories.EventsRepository, eventAssignRepo repositories.EventAssignRepository) EventService {
+	return &eventService{paymentService: paymentService, eventsRepo: eventsRepo, eventAssignRepo: eventAssignRepo}
 }
 
 func (s *eventService) AuthorizeUserToEvent(ctx context.Context, slug string, accountId uuid.UUID) error {
@@ -81,23 +82,56 @@ func (s *eventService) DetailBySlug(ctx context.Context, slug string, accountId 
 }
 
 func (s *eventService) JoinByCode(ctx context.Context, accountID uuid.UUID, code string) (dto.EventDetailResponse, error) {
+
 	ev, err := s.eventsRepo.GetByCode(ctx, code)
+
+	eventDetail := dto.EventDetailResponse{Data: &ev}
+
 	if err != nil {
-		return dto.EventDetailResponse{}, err
+		return eventDetail, http_error.DATA_NOT_FOUND
 	}
 
-	exist, err := s.eventAssignRepo.GetByEventAndAccount(ctx, ev.Id, accountID)
-	if err == nil && exist.Id != uuid.Nil {
-		return dto.EventDetailResponse{}, http_error.ALREADY_REGISTERED_TO_EVENT
+	assigned, err := s.eventAssignRepo.GetByEventAndAccount(ctx, ev.Id, accountID)
+
+	if err == nil && assigned.Id != uuid.Nil {
+		eventDetail.RegisterStatus = 1
+		return eventDetail, http_error.ALREADY_REGISTERED_TO_EVENT
 	}
 
-	assign := entity.EventAssign{EventId: ev.Id, AccountId: accountID, AssignedAt: time.Now()}
-
-	if _, err := s.eventAssignRepo.Assign(ctx, assign); err != nil {
-		return dto.EventDetailResponse{}, err
+	if err != nil {
+		return eventDetail, err
 	}
 
-	return dto.EventDetailResponse{Data: &ev, RegisterStatus: 1}, nil
+	if ev.Price != 0 {
+
+		paymentEvent, err := s.paymentService.PayEvent(ctx, accountID, ev.Id, ev.Price)
+
+		if err != nil {
+			return eventDetail, err
+		}
+
+		eventDetail.EventPayment = paymentEvent
+
+		if paymentEvent.Status != entity.PaymentStatusPaid {
+			return eventDetail, http_error.PAYMENT_REQUIRED
+		}
+
+	}
+
+	_, err = s.eventAssignRepo.Assign(ctx,
+		entity.EventAssign{
+			Id:        uuid.New(),
+			AccountId: accountID,
+			EventId:   ev.Id,
+		},
+	)
+
+	if err != nil {
+		return eventDetail, err
+	}
+
+	eventDetail.RegisterStatus = 1
+	return eventDetail, err
 }
 
 func (s *eventService) GetStatus(ctx context.Context, slug string, accountId uuid.UUID) (eventStatus dto.EventStatus, err error) {
@@ -149,7 +183,6 @@ func (s *eventService) CreateEvent(ctx context.Context, req dto.CreateEventReque
 		EventCode:  req.EventCode,
 		IsPublic:   req.IsPublic,
 	}
-
 	return s.eventsRepo.Create(ctx, ev)
 }
 

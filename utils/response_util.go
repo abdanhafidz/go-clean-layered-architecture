@@ -43,6 +43,13 @@ func ResponseFAILED[TMetaData any](c *gin.Context, metaData TMetaData, err error
 			MetaData: metaData,
 		})
 		return
+	} else if errors.Is(err, http_error.PAYMENT_REQUIRED) {
+		c.JSON(402, dto.SuccessResponse[TMetaData]{
+			Status:  "action_required",
+			Data:    metaData,
+			Message: http_error.PAYMENT_REQUIRED.Error(),
+		})
+		return
 	} else if errors.Is(err, http_error.NOT_FOUND_ERROR) || errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(404, dto.ErrorResponse{
 			Status:   "error",
@@ -87,7 +94,6 @@ func ResponseFAILED[TMetaData any](c *gin.Context, metaData TMetaData, err error
 		})
 		return
 	}
-
 }
 
 func SendResponse[Tdata any, TMetaData any](c *gin.Context, metaData TMetaData, data Tdata, err error) {
