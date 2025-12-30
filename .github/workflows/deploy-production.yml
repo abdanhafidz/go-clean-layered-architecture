@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -21,6 +23,7 @@ jobs:
       - name: Add VPS to known_hosts
         run: |
           mkdir -p ~/.ssh
+          nano ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Push to VPS
