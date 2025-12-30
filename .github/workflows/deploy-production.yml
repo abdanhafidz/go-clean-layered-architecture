@@ -22,7 +22,7 @@ jobs:
       - name: Push to VPS Git Repository
         run: |
           git remote add vps git@${{ secrets.VPS_HOST }}:${{ secrets.VPS_REPO_PATH }}
-          git push vps HEAD:main --force
+          git push vps HEAD:production --force
       - name: Debug branch
         run: |
           git branch
