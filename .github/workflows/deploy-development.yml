@@ -1,9 +1,8 @@
-name: Deploy to Production
-
+name: Deploy to Development
 on:
   push:
     branches:
-      - production
+      - development
 
 jobs:
   deploy:
