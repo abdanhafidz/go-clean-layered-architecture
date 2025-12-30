@@ -1,26 +1,32 @@
-name: Deploy to Development
+name: Deploy to Production
 
 on:
   push:
     branches:
-      - development
+      - production
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known_hosts
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Push to VPS Git Repository
+      - name: Push to VPS
         run: |
-          git remote add vps git@${{ secrets.VPS_HOST }}:${{ secrets.VPS_DEV_REPO_PATH }}
-          git push vps HEAD:main --force
+          git remote remove vps || true
+          git remote add vps git@${{ secrets.VPS_HOST }}:/home/git/repos/backend-development.git
+          git push vps HEAD:production --force
