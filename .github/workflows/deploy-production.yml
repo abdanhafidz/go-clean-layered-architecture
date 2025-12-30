@@ -4,25 +4,42 @@ on:
   push:
     branches:
       - production
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout source code
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # 2. Setup SSH
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Push to VPS Git Repository
+          # Prevent host verification issues
+          cat <<EOF > ~/.ssh/config
+          Host *
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+          EOF
+
+          chmod 600 ~/.ssh/config
+
+      # 3. Push to VPS Git Repository
+      - name: Push to VPS
         run: |
           git remote add vps git@${{ secrets.VPS_HOST }}:${{ secrets.VPS_REPO_PATH }}
           git push vps HEAD:production --force
-      - name: Debug branch
+
+      # 4. Debug (optional – boleh dihapus nanti)
+      - name: Debug Branch
         run: |
-          git branch
+          git branch -a
