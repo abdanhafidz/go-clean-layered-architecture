@@ -4,7 +4,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
 	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/joho/godotenv"
 )
