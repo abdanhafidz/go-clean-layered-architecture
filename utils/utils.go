@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
@@ -51,4 +53,23 @@ func ValidateCode(code string) error {
 		return http_error.INVALID_CODE
 	}
 	return nil
+}
+
+func GetEnv(key string) string {
+	// 1. Normal env
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+
+	// 2. File-based secret
+	if file := os.Getenv(key + "_FILE"); file != "" {
+		data, err := os.ReadFile(file)
+		if err == nil {
+			return strings.TrimSpace(string(data))
+		} else {
+			panic(err)
+		}
+	}
+
+	return ""
 }
