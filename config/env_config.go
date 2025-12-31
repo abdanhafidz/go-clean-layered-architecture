@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/joho/godotenv"
 )
 
@@ -40,23 +41,23 @@ func NewEnvConfig(timezone string) EnvConfig {
 }
 
 func (e *envConfig) GetTCPAddress() string {
-	return os.Getenv("HOST_ADDRESS") + ":" + os.Getenv("HOST_PORT")
+	return utils.GetEnv("HOST_ADDRESS") + ":" + utils.GetEnv("HOST_PORT")
 }
 
 func (e *envConfig) GetLogPath() string {
-	return os.Getenv("LOG_PATH")
+	return utils.GetEnv("LOG_PATH")
 }
 
 func (e *envConfig) GetHostAddress() string {
-	return os.Getenv("HOST_ADDRESS")
+	return utils.GetEnv("HOST_ADDRESS")
 }
 
 func (e *envConfig) GetHostPort() string {
-	return os.Getenv("HOST_PORT")
+	return utils.GetEnv("HOST_PORT")
 }
 
 func (e *envConfig) GetEmailVerificationDuration() int {
-	duration, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_DURATION"))
+	duration, err := strconv.Atoi(utils.GetEnv("EMAIL_VERIFICATION_DURATION"))
 	if err != nil {
 		return 0 // Default value if parsing fails
 	}
@@ -64,27 +65,27 @@ func (e *envConfig) GetEmailVerificationDuration() int {
 }
 
 func (e *envConfig) GetDatabaseHost() string {
-	return os.Getenv("DB_HOST")
+	return utils.GetEnv("DB_HOST")
 }
 
 func (e *envConfig) GetDatabasePort() string {
-	return os.Getenv("DB_PORT")
+	return utils.GetEnv("DB_PORT")
 }
 
 func (e *envConfig) GetDatabaseUser() string {
-	return os.Getenv("DB_USER")
+	return utils.GetEnv("DB_USER")
 }
 
 func (e *envConfig) GetDatabasePassword() string {
-	return os.Getenv("DB_PASSWORD")
+	return utils.GetEnv("DB_PASSWORD")
 }
 
 func (e *envConfig) GetDatabaseName() string {
-	return os.Getenv("DB_NAME")
+	return utils.GetEnv("DB_NAME")
 }
 
 func (e *envConfig) GetSalt() string {
-	salt := os.Getenv("SALT")
+	salt := utils.GetEnv("SALT")
 	if salt == "" {
 		return "Def4u|7" // Default salt value
 	}
@@ -92,21 +93,21 @@ func (e *envConfig) GetSalt() string {
 }
 
 func (e *envConfig) GetSupabaseURL() string {
-	return strings.TrimSpace(os.Getenv("SUPABASE_URL"))
+	return strings.TrimSpace(utils.GetEnv("SUPABASE_URL"))
 }
 
 func (e *envConfig) GetSupabaseKey() string {
-	return strings.TrimSpace(os.Getenv("SUPABASE_SERVICE_KEY"))
+	return strings.TrimSpace(utils.GetEnv("SUPABASE_SERVICE_KEY"))
 }
 
 func (e *envConfig) GetSupabaseBucket() string {
-	return strings.TrimSpace(os.Getenv("SUPABASE_BUCKET_NAME"))
+	return strings.TrimSpace(utils.GetEnv("SUPABASE_BUCKET_NAME"))
 }
 
 func (e *envConfig) GetXenditAPIKey() string {
-	return strings.TrimSpace(os.Getenv("XENDIT_API_KEY"))
+	return strings.TrimSpace(utils.GetEnv("XENDIT_API_KEY"))
 }
 
 func (e *envConfig) GetXenditCallbackToken() string {
-	return strings.TrimSpace(os.Getenv("XENDIT_CALLBACK_TOKEN"))
+	return strings.TrimSpace(utils.GetEnv("XENDIT_CALLBACK_TOKEN"))
 }
