@@ -28,4 +28,4 @@ jobs:
         run: |
           git remote remove vps || true
           git remote add vps git@${{ secrets.VPS_HOST }}:/home/git/repos/backend-development.git
-          git push vps HEAD:production --force
+          git push vps HEAD:development --force
