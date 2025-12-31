@@ -2,7 +2,7 @@ name: Deploy to Huggingface - tests
 on:
   push:
     branches:
-      - tests
+      - test
 jobs:
   deploy-to-huggingface:
     runs-on: ubuntu-latest
