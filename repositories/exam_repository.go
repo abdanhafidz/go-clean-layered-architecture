@@ -65,6 +65,8 @@ func (r *examRepository) Create(ctx context.Context, e *entity.Exam) error {
 func (r *examRepository) Get(ctx context.Context, id uuid.UUID) (entity.Exam, error) {
 	var e entity.Exam
 	err := r.db.WithContext(ctx).
+		Preload("Configuration").
+		Preload("Proctoring").
 		First(&e, "exam_id = ?", id).Error
 	return e, err
 }
@@ -72,6 +74,8 @@ func (r *examRepository) Get(ctx context.Context, id uuid.UUID) (entity.Exam, er
 func (r *examRepository) GetBySlug(ctx context.Context, slug string) (entity.Exam, error) {
 	var e entity.Exam
 	err := r.db.WithContext(ctx).
+		Preload("Configuration").
+		Preload("Proctoring").
 		Where("slug = ?", slug).
 		First(&e).Error
 	return e, err
@@ -133,6 +137,8 @@ func (r *examRepository) ListByEvent(ctx context.Context, eventId uuid.UUID) ([]
 
 	err := r.db.WithContext(ctx).
 		Table("exam").
+		Preload("Configuration").
+		Preload("Proctoring").
 		Joins(`JOIN exam_event_assign ON exam_event_assign.exam_id = exam.id`).
 		Where("exam_event_assign.event_id = ?", eventId).
 		Find(&exams).Error
