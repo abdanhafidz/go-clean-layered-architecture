@@ -36,6 +36,7 @@ func RunRouter(appProvider provider.AppProvider) {
 	UploadRouter(router, middleware, controller)
 	AdminRouter(router, middleware, controller)
 	ExamRouter(router, middleware, controller)
+	PaymentCallbackRouter(router, controller)
 	SwaggerRouter(router)
 	router.Run(config.ProvideEnvConfig().GetTCPAddress())
 }

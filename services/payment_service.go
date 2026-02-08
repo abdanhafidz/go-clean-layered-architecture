@@ -17,19 +17,25 @@ import (
 type PaymentService interface {
 	PayEvent(ctx context.Context, accountId uuid.UUID, eventId uuid.UUID, amount float64) (entity.EventPaymentTransaction, error)
 	PayAcademy(ctx context.Context, accountId uuid.UUID, academySlug uuid.UUID, amount float64) (entity.AcademyPaymentTransaction, error)
+	ConfirmPayment(ctx context.Context, invoiceId string) error
+	ExpirePayment(ctx context.Context, invoiceId string) error
 }
 
 type paymentService struct {
 	xenditClient       *xendit.APIClient
 	eventPaymentRepo   repositories.EventPaymentRepository
 	academyPaymentRepo repositories.AcademyPaymentRepository
+	eventAssignRepo    repositories.EventAssignRepository
+	academyAssignRepo  repositories.AcademyRepository
 }
 
-func NewPaymentService(xenditClient *xendit.APIClient, eventPaymentRepo repositories.EventPaymentRepository, academyPaymentRepo repositories.AcademyPaymentRepository) PaymentService {
+func NewPaymentService(xenditClient *xendit.APIClient, eventPaymentRepo repositories.EventPaymentRepository, academyPaymentRepo repositories.AcademyPaymentRepository, eventAssignRepo repositories.EventAssignRepository, academyRepo repositories.AcademyRepository) PaymentService {
 	return &paymentService{
 		xenditClient:       xenditClient,
 		eventPaymentRepo:   eventPaymentRepo,
 		academyPaymentRepo: academyPaymentRepo,
+		eventAssignRepo:    eventAssignRepo,
+		academyAssignRepo:  academyRepo,
 	}
 }
 
@@ -201,4 +207,51 @@ func (s *paymentService) PayAcademy(ctx context.Context, accountId uuid.UUID, ac
 		return lastPayment, nil
 	}
 
+}
+
+func (s *paymentService) ConfirmPayment(ctx context.Context, invoiceId string) error {
+	// Check Event Payment
+	if payment, err := s.eventPaymentRepo.GetByInvoiceId(ctx, invoiceId); err == nil && payment.Id != uuid.Nil {
+		payment.Status = entity.PaymentStatusPaid
+		s.eventPaymentRepo.UpdatePayment(ctx, payment)
+
+		// Assign User to Event
+		_, errAssign := s.eventAssignRepo.Assign(ctx, entity.EventAssign{
+			Id:        uuid.New(),
+			AccountId: payment.AccountId,
+			EventId:   payment.EventId,
+		})
+		return errAssign
+	}
+
+	// Check Academy Payment
+	if payment, err := s.academyPaymentRepo.GetByInvoiceId(ctx, invoiceId); err == nil && payment.Id != uuid.Nil {
+		payment.Status = entity.PaymentStatusPaid
+		s.academyPaymentRepo.UpdatePayment(ctx, payment)
+
+		// Assign User to Academy
+		_, errAssign := s.academyAssignRepo.AssignAccountToAcademy(ctx, entity.AcademyAssign{
+			Id:        uuid.New(),
+			AccountId: payment.AccountId,
+			AcademyId: payment.AcademyId,
+			CreatedAt: time.Now(),
+		})
+		return errAssign
+	}
+
+	return errors.New("payment not found for invoice id " + invoiceId)
+}
+
+func (s *paymentService) ExpirePayment(ctx context.Context, invoiceId string) error {
+	if payment, err := s.eventPaymentRepo.GetByInvoiceId(ctx, invoiceId); err == nil && payment.Id != uuid.Nil {
+		payment.Status = entity.PaymentStatusExpired
+		_, err := s.eventPaymentRepo.UpdatePayment(ctx, payment)
+		return err
+	}
+	if payment, err := s.academyPaymentRepo.GetByInvoiceId(ctx, invoiceId); err == nil && payment.Id != uuid.Nil {
+		payment.Status = entity.PaymentStatusExpired
+		_, err := s.academyPaymentRepo.UpdatePayment(ctx, payment)
+		return err
+	}
+	return nil
 }

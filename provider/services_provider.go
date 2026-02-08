@@ -46,7 +46,7 @@ type servicesProvider struct {
 func NewServicesProvider(repoProvider RepositoriesProvider, configProvider ConfigProvider) ServicesProvider {
 	regionService := services.NewRegionService(repoProvider.ProvideRegionRepository())
 	jWTService := services.NewJWTService(configProvider.ProvideJWTConfig().GetSecretKey())
-	paymentService := services.NewPaymentService(configProvider.ProvideXenditConfig().GetClient(), repoProvider.ProvideEventPaymentRepository(), repoProvider.ProvideAcademyPaymentRepository())
+	paymentService := services.NewPaymentService(configProvider.ProvideXenditConfig().GetClient(), repoProvider.ProvideEventPaymentRepository(), repoProvider.ProvideAcademyPaymentRepository(), repoProvider.ProvideEventAssignRepository(), repoProvider.ProvideAcademyRepository())
 	academyService := services.NewAcademyService(paymentService, repoProvider.ProvideAcademyRepository())
 	storageService := services.NewSupabaseStorageService(configProvider.ProvideSupabaseConfig().GetURL(), configProvider.ProvideSupabaseConfig().GetServiceKey(), configProvider.ProvideSupabaseConfig().GetBucketName())
 	uploadService := services.NewUploadService(

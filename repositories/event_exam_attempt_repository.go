@@ -29,6 +29,8 @@ func (r *eventExamAttemptRepository) GetById(ctx context.Context, attemptId uuid
 	var a entity.EventExamAttempt
 	err := r.db.WithContext(ctx).
 		Preload("Answers").
+		Preload("Exam").
+		Preload("Exam.Configuration").
 		First(&a, "id = ?", attemptId).Error
 	return a, err
 }
@@ -39,6 +41,8 @@ func (r *eventExamAttemptRepository) GetByEventExam(ctx context.Context, eventId
 
 	err := r.db.WithContext(ctx).
 		Preload("Answers").
+		Preload("Exam").
+		Preload("Exam.Configuration").
 		Where("event_id = ?", eventId).
 		Where("exam_id = ?", examId).
 		Where("account_id = ?", accountId).

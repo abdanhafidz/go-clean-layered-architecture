@@ -13,6 +13,7 @@ type EventPaymentRepository interface {
 	GetPaymentById(ctx context.Context, id uuid.UUID) (entity.EventPaymentTransaction, error)
 	UpdatePayment(ctx context.Context, eventPayment entity.EventPaymentTransaction) (entity.EventPaymentTransaction, error)
 	GetPaymentByEventAndAccount(ctx context.Context, eventId uuid.UUID, accountId uuid.UUID) (entity.EventPaymentTransaction, error)
+	GetByInvoiceId(ctx context.Context, invoiceId string) (entity.EventPaymentTransaction, error)
 }
 
 type eventPaymentRepository struct {
@@ -41,5 +42,11 @@ func (r *eventPaymentRepository) UpdatePayment(ctx context.Context, eventPayment
 func (r *eventPaymentRepository) GetPaymentByEventAndAccount(ctx context.Context, eventId uuid.UUID, accountId uuid.UUID) (entity.EventPaymentTransaction, error) {
 	var payment entity.EventPaymentTransaction
 	err := r.db.WithContext(ctx).Where("event_id = ? AND account_id = ?", eventId, accountId).First(&payment).Error
+	return payment, err
+}
+
+func (r *eventPaymentRepository) GetByInvoiceId(ctx context.Context, invoiceId string) (entity.EventPaymentTransaction, error) {
+	var payment entity.EventPaymentTransaction
+	err := r.db.WithContext(ctx).Where("invoice_id = ?", invoiceId).First(&payment).Error
 	return payment, err
 }

@@ -167,9 +167,9 @@ func (r *eventsRepository) ListVisible(ctx context.Context, accountId uuid.UUID,
 		if p.RegisterStatus != nil {
 			switch *p.RegisterStatus {
 			case 1:
-				q = q.Where("academy.id IN (?)", sub)
+				q = q.Where("events.id IN (?)", sub)
 			case 0:
-				q = q.Where("academy.id NOT IN (?)", sub)
+				q = q.Where("events.id NOT IN (?)", sub)
 			}
 		}
 
