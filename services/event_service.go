@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"abdanhafidz.com/go-boilerplate/repositories"
 	"abdanhafidz.com/go-boilerplate/utils"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type EventService interface {
@@ -98,7 +100,7 @@ func (s *eventService) JoinByCode(ctx context.Context, accountID uuid.UUID, code
 		return eventDetail, http_error.ALREADY_REGISTERED_TO_EVENT
 	}
 
-	if err != nil {
+	if err != nil && !errors.Is(err, http_error.DATA_NOT_FOUND) && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return eventDetail, err
 	}
 

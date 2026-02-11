@@ -3,6 +3,7 @@ package controllers
 import (
 	"log"
 
+	"abdanhafidz.com/go-boilerplate/models/dto"
 	http_error "abdanhafidz.com/go-boilerplate/models/error"
 	"abdanhafidz.com/go-boilerplate/services"
 	"abdanhafidz.com/go-boilerplate/utils"
@@ -38,7 +39,7 @@ func NewPaymentCallbackController(
 // @Accept       json
 // @Produce      json
 // @Param        request  body      map[string]interface{}  true  "Xendit Callback Payload"
-// @Success      200      {object}  dto.SuccessResponse[string]
+// @Success      200      {object}  dto.SuccessResponse[any]
 // @Failure      400      {object}  dto.ErrorResponse
 // @Router       /api/v1/payment/callback [post]
 func (c *paymentCallbackController) HandleCallback(ctx *gin.Context) {
@@ -56,6 +57,8 @@ func (c *paymentCallbackController) HandleCallback(ctx *gin.Context) {
 	status, ok := callbackData["status"].(string)
 	if !ok {
 		// Not a status update or unknown format
+		var _ dto.SuccessResponse[any]
+
 		ResponseJSON(ctx, gin.H(nil), "Ignored: No status", nil)
 		return
 	}
@@ -78,5 +81,5 @@ func (c *paymentCallbackController) HandleCallback(ctx *gin.Context) {
 	}
 
 	// Always return 200 to Xendit
-	ResponseJSON(ctx, gin.H(nil), "Callback Received", nil)
+	ResponseJSON(ctx, gin.H(nil), gin.H{"callback": "Callback Received"}, nil)
 }

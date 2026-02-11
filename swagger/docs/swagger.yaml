@@ -2002,6 +2002,196 @@ paths:
       summary: Update Exam
       tags:
       - Exam
+  /api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring:
+    get:
+      consumes:
+      - application/json
+      description: List proctoring logs by account, exam, or event
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Account ID
+        in: query
+        name: account_id
+        type: string
+      - description: Exam ID
+        in: query
+        name: exam_id
+        type: string
+      - description: Event ID
+        in: query
+        name: event_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-array_models_EventExamProctoringLogs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List Proctoring Logs
+      tags:
+      - Event Exam Proctoring
+  /api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a proctoring log entry
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Log ID
+        in: path
+        name: log_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete Proctoring Log
+      tags:
+      - Event Exam Proctoring
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific proctoring log
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Log ID
+        in: path
+        name: log_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-models_EventExamProctoringLogs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Proctoring Log By ID
+      tags:
+      - Event Exam Proctoring
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update an existing proctoring log
+      parameters:
+      - description: Event Slug
+        in: path
+        name: event_slug
+        required: true
+        type: string
+      - description: Exam Slug
+        in: path
+        name: exam_slug
+        required: true
+        type: string
+      - description: Log ID
+        in: path
+        name: log_id
+        required: true
+        type: string
+      - description: Violation Score
+        in: formData
+        name: violation_score
+        type: integer
+      - description: Violation Category
+        in: formData
+        name: violation_category
+        type: string
+      - description: Attachment File
+        in: formData
+        name: file
+        type: file
+      - description: Account ID (required for upload context)
+        in: formData
+        name: id_account
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update Proctoring Log
+      tags:
+      - Event Exam Proctoring
   /api/v1/authentication/external-login:
     post:
       consumes:
@@ -2302,51 +2492,6 @@ paths:
       tags:
       - Exam Event
   /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring:
-    get:
-      consumes:
-      - application/json
-      description: List proctoring logs by account, exam, or event
-      parameters:
-      - description: Event Slug
-        in: path
-        name: event_slug
-        required: true
-        type: string
-      - description: Exam Slug
-        in: path
-        name: exam_slug
-        required: true
-        type: string
-      - description: Account ID
-        in: query
-        name: account_id
-        type: string
-      - description: Exam ID
-        in: query
-        name: exam_id
-        type: string
-      - description: Event ID
-        in: query
-        name: event_id
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.SuccessResponse-array_models_EventExamProctoringLogs'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: List Proctoring Logs
-      tags:
-      - Event Exam Proctoring
     post:
       consumes:
       - multipart/form-data
@@ -2399,150 +2544,6 @@ paths:
       summary: Create Proctoring Log
       tags:
       - Event Exam Proctoring
-  /api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a proctoring log entry
-      parameters:
-      - description: Event Slug
-        in: path
-        name: event_slug
-        required: true
-        type: string
-      - description: Exam Slug
-        in: path
-        name: exam_slug
-        required: true
-        type: string
-      - description: Log ID
-        in: path
-        name: log_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.SuccessResponse-string'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Delete Proctoring Log
-      tags:
-      - Event Exam Proctoring
-    get:
-      consumes:
-      - application/json
-      description: Get details of a specific proctoring log
-      parameters:
-      - description: Event Slug
-        in: path
-        name: event_slug
-        required: true
-        type: string
-      - description: Exam Slug
-        in: path
-        name: exam_slug
-        required: true
-        type: string
-      - description: Log ID
-        in: path
-        name: log_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.SuccessResponse-models_EventExamProctoringLogs'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get Proctoring Log By ID
-      tags:
-      - Event Exam Proctoring
-    put:
-      consumes:
-      - multipart/form-data
-      description: Update an existing proctoring log
-      parameters:
-      - description: Event Slug
-        in: path
-        name: event_slug
-        required: true
-        type: string
-      - description: Exam Slug
-        in: path
-        name: exam_slug
-        required: true
-        type: string
-      - description: Log ID
-        in: path
-        name: log_id
-        required: true
-        type: string
-      - description: Violation Score
-        in: formData
-        name: violation_score
-        type: integer
-      - description: Violation Category
-        in: formData
-        name: violation_category
-        type: string
-      - description: Attachment File
-        in: formData
-        name: file
-        type: file
-      - description: Account ID (required for upload context)
-        in: formData
-        name: id_account
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.SuccessResponse-string'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Update Proctoring Log
-      tags:
-      - Event Exam Proctoring
   /api/v1/events/register-event:
     post:
       consumes:
@@ -2570,6 +2571,8 @@ paths:
           description: Payment Required
           schema:
             $ref: '#/definitions/dto.SuccessResponse-models_EventPaymentTransaction'
+      security:
+      - BearerAuth: []
       summary: Join Event
       tags:
       - Event
@@ -2804,6 +2807,33 @@ paths:
       summary: Seed Provinces
       tags:
       - Region
+  /api/v1/payment/callback:
+    post:
+      consumes:
+      - application/json
+      description: Receive and process payment status updates from Xendit
+      parameters:
+      - description: Xendit Callback Payload
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Handle Xendit Payment Callback
+      tags:
+      - Payment
 schemes:
 - http
 - https

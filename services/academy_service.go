@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"errors"
 	"math"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
+	"gorm.io/gorm"
 
 	"abdanhafidz.com/go-boilerplate/models/dto"
 	entity "abdanhafidz.com/go-boilerplate/models/entity"
@@ -828,7 +830,7 @@ func (s *academyService) JoinByCode(ctx context.Context, accountId uuid.UUID, co
 	}
 	assigned, err := s.academyRepo.IsAccountAssignedToAcademy(ctx, accountId, ac.Id)
 
-	if err != nil {
+	if err != nil && !errors.Is(err, http_error.DATA_NOT_FOUND) && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return academyDetail, err
 	}
 
