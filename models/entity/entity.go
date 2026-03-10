@@ -88,7 +88,7 @@ type Events struct {
 	IsPublic       bool           `json:"is_public,omitempty"`
 	CreatedAt      time.Time      `json:"created_at,omitempty"`
 	DeletedAt      gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
-	Price          float64        `json:"price,omitempty"`
+	Price          float64        `json:"price"`
 	RegisterStatus int            `gorm:"-" json:"register_status"`
 }
 

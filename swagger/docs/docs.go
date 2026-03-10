@@ -1206,6 +1206,288 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring": {
+            "get": {
+                "description": "List proctoring logs by account, exam, or event",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "List Proctoring Logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "account_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "exam_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-array_models_EventExamProctoringLogs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/proctoring/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id}": {
+            "get": {
+                "description": "Get details of a specific proctoring log",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Get Proctoring Log By ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-models_EventExamProctoringLogs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing proctoring log",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Update Proctoring Log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Violation Score",
+                        "name": "violation_score",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Violation Category",
+                        "name": "violation_category",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Attachment File",
+                        "name": "file",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account ID (required for upload context)",
+                        "name": "id_account",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a proctoring log entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Exam Proctoring"
+                ],
+                "summary": "Delete Proctoring Log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Slug",
+                        "name": "event_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Exam Slug",
+                        "name": "exam_slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "log_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/authentication/external-login": {
             "post": {
                 "description": "Authenticate user using external OAuth provider",
@@ -1483,6 +1765,11 @@ const docTemplate = `{
         },
         "/api/v1/events/register-event": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Register the authenticated user for an event using an event code",
                 "consumes": [
                     "application/json"
@@ -1703,73 +1990,6 @@ const docTemplate = `{
             }
         },
         "/api/v1/events/{event_slug}/exam/{exam_slug}/proctoring": {
-            "get": {
-                "description": "List proctoring logs by account, exam, or event",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Event Exam Proctoring"
-                ],
-                "summary": "List Proctoring Logs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Event Slug",
-                        "name": "event_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Exam Slug",
-                        "name": "exam_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Account ID",
-                        "name": "account_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Exam ID",
-                        "name": "exam_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Event ID",
-                        "name": "event_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-array_models_EventExamProctoringLogs"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Create a new proctoring log entry with optional file attachment",
                 "consumes": [
@@ -1834,219 +2054,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/events/{event_slug}/exam/{exam_slug}/proctoring/{log_id}": {
-            "get": {
-                "description": "Get details of a specific proctoring log",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Event Exam Proctoring"
-                ],
-                "summary": "Get Proctoring Log By ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Event Slug",
-                        "name": "event_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Exam Slug",
-                        "name": "exam_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Log ID",
-                        "name": "log_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-models_EventExamProctoringLogs"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update an existing proctoring log",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Event Exam Proctoring"
-                ],
-                "summary": "Update Proctoring Log",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Event Slug",
-                        "name": "event_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Exam Slug",
-                        "name": "exam_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Log ID",
-                        "name": "log_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Violation Score",
-                        "name": "violation_score",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Violation Category",
-                        "name": "violation_category",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Attachment File",
-                        "name": "file",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Account ID (required for upload context)",
-                        "name": "id_account",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete a proctoring log entry",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Event Exam Proctoring"
-                ],
-                "summary": "Delete Proctoring Log",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Event Slug",
-                        "name": "event_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Exam Slug",
-                        "name": "exam_slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Log ID",
-                        "name": "log_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -2394,6 +2401,47 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.RegionProvince"
                             }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/payment/callback": {
+            "post": {
+                "description": "Receive and process payment status updates from Xendit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Handle Xendit Payment Callback",
+                "parameters": [
+                    {
+                        "description": "Xendit Callback Payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 ],

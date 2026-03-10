@@ -129,6 +129,7 @@ func (c *eventController) DetailBySlug(ctx *gin.Context) {
 // @Success      200      {object}  dto.SuccessResponse[dto.EventDetailResponse]
 // @Failure      400      {object}  dto.ErrorResponse
 // @Failure      402      {object}  dto.SuccessResponse[entity.EventPaymentTransaction]
+// @Security     BearerAuth
 // @Router       /api/v1/events/register-event [post]
 func (c *eventController) Join(ctx *gin.Context) {
 	req := RequestJSON[dto.JoinEventRequest](ctx)

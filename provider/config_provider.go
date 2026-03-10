@@ -1,8 +1,6 @@
 package provider
 
 import (
-	"fmt"
-
 	"abdanhafidz.com/go-boilerplate/config"
 )
 
@@ -26,13 +24,10 @@ type configProvider struct {
 
 func NewConfigProvider() ConfigProvider {
 	envConfig := config.NewEnvConfig("Asia / Jakarta")
-	fmt.Println("We are here 1!")
 	databaseConfig := config.NewDatabaseConfig(envConfig.GetDatabaseHost(), envConfig.GetDatabaseUser(), envConfig.GetDatabasePassword(), envConfig.GetDatabaseName(), envConfig.GetDatabasePort())
-	fmt.Println("We are here 2!")
 	uploadConfig := config.NewUploadConfig()
 	supabaseConfig := config.NewSupabaseConfig(envConfig.GetSupabaseURL(), envConfig.GetSupabaseKey(), envConfig.GetSupabaseBucket())
 	jWTConfig := config.NewJWTConfig(envConfig.GetSalt())
-	fmt.Println("We are here!")
 	xenditConfig := config.NewXenditConfig(envConfig)
 	return &configProvider{
 		databaseConfig: databaseConfig,

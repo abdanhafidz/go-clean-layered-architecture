@@ -78,6 +78,8 @@ func NewAppProvider() AppProvider {
 		&entity.EventExamAnswer{},
 		&entity.EventExamAttempt{},
 		&entity.Result{},
+		&entity.ExamConfiguration{},
+		&entity.ExamProctoring{},
 		&entity.EventExamProctoringLogs{},
 
 		// Academy LMS

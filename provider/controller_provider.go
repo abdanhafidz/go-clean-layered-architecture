@@ -11,6 +11,7 @@ type ControllerProvider interface {
 	ProvideEventController() controllers.EventController
 	ProvideEventExamController() controllers.EventExamController
 	ProvideEventExamProctoringController() controllers.EventExamProctoringController
+	ProvidePaymentCallbackController() controllers.PaymentCallbackController
 	ProvideExamController() controllers.ExamController
 	ProvideForgotPasswordController() controllers.ForgotPasswordController
 	ProvideOptionController() controllers.OptionController
@@ -27,6 +28,7 @@ type controllerProvider struct {
 	eventController               controllers.EventController
 	eventExamController           controllers.EventExamController
 	eventExamProctoringController controllers.EventExamProctoringController
+	paymentCallbackController     controllers.PaymentCallbackController
 	examController                controllers.ExamController
 	forgotPasswordController      controllers.ForgotPasswordController
 	optionController              controllers.OptionController
@@ -44,6 +46,11 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 	eventController := controllers.NewEventController(servicesProvider.ProvideEventService())
 	eventExamController := controllers.NewEventExamController(servicesProvider.ProvideEventExamService())
 	eventExamProctoringController := controllers.NewEventExamProctoringController(servicesProvider.ProvideEventExamProctoringService())
+	paymentCallbackController := controllers.NewPaymentCallbackController(
+		servicesProvider.ProvidePaymentService(),
+		servicesProvider.ProvideEventService(),
+		servicesProvider.ProvideAcademyService(),
+	)
 	examController := controllers.NewExamController(servicesProvider.ProvideExamService())
 	forgotPasswordController := controllers.NewForgotPasswordController(servicesProvider.ProvideForgotPasswordService())
 	optionController := controllers.NewOptionController(servicesProvider.ProvideOptionService())
@@ -58,6 +65,7 @@ func NewControllerProvider(servicesProvider ServicesProvider) ControllerProvider
 		eventController:               eventController,
 		eventExamController:           eventExamController,
 		eventExamProctoringController: eventExamProctoringController,
+		paymentCallbackController:     paymentCallbackController,
 		examController:                examController,
 		forgotPasswordController:      forgotPasswordController,
 		optionController:              optionController,
@@ -98,6 +106,10 @@ func (c *controllerProvider) ProvideEventExamController() controllers.EventExamC
 
 func (c *controllerProvider) ProvideEventExamProctoringController() controllers.EventExamProctoringController {
 	return c.eventExamProctoringController
+}
+
+func (c *controllerProvider) ProvidePaymentCallbackController() controllers.PaymentCallbackController {
+	return c.paymentCallbackController
 }
 
 func (c *controllerProvider) ProvideExamController() controllers.ExamController {

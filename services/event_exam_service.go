@@ -131,15 +131,15 @@ func (s *eventExamService) ListExamByEvent(ctx context.Context, eventSlug string
 func (s *eventExamService) GetEventExamExisting(ctx context.Context, eventSlug string, examSlug string, accountId uuid.UUID) (ev dto.EventDetailResponse, exam entity.Exam, err error) {
 
 	if ev, err = s.eventService.DetailBySlug(ctx, eventSlug, accountId); err != nil {
-		return ev, exam, err
+		return ev, exam, fmt.Errorf("event not found or unauthorized: %w", err)
 	}
 
 	if exam, err = s.examRepo.GetBySlug(ctx, examSlug); err != nil {
-		return ev, exam, err
+		return ev, exam, fmt.Errorf("exam not found: %w", err)
 	}
 
 	if err := s.eventExamAssignRepo.Check(ctx, ev.Data.Id, exam.Id); err != nil {
-		return dto.EventDetailResponse{}, entity.Exam{}, err
+		return dto.EventDetailResponse{}, entity.Exam{}, fmt.Errorf("exam not assigned to event: %w", err)
 	}
 
 	return ev, exam, err

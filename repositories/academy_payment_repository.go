@@ -13,6 +13,7 @@ type AcademyPaymentRepository interface {
 	GetPaymentById(ctx context.Context, id uuid.UUID) (entity.AcademyPaymentTransaction, error)
 	GetPaymentByAcademyAndAccount(ctx context.Context, academyId uuid.UUID, accountId uuid.UUID) (entity.AcademyPaymentTransaction, error)
 	UpdatePayment(ctx context.Context, academyPayment entity.AcademyPaymentTransaction) (entity.AcademyPaymentTransaction, error)
+	GetByInvoiceId(ctx context.Context, invoiceId string) (entity.AcademyPaymentTransaction, error)
 }
 
 type academyPaymentRepository struct {
@@ -42,4 +43,10 @@ func (r *academyPaymentRepository) GetPaymentById(ctx context.Context, id uuid.U
 func (r *academyPaymentRepository) UpdatePayment(ctx context.Context, academyPayment entity.AcademyPaymentTransaction) (entity.AcademyPaymentTransaction, error) {
 	err := r.db.WithContext(ctx).Save(&academyPayment).Error
 	return academyPayment, err
+}
+
+func (r *academyPaymentRepository) GetByInvoiceId(ctx context.Context, invoiceId string) (entity.AcademyPaymentTransaction, error) {
+	var payment entity.AcademyPaymentTransaction
+	err := r.db.WithContext(ctx).Where("invoice_id = ?", invoiceId).First(&payment).Error
+	return payment, err
 }
