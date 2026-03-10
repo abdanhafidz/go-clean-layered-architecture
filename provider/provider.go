@@ -62,39 +62,6 @@ func NewAppProvider() AppProvider {
 		&entity.FCM{},
 		&entity.ForgotPassword{},
 
-		// Events
-		&entity.Events{},
-		&entity.EventAssign{},
-		&entity.Announcement{},
-
-		// Problemset & Exam
-		&entity.ProblemSet{},
-		&entity.Questions{},
-		&entity.Exam{},
-		&entity.ProblemSetExamAssign{},
-		&entity.EventExamAssign{},
-
-		// Exam Attempt & Result
-		&entity.EventExamAnswer{},
-		&entity.EventExamAttempt{},
-		&entity.Result{},
-		&entity.ExamConfiguration{},
-		&entity.ExamProctoring{},
-		&entity.EventExamProctoringLogs{},
-
-		// Academy LMS
-		&entity.Academy{},
-		&entity.AcademyMaterial{},
-		&entity.AcademyContent{},
-		&entity.AcademyMaterialProgress{},
-		&entity.AcademyContentProgress{},
-		&entity.AcademyProgress{},
-		&entity.AcademyExamAssign{},
-		&entity.AcademyExamAnswer{},
-		&entity.AcademyExamAttempt{},
-		&entity.AcademyExamResult{},
-		&entity.AcademyAssign{},
-
 		// Options & Regions
 		&entity.OptionCategory{},
 		&entity.OptionValues{},
@@ -103,10 +70,6 @@ func NewAppProvider() AppProvider {
 
 		// Files Storage
 		&entity.File{},
-
-		// Payments
-		&entity.EventPaymentTransaction{},
-		&entity.AcademyPaymentTransaction{},
 	)
 
 	if err != nil {

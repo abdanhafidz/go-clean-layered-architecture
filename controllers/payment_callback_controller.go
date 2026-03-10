@@ -16,19 +16,13 @@ type PaymentCallbackController interface {
 
 type paymentCallbackController struct {
 	paymentService services.PaymentService
-	eventService   services.EventService
-	academyService services.AcademyService
 }
 
 func NewPaymentCallbackController(
 	paymentService services.PaymentService,
-	eventService services.EventService,
-	academyService services.AcademyService,
 ) PaymentCallbackController {
 	return &paymentCallbackController{
 		paymentService: paymentService,
-		eventService:   eventService,
-		academyService: academyService,
 	}
 }
 
