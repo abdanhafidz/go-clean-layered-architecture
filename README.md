@@ -128,7 +128,7 @@ This boilerplate features a unique **PowerShell-based Dependency Injection Engin
 ### Step 1: Clone the Repository
 ```bash
 git clone <your-repo-url>
-cd danzapp-be
+cd <your-directory-name>
 ```
 
 ### Step 2: Environment Setup
@@ -213,4 +213,5 @@ docker run -p 8080:8080 --env-file .env go-starter
 
 ---
 
-Developed with ❤️ by the DanzApp Team.
+Developed with ❤️ by Abdan Hafidz.
+
