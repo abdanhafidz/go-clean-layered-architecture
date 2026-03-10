@@ -1,3 +1,4 @@
+
 name: Uptime Check Backend API
 
 on:
@@ -18,7 +19,7 @@ jobs:
       - name: Check Dev API Uptime
         run: |
           echo "🔍 Checking Development API..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://lifedebugger-quzuu-api-dev.hf.space/api/v1)
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" {YOUR_DEV_ENDPOINT})
           
           echo "Development API HTTP Status: $RESPONSE"
           
@@ -30,7 +31,7 @@ jobs:
       - name: Check Test API Uptime
         run: |
           echo "🔍 Checking Test API..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://lifedebugger-quzuu-api-test.hf.space/api/v1)
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" {YOUR_TEST_ENDPOINT})
           
           echo "Test API HTTP Status: $RESPONSE"
           

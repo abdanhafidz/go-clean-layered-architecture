@@ -13,21 +13,21 @@ jobs:
       # Setup Git
       - name: Setup Git for Huggingface
         run: |
-          git config --global user.email "abdan.hafidz@gmail.com"
-          git config --global user.name "abdanhafidz"
+          git config --global user.email "{YOUR_GIT_EMAIL}"
+          git config --global user.name "{YOUR_GIT_USERNAME}"
       # Clone Huggingface Space Repository
       - name: Clone Huggingface Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-test space
+          git clone https://huggingface.co/spaces/{YOUR_USERNAME}/{YOUR_PROJECT_NAME_TEST} space
       # Update Git Remote URL and Pull Latest Changes
       - name: Update Remote and Pull Changes
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           cd space
-          git remote set-url origin https://lifedebugger:$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-test
+          git remote set-url origin https://{YOUR_USERNAME}:$HF_TOKEN@huggingface.co/spaces/{YOUR_USERNAME}/{YOUR_PROJECT_NAME_TEST}
           git pull origin main || echo "No changes to pull"
       # Clean Space Directory - Delete all files except .git
       - name: Clean Space Directory
